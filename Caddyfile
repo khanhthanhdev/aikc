@@ -35,13 +35,6 @@
 		}
 	}
 
-	# Inngest dashboard
-	redir /inngest /inngest/ 308
-	handle_path /inngest/* {
-		reverse_proxy inngest:8288 {
-			header_up X-Real-IP {http.request.header.CF-Connecting-IP}
-		}
-	}
 
 	# Main app
 	handle {

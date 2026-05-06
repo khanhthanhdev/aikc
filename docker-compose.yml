@@ -125,8 +125,9 @@ services:
     image: inngest/inngest
     command: "inngest start"
     restart: unless-stopped
+    # Security: bind to localhost only — dashboard is accessed via Caddy with Basic Auth
     ports:
-      - "${INNGEST_PORT:-8288}:8288"
+      - "127.0.0.1:${INNGEST_PORT:-8288}:8288"
     environment:
       INNGEST_EVENT_KEY: "${INNGEST_EVENT_KEY:-local-inngest-event-key}"
       INNGEST_SIGNING_KEY: "${INNGEST_SIGNING_KEY:-deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef}"
