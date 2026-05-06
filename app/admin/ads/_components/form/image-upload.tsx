@@ -2,14 +2,9 @@
 
 import { Loader2Icon, UploadCloudIcon, XIcon } from "lucide-react";
 import Image from "next/image";
-import {
-  type ChangeEvent,
-  type DragEvent,
-  useCallback,
-  useState,
-  useTransition,
-} from "react";
+import { type ChangeEvent, type DragEvent, useCallback, useState } from "react";
 import { toast } from "sonner";
+import { useServerAction } from "zsa-react";
 import { uploadAdImage } from "~/app/admin/ads/_lib/actions";
 import { Button } from "~/components/web/ui/button";
 import { cx } from "~/utils/cva";
@@ -27,8 +22,17 @@ export const ImageUpload = ({
   disabled,
   className,
 }: ImageUploadProps) => {
-  const [isPending, startTransition] = useTransition();
   const [dragActive, setDragActive] = useState(false);
+
+  const { execute, isPending } = useServerAction(uploadAdImage, {
+    onSuccess: ({ data }) => {
+      onChange(data);
+      toast.success("Image uploaded");
+    },
+    onError: () => {
+      toast.error("Failed to upload image");
+    },
+  });
 
   const handleFile = useCallback(
     (file: File) => {
@@ -48,20 +52,9 @@ export const ImageUpload = ({
         return;
       }
 
-      startTransition(async () => {
-        try {
-          const formData = new FormData();
-          formData.append("file", file);
-          const url = await uploadAdImage(formData);
-          onChange(url);
-          toast.success("Image uploaded");
-        } catch (error) {
-          console.error("Upload failed:", error);
-          toast.error("Failed to upload image");
-        }
-      });
+      execute({ file });
     },
-    [disabled, isPending, onChange]
+    [disabled, isPending, execute]
   );
 
   const onDragOver = useCallback((e: DragEvent<HTMLDivElement>) => {

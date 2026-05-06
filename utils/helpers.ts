@@ -1,22 +1,3 @@
-import wretch from "wretch";
-
-/**
- * Checks if an email is a real email by checking if the domain is not in the disposable domains list
- * @param email
- * @returns
- */
-export const isRealEmail = async (email: string) => {
-  const disposableJsonURL =
-    "https://rawcdn.githack.com/disposable/disposable-email-domains/master/domains.json";
-
-  const disposableDomains = await wretch(disposableJsonURL)
-    .get()
-    .json<string[]>();
-  const domain = email.split("@")[1];
-
-  return !disposableDomains.includes(domain);
-};
-
 /**
  * Adds UTM tracking to the provided link
  * It uses the search params and accepts source, medium and campaign which are optional
@@ -94,20 +75,49 @@ export const sanitizeUrl = (url: string) => {
   }
 };
 
+type JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | JsonValue[]
+  | { [key: string]: JsonValue };
+type JsonContainer = JsonValue[] | { [key: string]: JsonValue };
+type IsBroadJsonValue<T> =
+  unknown extends NonNullable<T>
+    ? false
+    : [JsonContainer] extends [NonNullable<T>]
+      ? true
+      : false;
+type NullsToUndefined<T> =
+  IsBroadJsonValue<T> extends true
+    ? // Prisma JsonValue fields are intentionally left dynamic; recursively
+      // expanding them breaks callers that pass model objects into form defaults.
+      unknown
+    : T extends null | undefined
+      ? undefined
+      : T extends Date
+        ? T
+        : [T] extends [(infer U)[]]
+          ? NullsToUndefined<U>[]
+          : T extends object
+            ? { [K in keyof T]: NullsToUndefined<T[K]> }
+            : T;
+
 /**
  * Converts null and undefined values to undefined
  * @param obj
  * @returns
  */
-export function nullsToUndefined<T>(obj: T) {
+export function nullsToUndefined<T>(obj: T): NullsToUndefined<T> {
   if (obj === null || obj === undefined) {
-    return undefined as any;
+    return undefined as NullsToUndefined<T>;
   }
 
-  if ((obj as any).constructor.name === "Object" || Array.isArray(obj)) {
+  if ((obj as object).constructor.name === "Object" || Array.isArray(obj)) {
     for (const key in obj) {
-      obj[key] = nullsToUndefined(obj[key]) as any;
+      obj[key] = nullsToUndefined(obj[key]) as (typeof obj)[typeof key];
     }
   }
-  return obj as any;
+  return obj as NullsToUndefined<T>;
 }

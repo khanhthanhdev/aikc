@@ -68,8 +68,12 @@ export const SubmitForm = ({
         "submitterName",
         "submitterEmail",
       ] as const;
+      const isKnownField = (
+        value: string
+      ): value is (typeof knownFields)[number] =>
+        knownFields.some((knownField) => knownField === value);
 
-      if (field && knownFields.includes(field)) {
+      if (field && isKnownField(field)) {
         form.setError(field, { type: "server", message: err.message });
       } else {
         toast.error(err.message || t("submitFailed"));

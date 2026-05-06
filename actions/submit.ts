@@ -1,8 +1,13 @@
 "use server";
 
 import { slugify } from "@curiousleaf/utils";
+import { headers } from "next/headers";
 import { createServerAction } from "zsa";
 import { validateLink } from "~/lib/link-validator";
+import {
+  getClientIpFromHeaders,
+  rateLimitByAddressMulti,
+} from "~/lib/rate-limit";
 import { submitToolSchema } from "~/server/schemas";
 import { prisma } from "~/services/prisma";
 import { sanitizeText, sanitizeUrl } from "~/utils/helpers";
@@ -52,6 +57,25 @@ export const submitTool = createServerAction()
     // Reject honeypot — silently pretend success to not tip off bots
     if (input.hp) {
       return { slug: "", name: "", publishedAt: null } as const;
+    }
+
+    // Per-IP submit rate limit: 3 / 10 min and 20 / day
+    if (process.env.NODE_ENV !== "development") {
+      const ip = getClientIpFromHeaders(await headers());
+      const limit = rateLimitByAddressMulti(ip, [
+        { scope: "submit:10min", limit: 3, windowSeconds: 10 * 60 },
+        { scope: "submit:day", limit: 20, windowSeconds: 24 * 60 * 60 },
+      ]);
+      if (!limit.success) {
+        const retryAfter = Math.max(
+          1,
+          Math.ceil((limit.resetAt - Date.now()) / 1000)
+        );
+        throw new SubmitError(
+          "websiteUrl",
+          `Too many submissions from this IP. Please try again in ${retryAfter} seconds.`
+        );
+      }
     }
 
     const name = sanitizeText(input.name, 100);

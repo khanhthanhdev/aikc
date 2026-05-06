@@ -5,6 +5,41 @@ import { routing } from "./i18n/routing";
 
 const intlMiddleware = createIntlMiddleware(routing);
 
+/**
+ * Rewrite the `Link` header so alternate-hreflang URLs use the canonical
+ * site origin instead of the internal host (e.g. 0.0.0.0:5175).
+ *
+ * next-intl builds the Link header from the incoming request's Host header,
+ * which may leak internal infrastructure addresses.  When
+ * NEXT_PUBLIC_SITE_URL is set, we rewrite the origin in every `<…>` URL
+ * found in the Link header to match the public domain.
+ */
+function rewriteLinkHeader(response: NextResponse): void {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  if (!siteUrl) return;
+
+  const linkHeader = response.headers.get("Link");
+  if (!linkHeader) return;
+
+  let siteOrigin: string;
+  try {
+    siteOrigin = new URL(siteUrl).origin;
+  } catch {
+    return; // invalid URL – leave the header untouched
+  }
+
+  // Replace every URL origin inside angle brackets with the canonical one.
+  // Pattern matches `<scheme://host[:port]/…>` and replaces the origin.
+  const rewritten = linkHeader.replace(
+    /<(https?:\/\/[^\/]+)(\/[^>]*)>/g,
+    (_match, _origin, path) => `<${siteOrigin}${path}>`,
+  );
+
+  if (rewritten !== linkHeader) {
+    response.headers.set("Link", rewritten);
+  }
+}
+
 const STATIC_FILES =
   /^\/(en|vi)\/(icon-192\.png|icon-512\.png|favicon\.ico|manifest\.json)$/;
 
@@ -44,7 +79,9 @@ export default async function middleware(req: NextRequest) {
   }
 
   // Let next-intl handle all other routes without invoking auth middleware
-  return intlMiddleware(req);
+  const response = intlMiddleware(req);
+  rewriteLinkHeader(response);
+  return response;
 }
 
 export const config = {

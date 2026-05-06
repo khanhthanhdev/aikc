@@ -45,6 +45,11 @@ type ToolFormProps = React.HTMLAttributes<HTMLFormElement> & {
   tags: Awaited<ReturnType<typeof getTags>>;
 };
 
+const getDefaultSocials = (socials: unknown): ToolSchema["socials"] => {
+  const result = toolSchema.shape.socials.safeParse(socials);
+  return result.success ? result.data : undefined;
+};
+
 export function ToolForm({
   children,
   className,
@@ -60,6 +65,7 @@ export function ToolForm({
       ...nullsToUndefined(tool),
       categories: tool?.categories?.map(({ id }) => id),
       collections: tool?.collections?.map(({ id }) => id),
+      socials: getDefaultSocials(tool?.socials),
       tags: tool?.tags?.map(({ id }) => id),
     },
   });

@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import {
+  isSameOrigin,
+  rateLimitByIpMulti,
+  rateLimitResponse,
+} from "~/lib/rate-limit";
+import {
   answerToolQuestion,
   answerToolQuestionAdvanced,
   retrieveToolContext,
@@ -10,7 +15,7 @@ import {
 const ragQuerySchema = z.object({
   question: z.string().min(1).max(500),
   limit: z.number().int().min(1).max(20).optional(),
-  category: z.string().optional(),
+  category: z.string().max(100).optional(),
   temperature: z.number().min(0).max(2).optional(),
   /** Use advanced RAG with query routing and hybrid search */
   advanced: z.boolean().optional(),
@@ -19,25 +24,54 @@ const ragQuerySchema = z.object({
 const contextQuerySchema = z.object({
   query: z.string().min(1).max(500),
   limit: z.number().int().min(1).max(20).optional(),
-  category: z.string().optional(),
+  category: z.string().max(100).optional(),
   /** Use advanced retrieval with query routing */
   advanced: z.boolean().optional(),
 });
 
+const RAG_LIMITS = [
+  { scope: "rag:minute", limit: 10, windowSeconds: 60 },
+  { scope: "rag:day", limit: 100, windowSeconds: 24 * 60 * 60 },
+] as const;
+
+function originDenied() {
+  return NextResponse.json(
+    { error: "Cross-origin requests are not allowed" },
+    { status: 403 }
+  );
+}
+
 export async function POST(request: Request) {
+  if (!isSameOrigin(request)) {
+    return originDenied();
+  }
+
+  const limit = rateLimitByIpMulti(request, [...RAG_LIMITS]);
+  if (!limit.success) {
+    return rateLimitResponse(
+      limit,
+      limit.scope === "rag:day"
+        ? "Daily limit reached. Please try again tomorrow."
+        : "Too many requests. Please slow down and try again in a minute."
+    );
+  }
+
   try {
     const body = await request.json();
-    const { question, limit, category, temperature, advanced } =
+    const { question, limit: take, category, temperature, advanced } =
       ragQuerySchema.parse(body);
 
-    // Use advanced RAG if requested
     const result = advanced
       ? await answerToolQuestionAdvanced(question, {
-          limit,
+          limit: take,
           category,
           temperature,
         })
-      : await answerToolQuestion(question, { limit, category, temperature });
+      : await answerToolQuestion(question, {
+          limit: take,
+          category,
+          temperature,
+        });
 
     const { cache, ...rest } = result;
     const responseBody = cache ? { ...rest, cache, cached: true } : rest;
@@ -51,7 +85,7 @@ export async function POST(request: Request) {
       );
     }
 
-    console.error("RAG API error:", error);
+    console.error("RAG API error");
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -60,21 +94,29 @@ export async function POST(request: Request) {
 }
 
 export async function GET(request: Request) {
+  if (!isSameOrigin(request)) {
+    return originDenied();
+  }
+
+  const limit = rateLimitByIpMulti(request, [...RAG_LIMITS]);
+  if (!limit.success) {
+    return rateLimitResponse(limit);
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get("query") || "";
-    const limit = searchParams.get("limit");
+    const take = searchParams.get("limit");
     const category = searchParams.get("category");
     const advanced = searchParams.get("advanced");
 
     const parsed = contextQuerySchema.parse({
       query,
-      limit: limit ? Number.parseInt(limit, 10) : undefined,
+      limit: take ? Number.parseInt(take, 10) : undefined,
       category: category || undefined,
       advanced: advanced === "true",
     });
 
-    // Use advanced retrieval if requested
     if (parsed.advanced) {
       const result = await retrieveToolContextWithRouting(parsed.query, {
         limit: parsed.limit,
@@ -97,7 +139,7 @@ export async function GET(request: Request) {
       );
     }
 
-    console.error("RAG context API error:", error);
+    console.error("RAG context API error");
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

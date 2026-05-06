@@ -9,6 +9,11 @@ import {
 } from "ai";
 import { z } from "zod";
 import {
+  isSameOrigin,
+  rateLimitByIpMulti,
+  rateLimitResponse,
+} from "~/lib/rate-limit";
+import {
   findCachedAnswer,
   type SemanticCacheEntry,
   type SemanticCacheToolResult,
@@ -18,6 +23,8 @@ import { searchYoutubeVideos } from "~/services/ai-chat-tools";
 import { googleFlashModel } from "~/services/google";
 
 export const maxDuration = 30;
+
+const MAX_MESSAGE_TEXT_LENGTH = 8000;
 
 // Localized system prompts
 const SYSTEM_PROMPTS = {
@@ -84,10 +91,51 @@ Quy tắc câu hỏi tiếp theo:
 LƯU Ý: Các video YouTube sẽ hiển thị bằng tiếng Anh để có nhiều nội dung chất lượng cao hơn.`,
 };
 
+// Strict message schema — only accept user/assistant text parts that we
+// actually need. Tool/system messages from the client are rejected.
+const nonTextMessagePartSchema = z
+  .object({
+    type: z.string().refine((type) => type !== "text"),
+  })
+  .passthrough()
+  .superRefine((part, ctx) => {
+    const text = (part as { text?: unknown }).text;
+    if (typeof text === "string" && text.length > MAX_MESSAGE_TEXT_LENGTH) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.too_big,
+        maximum: MAX_MESSAGE_TEXT_LENGTH,
+        origin: "string",
+        inclusive: true,
+        message: `Text must contain at most ${MAX_MESSAGE_TEXT_LENGTH} character(s)`,
+        path: ["text"],
+      });
+    }
+  });
+
+const messagePartSchema = z.union([
+  z.object({
+    type: z.literal("text"),
+    text: z.string().max(MAX_MESSAGE_TEXT_LENGTH),
+  }),
+  // Allow other part types defined by the AI SDK to pass through, but
+  // limit any text fields to a sane maximum.
+  nonTextMessagePartSchema,
+]);
+
+const messageSchema = z.object({
+  id: z.string().max(200).optional(),
+  role: z.enum(["user", "assistant"]),
+  parts: z.array(messagePartSchema).min(1).max(50),
+});
+
 const chatRequestSchema = z.object({
-  messages: z.array(z.any()),
-  toolSlug: z.string().optional(),
-  locale: z.enum(["en", "vi"]).default("en"), // Add locale to request schema
+  messages: z.array(messageSchema).min(1).max(40),
+  toolSlug: z
+    .string()
+    .max(120)
+    .regex(/^[a-z0-9-]+$/i, "Invalid toolSlug")
+    .optional(),
+  locale: z.enum(["en", "vi"]).default("en"),
 });
 
 function getMessageText(message: UIMessage): string {
@@ -220,6 +268,30 @@ function createCachedMessageStream(
 
 export async function POST(req: Request) {
   try {
+    // Reject cross-origin POSTs — this endpoint should only be hit by our
+    // own client, never embedded by third-party sites.
+    if (!isSameOrigin(req)) {
+      return new Response(
+        JSON.stringify({ error: "Cross-origin requests are not allowed" }),
+        { status: 403, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    // ── Rate limit per IP: 10 chats / minute AND 50 chats / day ──
+    const limit = rateLimitByIpMulti(req, [
+      { scope: "chat:minute", limit: 10, windowSeconds: 60 },
+      { scope: "chat:day", limit: 50, windowSeconds: 24 * 60 * 60 },
+    ]);
+
+    if (!limit.success) {
+      return rateLimitResponse(
+        limit,
+        limit.scope === "chat:day"
+          ? "Daily chat limit reached (50 per day). Please try again tomorrow."
+          : "Too many requests. Please slow down and try again in a minute."
+      );
+    }
+
     const body = await req.json();
     const {
       messages,
@@ -239,7 +311,9 @@ export async function POST(req: Request) {
           ? `global :: ${query}`
           : "";
 
-    console.log("[ChatAPI] Request:", { toolSlug, query, locale, cacheKey });
+    if (process.env.NODE_ENV === "development") {
+      console.log("[ChatAPI] Request:", { toolSlug, query, locale, cacheKey });
+    }
 
     if (cacheKey) {
       const cached = await findCachedAnswer(cacheKey, { toolSlug });

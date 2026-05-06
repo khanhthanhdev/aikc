@@ -15,6 +15,19 @@
 		format console
 	}
 
+	# Security headers (defense-in-depth, also applied by Next.js)
+	header {
+		X-Frame-Options "DENY"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+		Cross-Origin-Opener-Policy "same-origin"
+		Cross-Origin-Resource-Policy "same-origin"
+		-Server
+		-X-Powered-By
+	}
+
 	respond /healthz 200
 
 	# Block direct IP access - only allow requests via Cloudflare with proper Host
@@ -25,16 +38,6 @@
 
 	# Cloudflare proxy health check
 	respond /cdn-cgi/trace 200
-
-
-	# Infinity embedding service
-	redir /infinity /infinity/ 308
-	handle_path /infinity/* {
-		reverse_proxy infinity:7997 {
-			header_up X-Real-IP {http.request.header.CF-Connecting-IP}
-		}
-	}
-
 
 	# Main app
 	handle {
