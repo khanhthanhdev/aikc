@@ -2,7 +2,10 @@ import type NextLink from "next/link";
 import { createNavigation } from "next-intl/navigation";
 import { routing } from "~/i18n/routing";
 
-const navigation = createNavigation(routing);
+const navigation = createNavigation({
+  ...routing,
+  localeCookie: false,
+});
 
 export const Link = navigation.Link as unknown as typeof NextLink;
 export const usePathname = navigation.usePathname;

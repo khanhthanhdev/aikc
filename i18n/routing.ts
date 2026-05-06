@@ -1,5 +1,15 @@
 import { defineRouting } from "next-intl/routing";
 
+const LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
+
+export const localeCookie = {
+  name: "NEXT_LOCALE",
+  maxAge: LOCALE_COOKIE_MAX_AGE,
+  secure: true,
+  httpOnly: true,
+  sameSite: "lax",
+} as const;
+
 export const routing = defineRouting({
   // A list of all locales that are supported
   locales: ["en", "vi"],
@@ -29,9 +39,5 @@ export const routing = defineRouting({
   },
 
   // Cookie configuration for locale persistence
-  localeCookie: {
-    name: "NEXT_LOCALE",
-    maxAge: 60 * 60 * 24 * 365, // 1 year
-    secure: true,
-  },
+  localeCookie,
 });
