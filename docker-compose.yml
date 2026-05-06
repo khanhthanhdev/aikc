@@ -72,9 +72,6 @@ services:
   qdrant:
     image: qdrant/qdrant:v1.16.1
     restart: unless-stopped
-    ports:
-      - "${QDRANT_PORT:-6333}:6333"
-      - "${QDRANT_GRPC_PORT:-6334}:6334"
     volumes:
       - qdrant_data:/qdrant/storage
 

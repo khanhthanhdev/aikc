@@ -26,21 +26,6 @@
 	# Cloudflare proxy health check
 	respond /cdn-cgi/trace 200
 
-	# PostgREST API
-	redir /postgrest /postgrest/ 308
-	handle_path /postgrest/* {
-		reverse_proxy postgrest:3000 {
-			header_up X-Real-IP {http.request.header.CF-Connecting-IP}
-		}
-	}
-
-	# Qdrant admin panel (restricted)
-	redir /qdrant /qdrant/ 308
-	handle_path /qdrant/* {
-		reverse_proxy qdrant:6333 {
-			header_up X-Real-IP {http.request.header.CF-Connecting-IP}
-		}
-	}
 
 	# Infinity embedding service
 	redir /infinity /infinity/ 308
