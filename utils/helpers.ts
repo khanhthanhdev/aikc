@@ -44,27 +44,54 @@ export const addUTMTracking = (
 };
 
 /**
- * Sanitizes user input by stripping HTML tags and unsafe characters.
+ * Sanitizes user input by stripping HTML tags, event handlers, and unsafe characters.
+ * Defense-in-depth — HTML-encodes angle brackets and quotes as a final layer.
  */
 export const sanitizeText = (input: string, maxLength = 10_000) => {
-  return input
-    .trim()
-    .replace(/<[^>]*>/g, "")
-    .replace(/[<>]/g, "")
-    .replace(/on\w+\s*=\s*["'][^"']*["']/gi, "")
-    .replace(/(javascript|data|vbscript):/gi, "")
-    .slice(0, maxLength);
+  return (
+    input
+      .trim()
+      // Decode HTML entities first to catch encoded attacks (e.g. &#60;script&#62;)
+      .replace(/&#x?([0-9a-f]+);?/gi, "")
+      .replace(/&\w+;/g, "")
+      // Strip HTML/script tags
+      .replace(/<[^>]*>/g, "")
+      .replace(/[<>]/g, "")
+      // Strip inline event handlers (onclick, onerror, onload, etc.)
+      .replace(/on\w+\s*=\s*/gi, "")
+      // Block URI-based XSS vectors (javascript:, data:text/html, vbscript:)
+      .replace(/(javascript|data|vbscript):/gi, "")
+      // Strip expression() and url() CSS-based XSS
+      .replace(/(expression|url)\s*\([^)]*\)/gi, "")
+      // Strip import() ECMAScript module injection
+      .replace(/import\s*\([^)]*\)/gi, "")
+      .slice(0, maxLength)
+  );
 };
 
 /**
  * Sanitizes URLs by trimming and blocking unsafe protocols.
+ * Only allows http:// and https:// to prevent javascript:, data:, vbscript: attacks.
+ * Returns empty string for invalid/unsafe URLs.
  */
 export const sanitizeUrl = (url: string) => {
   const trimmed = url.trim();
-  if (/^(javascript|data|vbscript):/i.test(trimmed)) {
+
+  // Block URI-based XSS vectors before URL parsing
+  if (/^(javascript|data|vbscript|file|ftp):/i.test(trimmed)) {
     return "";
   }
-  return trimmed;
+
+  // Validate as proper URL with safe protocol
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return "";
+    }
+    return parsed.toString();
+  } catch {
+    return "";
+  }
 };
 
 /**

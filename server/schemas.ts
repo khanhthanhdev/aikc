@@ -1,22 +1,60 @@
 import { z } from "zod";
 
+export const SUBMIT_LIMITS = {
+  name: 100,
+  websiteUrl: 500,
+  submitterName: 100,
+  submitterEmail: 255,
+} as const;
+
+const SAFE_TEXT_PATTERN = /^[^<>"'&]*$/;
+
 export const submitToolSchema = z.object({
+  // Honeypot field — real users never see or fill this
+  hp: z.string().max(0).optional().default(""),
+
   name: z
     .string()
+    .trim()
     .min(1, "Name is required")
-    .max(100, "Name must be less than 100 characters"),
+    .max(
+      SUBMIT_LIMITS.name,
+      `Name must be less than ${SUBMIT_LIMITS.name} characters`
+    )
+    .regex(SAFE_TEXT_PATTERN, "Name contains invalid characters"),
+
   websiteUrl: z
     .string()
+    .trim()
     .min(1, "Website is required")
+    .max(
+      SUBMIT_LIMITS.websiteUrl,
+      `URL must be less than ${SUBMIT_LIMITS.websiteUrl} characters`
+    )
     .url("Invalid URL")
-    .max(500, "URL must be less than 500 characters"),
+    .refine(
+      (url) => /^https?:\/\//i.test(url),
+      "URL must start with http:// or https://"
+    ),
+
   submitterName: z
     .string()
+    .trim()
     .min(1, "Your name is required")
-    .max(100, "Name must be less than 100 characters"),
+    .max(
+      SUBMIT_LIMITS.submitterName,
+      `Name must be less than ${SUBMIT_LIMITS.submitterName} characters`
+    )
+    .regex(SAFE_TEXT_PATTERN, "Name contains invalid characters"),
+
   submitterEmail: z
     .string()
+    .trim()
+    .toLowerCase()
     .min(1, "Your email is required")
-    .email("Invalid email address")
-    .max(255, "Email must be less than 255 characters"),
+    .max(
+      SUBMIT_LIMITS.submitterEmail,
+      `Email must be less than ${SUBMIT_LIMITS.submitterEmail} characters`
+    )
+    .email("Invalid email address"),
 });

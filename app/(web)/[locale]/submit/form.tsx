@@ -11,7 +11,6 @@ import { submitTool } from "~/actions/submit";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -20,7 +19,7 @@ import {
 import { Button } from "~/components/web/ui/button";
 import { Input } from "~/components/web/ui/input";
 import { useRouter } from "~/i18n/navigation";
-import { submitToolSchema } from "~/server/schemas";
+import { SUBMIT_LIMITS, submitToolSchema } from "~/server/schemas";
 import { cx } from "~/utils/cva";
 
 export const SubmitForm = ({
@@ -37,6 +36,7 @@ export const SubmitForm = ({
       websiteUrl: "",
       submitterName: "",
       submitterEmail: "",
+      hp: "",
     },
   });
 
@@ -56,25 +56,21 @@ export const SubmitForm = ({
     },
 
     onError: ({ err }) => {
-      if (
-        err.message.includes("URL") ||
-        err.message.includes("link") ||
-        err.message.includes("reach")
-      ) {
-        form.setError("websiteUrl", {
-          type: "manual",
-          message: err.message,
-        });
-      } else if (err.message.toLowerCase().includes("email")) {
-        form.setError("submitterEmail", {
-          type: "manual",
-          message: err.message,
-        });
-      } else if (err.message.toLowerCase().includes("name")) {
-        form.setError("name", {
-          type: "manual",
-          message: err.message,
-        });
+      // Structured errors from SubmitError include a `field` property
+      const errWithField = err as unknown as {
+        data?: { field?: string };
+        field?: string;
+      };
+      const field = errWithField.data?.field ?? errWithField.field;
+      const knownFields = [
+        "name",
+        "websiteUrl",
+        "submitterName",
+        "submitterEmail",
+      ] as const;
+
+      if (field && knownFields.includes(field)) {
+        form.setError(field, { type: "server", message: err.message });
       } else {
         toast.error(err.message || t("submitFailed"));
       }
@@ -98,17 +94,12 @@ export const SubmitForm = ({
               <FormControl>
                 <Input
                   data-1p-ignore
+                  maxLength={SUBMIT_LIMITS.submitterName}
                   placeholder={t("yourNamePlaceholder")}
                   size="lg"
                   {...field}
                 />
               </FormControl>
-              <FormDescription>
-                {t("characterCount", {
-                  count: form.watch("submitterName")?.length ?? 0,
-                  max: 100,
-                })}
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -123,18 +114,13 @@ export const SubmitForm = ({
               <FormControl>
                 <Input
                   data-1p-ignore
+                  maxLength={SUBMIT_LIMITS.submitterEmail}
                   placeholder={t("yourEmailPlaceholder")}
                   size="lg"
                   type="email"
                   {...field}
                 />
               </FormControl>
-              <FormDescription>
-                {t("characterCount", {
-                  count: form.watch("submitterEmail")?.length ?? 0,
-                  max: 255,
-                })}
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -149,17 +135,12 @@ export const SubmitForm = ({
               <FormControl>
                 <Input
                   data-1p-ignore
+                  maxLength={SUBMIT_LIMITS.name}
                   placeholder={t("toolNamePlaceholder")}
                   size="lg"
                   {...field}
                 />
               </FormControl>
-              <FormDescription>
-                {t("characterCount", {
-                  count: form.watch("name")?.length ?? 0,
-                  max: 100,
-                })}
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -173,22 +154,37 @@ export const SubmitForm = ({
               <FormLabel isRequired>{t("websiteUrl")}</FormLabel>
               <FormControl>
                 <Input
+                  maxLength={SUBMIT_LIMITS.websiteUrl}
                   placeholder={t("websiteUrlPlaceholder")}
                   size="lg"
                   type="url"
                   {...field}
                 />
               </FormControl>
-              <FormDescription>
-                {t("characterCount", {
-                  count: form.watch("websiteUrl")?.length ?? 0,
-                  max: 500,
-                })}
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
+
+        {/* Honeypot — hidden from real users, catches bots */}
+        <div
+          aria-hidden="true"
+          className="absolute -left-[9999px]"
+          tabIndex={-1}
+        >
+          <FormField
+            control={form.control}
+            name="hp"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Company</FormLabel>
+                <FormControl>
+                  <Input autoComplete="off" tabIndex={-1} {...field} />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+        </div>
 
         <div className="col-span-full">
           <Button

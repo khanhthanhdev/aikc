@@ -8,6 +8,20 @@ import { prisma } from "~/services/prisma";
 import { sanitizeText, sanitizeUrl } from "~/utils/helpers";
 
 /**
+ * Structured server error with field-level binding.
+ * The client maps `field` to the matching form field for inline display.
+ */
+class SubmitError extends Error {
+  field: string;
+
+  constructor(field: string, message: string) {
+    super(message);
+    this.field = field;
+    this.name = "SubmitError";
+  }
+}
+
+/**
  * Generates a unique slug by adding a numeric suffix if needed
  */
 const generateUniqueSlug = async (baseName: string): Promise<string> => {
@@ -35,21 +49,26 @@ const generateUniqueSlug = async (baseName: string): Promise<string> => {
 export const submitTool = createServerAction()
   .input(submitToolSchema)
   .handler(async ({ input }) => {
-    const data = {
-      ...input,
-      name: sanitizeText(input.name, 100),
-      submitterName: sanitizeText(input.submitterName, 100),
-      submitterEmail: sanitizeText(input.submitterEmail, 255),
-      websiteUrl: sanitizeUrl(input.websiteUrl),
-    };
+    // Reject honeypot — silently pretend success to not tip off bots
+    if (input.hp) {
+      return { slug: "", name: "", publishedAt: null } as const;
+    }
 
-    if (!data.websiteUrl) {
-      throw new Error("Invalid URL: unsafe protocol");
+    const name = sanitizeText(input.name, 100);
+    const submitterName = sanitizeText(input.submitterName, 100);
+    const submitterEmail = sanitizeText(input.submitterEmail, 255);
+    const websiteUrl = sanitizeUrl(input.websiteUrl);
+
+    if (!websiteUrl) {
+      throw new SubmitError(
+        "websiteUrl",
+        "Invalid URL: unsafe or unsupported protocol"
+      );
     }
 
     // Check if the tool already exists
     const existingTool = await prisma.tool.findFirst({
-      where: { websiteUrl: data.websiteUrl },
+      where: { websiteUrl },
     });
 
     // If the tool exists, redirect to the tool or submit page
@@ -58,9 +77,10 @@ export const submitTool = createServerAction()
     }
 
     // Validate that the link is reachable
-    const linkValidation = await validateLink(data.websiteUrl);
+    const linkValidation = await validateLink(websiteUrl);
     if (!linkValidation.isValid) {
-      throw new Error(
+      throw new SubmitError(
+        "websiteUrl",
         linkValidation.error === "URL points to private/internal network"
           ? "Invalid URL: cannot submit internal/private network addresses"
           : `We couldn't reach this link: ${linkValidation.error}`
@@ -68,11 +88,11 @@ export const submitTool = createServerAction()
     }
 
     // Generate a unique slug
-    const slug = await generateUniqueSlug(data.name);
+    const slug = await generateUniqueSlug(name);
 
     // Save the tool to the database
     const tool = await prisma.tool.create({
-      data: { ...data, slug },
+      data: { name, submitterName, submitterEmail, websiteUrl, slug },
     });
 
     // Tool is saved to queue - admin will trigger pipeline via "Process" action
