@@ -12,6 +12,12 @@ import { submitToolSchema } from "~/server/schemas";
 import { prisma } from "~/services/prisma";
 import { sanitizeText, sanitizeUrl } from "~/utils/helpers";
 
+const submittedToolSelect = {
+  name: true,
+  publishedAt: true,
+  slug: true,
+} as const;
+
 /**
  * Structured server error with field-level binding.
  * The client maps `field` to the matching form field for inline display.
@@ -36,7 +42,12 @@ const generateUniqueSlug = async (baseName: string): Promise<string> => {
 
   while (true) {
     // Check if slug exists
-    if (!(await prisma.tool.findUnique({ where: { slug } }))) {
+    if (
+      !(await prisma.tool.findUnique({
+        where: { slug },
+        select: { id: true },
+      }))
+    ) {
       return slug;
     }
 
@@ -93,6 +104,7 @@ export const submitTool = createServerAction()
     // Check if the tool already exists
     const existingTool = await prisma.tool.findFirst({
       where: { websiteUrl },
+      select: submittedToolSelect,
     });
 
     // If the tool exists, redirect to the tool or submit page
@@ -117,6 +129,7 @@ export const submitTool = createServerAction()
     // Save the tool to the database
     const tool = await prisma.tool.create({
       data: { name, submitterName, submitterEmail, websiteUrl, slug },
+      select: submittedToolSelect,
     });
 
     // Tool is saved to queue - admin will trigger pipeline via "Process" action

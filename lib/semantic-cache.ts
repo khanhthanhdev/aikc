@@ -179,6 +179,32 @@ export const storeCachedAnswer = async (params: {
 
 const SEARCH_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 7; // 1 week
 
+const redactCachedToolSubmitterFields = (
+  searchResults: Record<string, unknown>
+): Record<string, unknown> => {
+  const { tools } = searchResults;
+  if (!Array.isArray(tools)) {
+    return searchResults;
+  }
+
+  return {
+    ...searchResults,
+    tools: tools.map((tool) => {
+      if (!(tool && typeof tool === "object") || Array.isArray(tool)) {
+        return tool;
+      }
+
+      const {
+        submitterEmail: _submitterEmail,
+        submitterName: _submitterName,
+        ...safeTool
+      } = tool as Record<string, unknown>;
+
+      return safeTool;
+    }),
+  };
+};
+
 export const findCachedSearch = async (
   question: string,
   minScore = QDRANT_SEMANTIC_CACHE_SCORE_THRESHOLD
@@ -225,7 +251,7 @@ export const findCachedSearch = async (
     question: normalizedQuestion,
   });
 
-  return payload.searchResults;
+  return redactCachedToolSubmitterFields(payload.searchResults);
 };
 
 export const storeCachedSearch = async (params: {
@@ -244,6 +270,8 @@ export const storeCachedSearch = async (params: {
   });
 
   try {
+    const searchResults = redactCachedToolSubmitterFields(params.searchResults);
+
     await qdrantClient.upsert(QDRANT_SEARCH_CACHE_COLLECTION, {
       wait: false,
       points: [
@@ -252,7 +280,7 @@ export const storeCachedSearch = async (params: {
           vector,
           payload: {
             normalizedQuestion,
-            searchResults: params.searchResults,
+            searchResults,
             createdAt: new Date().toISOString(),
           } satisfies SemanticCachePayload,
         },

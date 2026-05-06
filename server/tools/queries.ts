@@ -27,7 +27,11 @@ import {
   searchAlternativeVectors,
   type ToolVectorMatch,
 } from "~/lib/vector-store";
-import { toolManyPayload, toolOnePayload } from "~/server/tools/payloads";
+import {
+  type ToolMany,
+  toolManyPayload,
+  toolOnePayload,
+} from "~/server/tools/payloads";
 import { searchParamsCache } from "~/server/tools/search-params";
 import { prisma } from "~/services/prisma";
 
@@ -42,9 +46,8 @@ const allowedSortColumns: ReadonlyArray<
   keyof Prisma.ToolOrderByWithRelationInput
 > = ["name", "publishedAt", "createdAt", "updatedAt"];
 
-type ToolEntity = Awaited<ReturnType<typeof prisma.tool.findMany>>[number];
-type ToolSearchResult = SearchResult<ToolEntity, ToolVectorMatch>;
-type AlternativeSearchResult = SearchResult<ToolEntity, AlternativeVectorMatch>;
+type ToolSearchResult = SearchResult<ToolMany, ToolVectorMatch>;
+type AlternativeSearchResult = SearchResult<ToolMany, AlternativeVectorMatch>;
 type ParsedToolSearchParams = Awaited<
   ReturnType<typeof searchParamsCache.parse>
 >;
@@ -182,7 +185,7 @@ const keywordSearch = async (
 ): Promise<ToolSearchResult> => {
   const { params, prismaArgs } = context;
   const { q, category, pricing, page, sort, perPage } = params;
-  const { where, ...args } = prismaArgs;
+  const { where, include: _include, select: _select, ...args } = prismaArgs;
   const skip = (page - 1) * perPage;
   const take = perPage;
   const { sortBy, sortOrder } = parseSort(sort);
@@ -222,7 +225,7 @@ const keywordSearch = async (
       ...args,
       orderBy: { [sortBy]: sortOrder },
       where: { publishedAt: { lte: new Date() }, ...whereQuery, ...where },
-      include: toolManyPayload(),
+      select: toolManyPayload(),
       take,
       skip,
     }),
@@ -252,7 +255,7 @@ const keywordSearch = async (
 
 // Strategy implementations consumed by the search orchestrator (keyword + semantic modes)
 class ToolKeywordSearchStrategy
-  implements SearchStrategy<ToolEntity, ToolVectorMatch, ToolSearchContext>
+  implements SearchStrategy<ToolMany, ToolVectorMatch, ToolSearchContext>
 {
   canHandle(mode: SearchMode) {
     return mode === "keyword";
@@ -276,7 +279,7 @@ class ToolKeywordSearchStrategy
 }
 
 class ToolSemanticSearchStrategy
-  implements SearchStrategy<ToolEntity, ToolVectorMatch, ToolSearchContext>
+  implements SearchStrategy<ToolMany, ToolVectorMatch, ToolSearchContext>
 {
   canHandle(mode: SearchMode) {
     return mode === "semantic";
@@ -305,7 +308,7 @@ class ToolSemanticSearchStrategy
       ? { categories: { some: { slug: category } } }
       : undefined;
     const pricingWhere = buildPricingWhere(pricing);
-    const { where, ...args } = prismaArgs;
+    const { where, include: _include, select: _select, ...args } = prismaArgs;
 
     // Run Qdrant and keyword searches in parallel
     const qdrantPromise = (async () => {
@@ -386,7 +389,7 @@ class ToolSemanticSearchStrategy
           ...whereQuery,
           ...where,
         },
-        include: toolManyPayload(),
+        select: toolManyPayload(),
         take: perPage * 2, // Fetch more to allow merging
       });
       keywordMs = Date.now() - keywordStart;
@@ -426,7 +429,7 @@ class ToolSemanticSearchStrategy
               ...hydrateWhere,
               ...where,
             },
-            include: toolManyPayload(),
+            select: toolManyPayload(),
           })
         : [];
     hydrateMs = Date.now() - hydrateStartedAt;
@@ -560,7 +563,7 @@ const keywordStrategy = new ToolKeywordSearchStrategy();
 const semanticStrategy = new ToolSemanticSearchStrategy();
 
 const toolSearchOrchestrator = new SearchOrchestrator<
-  ToolEntity,
+  ToolMany,
   ToolVectorMatch,
   ToolSearchContext
 >({
@@ -657,11 +660,16 @@ export const searchToolsUnified = (
 ): Promise<ToolSearchResult> => searchTools(searchParams, args);
 
 export const findTools = cache(
-  async ({ where, ...args }: Prisma.ToolFindManyArgs) => {
+  async ({
+    where,
+    include: _include,
+    select: _select,
+    ...args
+  }: Prisma.ToolFindManyArgs) => {
     return prisma.tool.findMany({
       ...args,
       where: { publishedAt: { lte: new Date() }, ...where },
-      include: toolManyPayload(),
+      select: toolManyPayload(),
     });
   }
 );
@@ -699,7 +707,12 @@ export const countUpcomingTools = cache(
 );
 
 export const findUniqueTool = cache(
-  async ({ where, ...args }: Prisma.ToolFindUniqueArgs) => {
+  async ({
+    where,
+    include: _include,
+    select: _select,
+    ...args
+  }: Prisma.ToolFindUniqueArgs) => {
     const hasExplicitPublishedAt = Object.hasOwn(where ?? {}, "publishedAt");
 
     return prisma.tool.findUnique({
@@ -708,16 +721,22 @@ export const findUniqueTool = cache(
         publishedAt: hasExplicitPublishedAt ? undefined : { lte: new Date() },
         ...where,
       },
-      include: toolOnePayload(),
+      select: toolOnePayload(),
     });
   }
 );
 
 export const findFirstTool = cache(
-  async ({ where, ...args }: Prisma.ToolFindFirstArgs) => {
+  async ({
+    where,
+    include: _include,
+    select,
+    ...args
+  }: Prisma.ToolFindFirstArgs) => {
     return prisma.tool.findFirst({
       ...args,
       where: { publishedAt: { lte: new Date() }, ...where },
+      select: select ?? toolManyPayload(),
     });
   }
 );
@@ -741,7 +760,7 @@ export const searchAlternatives = async (
     if (!trimmedQuery) {
       const tools = await prisma.tool.findMany({
         where: { publishedAt: { lte: new Date() } },
-        include: toolManyPayload(),
+        select: toolManyPayload(),
         take: limit,
         skip: offset,
         orderBy: { name: "asc" },
@@ -828,7 +847,7 @@ export const searchAlternatives = async (
             { description: { contains: trimmedQuery, mode: "insensitive" } },
           ],
         },
-        include: toolManyPayload(),
+        select: toolManyPayload(),
         take: limit,
         skip: offset,
         orderBy: { name: "asc" },
@@ -878,7 +897,7 @@ export const searchAlternatives = async (
         id: { in: toolIds },
         publishedAt: { lte: new Date() },
       },
-      include: toolManyPayload(),
+      select: toolManyPayload(),
     });
     const hydrateMs = Date.now() - hydrateStart;
 

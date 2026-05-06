@@ -123,7 +123,7 @@ export const findRelatedTools = async (
         id: { in: toolIds },
         ...(publishedOnly ? { publishedAt: { lte: new Date() } } : {}),
       },
-      include: toolManyPayload(),
+      select: toolManyPayload(),
     });
 
     // Build a map for efficient lookup

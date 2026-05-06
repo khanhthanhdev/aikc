@@ -1,5 +1,3 @@
-import type { Tool } from "@prisma/client";
-
-export const isToolPublished = (tool: Tool) => {
+export const isToolPublished = (tool: { publishedAt: Date | null }) => {
   return !!tool.publishedAt && tool.publishedAt <= new Date();
 };

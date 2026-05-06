@@ -13,6 +13,7 @@ import {
   searchCategoryVectors,
   type ToolVectorMatch,
 } from "~/lib/vector-store";
+import { type ToolMany, toolManyPayload } from "~/server/tools/payloads";
 import { prisma } from "~/services/prisma";
 
 export type SearchMode = "keyword" | "semantic";
@@ -110,7 +111,7 @@ export interface SearchResults {
   requestedMode: SearchMode;
   searchModes: SearchModeMetadata;
   tags: Awaited<ReturnType<typeof prisma.tag.findMany>>;
-  tools: Awaited<ReturnType<typeof prisma.tool.findMany>>;
+  tools: ToolMany[];
 }
 
 /**
@@ -156,7 +157,7 @@ const createSearchRunner = ({
     q: string,
     mode: SearchMode
   ): Promise<{
-    tools: Awaited<ReturnType<typeof prisma.tool.findMany>>;
+    tools: ToolMany[];
     matches: ToolVectorMatch[];
     usedMode: SearchMode;
   }> => {
@@ -177,6 +178,7 @@ const createSearchRunner = ({
           ],
         },
         orderBy: { name: "asc" },
+        select: toolManyPayload(),
         take: searchLimit,
       });
       return { tools, matches: [], usedMode: "keyword" };
@@ -220,6 +222,7 @@ const createSearchRunner = ({
         ],
       },
       orderBy: { name: "asc" },
+      select: toolManyPayload(),
       take: searchLimit * 2, // Fetch more for merging
     });
 
@@ -234,6 +237,7 @@ const createSearchRunner = ({
       qdrantIds.length > 0
         ? await prisma.tool.findMany({
             where: { ...publishedWhere, id: { in: qdrantIds } },
+            select: toolManyPayload(),
           })
         : [];
 

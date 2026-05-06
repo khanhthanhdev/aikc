@@ -1,4 +1,3 @@
-import type { Tool } from "@prisma/client";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -12,6 +11,7 @@ import { Intro, IntroDescription, IntroTitle } from "~/components/web/ui/intro";
 import { Wrapper } from "~/components/web/ui/wrapper";
 import { config } from "~/config";
 import { isToolPublished } from "~/lib/tools";
+import type { ToolOne } from "~/server/tools/payloads";
 import { findToolSlugs, findUniqueTool } from "~/server/tools/queries";
 import { parseMetadata } from "~/utils/metadata";
 import { buildAlternates, buildLocalizedUrl } from "~/utils/seo";
@@ -41,7 +41,7 @@ const getTool = cache(
 
 const getMetadata = cache(
   async (
-    tool: Tool,
+    tool: ToolOne,
     success: boolean,
     locale: string,
     metadata?: Metadata
