@@ -1,0 +1,451 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "extends": ["ultracite/biome/core", "ultracite/biome/next"],
+  "overrides": [
+    {
+      "includes": ["app/(web)/styles.css", "app/admin/styles.css"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noUnknownAtRules": "off"
+          },
+          "correctness": {
+            "noUnknownTypeSelector": "off",
+            "noUnknownFunction": "off",
+            "noUnknownProperty": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "**/*skeleton*",
+        "**/loading.tsx",
+        "**/*.skeleton.*",
+        "app/(web)/**/page.tsx",
+        "app/admin/_components/stats-card.tsx",
+        "app/admin/page.tsx"
+      ],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noArrayIndexKey": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "app/admin/**/_lib/validations.ts",
+        "app/admin/**/_lib/actions.ts",
+        "app/admin/providers.tsx"
+      ],
+      "linter": {
+        "rules": {
+          "performance": {
+            "useTopLevelRegex": "off",
+            "noNamespaceImport": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["app/admin/error.tsx"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noShadowRestrictedNames": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["services/qdrant.ts"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "useAwait": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["utils/helpers.ts"],
+      "linter": {
+        "rules": {
+          "performance": {
+            "useTopLevelRegex": "off"
+          },
+          "suspicious": {
+            "noExplicitAny": "off",
+            "useGuardForIn": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["app/admin/ads/_components/form/image-upload.tsx"],
+      "linter": {
+        "rules": {
+          "a11y": {
+            "noStaticElementInteractions": "off",
+            "noNoninteractiveElementInteractions": "off",
+            "useSemanticElements": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "app/admin/tools/_components/tools-schedule-dialog.tsx",
+        "app/admin/providers.tsx"
+      ],
+      "linter": {
+        "rules": {
+          "performance": {
+            "noNamespaceImport": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["app/api/chat/route.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noNestedTernary": "off"
+          },
+          "complexity": {
+            "noVoid": "off"
+          }
+        }
+      }
+    },
+
+    {
+      "includes": ["components/admin/command-menu.tsx"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "useAwait": "off"
+          },
+          "correctness": {
+            "noInvalidUseBeforeDeclaration": "off",
+            "useExhaustiveDependencies": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["components/admin/data-table/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noNestedTernary": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["components/admin/**"],
+      "linter": {
+        "rules": {
+          "performance": {
+            "noNamespaceImport": "off",
+            "noImgElement": "off"
+          },
+          "style": {
+            "noNestedTernary": "off"
+          },
+          "suspicious": {
+            "noArrayIndexKey": "off",
+            "noDocumentCookie": "off"
+          },
+          "correctness": {
+            "noUnusedFunctionParameters": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["components/web/**"],
+      "linter": {
+        "rules": {
+          "performance": {
+            "noImgElement": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["components/common/**"],
+      "linter": {
+        "rules": {
+          "performance": {
+            "noNamespaceImport": "off"
+          },
+          "security": {
+            "noDangerouslySetInnerHtml": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["components/web/ads/ad-banner-display.tsx"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useCollapsedElseIf": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["components/common/theme-switcher.tsx"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noUnusedVariables": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["components/admin/ui/chart.tsx"],
+      "linter": {
+        "rules": {
+          "security": {
+            "noDangerouslySetInnerHtml": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["components/web/ads/ad-banner.tsx"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noUnusedFunctionParameters": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["components/web/ads/ad-card.tsx"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noExportedImports": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["components/web/ai-chat/**"],
+      "linter": {
+        "rules": {
+          "performance": {
+            "noNamespaceImport": "off",
+            "noBarrelFile": "off",
+            "useTopLevelRegex": "off"
+          },
+          "correctness": {
+            "useImageSize": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["components/web/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noNestedTernary": "off"
+          },
+          "performance": {
+            "useTopLevelRegex": "off"
+          },
+          "suspicious": {
+            "noArrayIndexKey": "off",
+            "noExplicitAny": "off"
+          },
+          "a11y": {
+            "useAriaPropsSupportedByRole": "off",
+            "useSemanticElements": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "components/web/ui/command.tsx",
+        "components/web/ui/dialog.tsx",
+        "components/web/ui/dropdown-menu.tsx",
+        "components/web/ui/tooltip.tsx"
+      ],
+      "linter": {
+        "rules": {
+          "performance": {
+            "noNamespaceImport": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": [
+        "components/web/tool-sticky-header.tsx",
+        "components/web/ui/carousel.tsx"
+      ],
+      "linter": {
+        "rules": {
+          "complexity": {
+            "noExcessiveCognitiveComplexity": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["config/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noNestedTernary": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["contexts/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noNonNullAssertion": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["functions/**"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noEvolvingTypes": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["hooks/**"],
+      "linter": {
+        "rules": {
+          "performance": {
+            "noNamespaceImport": "off"
+          },
+          "suspicious": {
+            "noExplicitAny": "off"
+          },
+          "correctness": {
+            "useExhaustiveDependencies": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["services/inngest.ts"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noExplicitAny": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["hooks/use-data-table.ts"],
+      "linter": {
+        "rules": {
+          "complexity": {
+            "noExcessiveCognitiveComplexity": "off"
+          },
+          "correctness": {
+            "noInvalidUseBeforeDeclaration": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["lib/data-table.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noNestedTernary": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["lib/**"],
+      "linter": {
+        "rules": {
+          "performance": {
+            "noBarrelFile": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["server/**"],
+      "linter": {
+        "rules": {
+          "performance": {
+            "noBarrelFile": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["lib/**", "services/**", "server/**", "scripts/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noNestedTernary": "off",
+            "useDefaultSwitchClause": "off",
+            "noEnum": "off",
+            "noParameterProperties": "off",
+            "useConst": "off",
+            "noExportedImports": "off"
+          },
+          "complexity": {
+            "noExcessiveCognitiveComplexity": "off",
+            "noVoid": "off",
+            "noForEach": "off"
+          },
+          "suspicious": {
+            "useAwait": "off",
+            "noExplicitAny": "off",
+            "noEvolvingTypes": "off",
+            "noBitwiseOperators": "off",
+            "useIterableCallbackReturn": "off"
+          },
+          "correctness": {
+            "noUnusedVariables": "off"
+          },
+          "performance": {
+            "useTopLevelRegex": "off",
+            "noBarrelFile": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["scripts/**"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noUndeclaredDependencies": "off"
+          }
+        }
+      }
+    }
+  ]
+}

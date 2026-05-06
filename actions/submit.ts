@@ -1,0 +1,80 @@
+"use server";
+
+import { slugify } from "@curiousleaf/utils";
+import { createServerAction } from "zsa";
+import { validateLink } from "~/lib/link-validator";
+import { submitToolSchema } from "~/server/schemas";
+import { prisma } from "~/services/prisma";
+import { sanitizeText, sanitizeUrl } from "~/utils/helpers";
+
+/**
+ * Generates a unique slug by adding a numeric suffix if needed
+ */
+const generateUniqueSlug = async (baseName: string): Promise<string> => {
+  const baseSlug = slugify(baseName);
+  let slug = baseSlug;
+  let suffix = 2;
+
+  while (true) {
+    // Check if slug exists
+    if (!(await prisma.tool.findUnique({ where: { slug } }))) {
+      return slug;
+    }
+
+    // Add/increment suffix and try again
+    slug = `${baseSlug}-${suffix}`;
+    suffix++;
+  }
+};
+
+/**
+ * Submit a tool to the database
+ * @param input - The tool data to submit
+ * @returns The tool that was submitted
+ */
+export const submitTool = createServerAction()
+  .input(submitToolSchema)
+  .handler(async ({ input }) => {
+    const data = {
+      ...input,
+      name: sanitizeText(input.name, 100),
+      submitterName: sanitizeText(input.submitterName, 100),
+      submitterEmail: sanitizeText(input.submitterEmail, 255),
+      websiteUrl: sanitizeUrl(input.websiteUrl),
+    };
+
+    if (!data.websiteUrl) {
+      throw new Error("Invalid URL: unsafe protocol");
+    }
+
+    // Check if the tool already exists
+    const existingTool = await prisma.tool.findFirst({
+      where: { websiteUrl: data.websiteUrl },
+    });
+
+    // If the tool exists, redirect to the tool or submit page
+    if (existingTool) {
+      return existingTool;
+    }
+
+    // Validate that the link is reachable
+    const linkValidation = await validateLink(data.websiteUrl);
+    if (!linkValidation.isValid) {
+      throw new Error(
+        linkValidation.error === "URL points to private/internal network"
+          ? "Invalid URL: cannot submit internal/private network addresses"
+          : `We couldn't reach this link: ${linkValidation.error}`
+      );
+    }
+
+    // Generate a unique slug
+    const slug = await generateUniqueSlug(data.name);
+
+    // Save the tool to the database
+    const tool = await prisma.tool.create({
+      data: { ...data, slug },
+    });
+
+    // Tool is saved to queue - admin will trigger pipeline via "Process" action
+    return tool;
+  });

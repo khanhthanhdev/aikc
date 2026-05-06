@@ -1,0 +1,316 @@
+{
+  "Common": {
+    "browse": "Browse",
+    "latest": "Latest",
+    "categories": "Categories",
+    "collections": "Collections",
+    "tags": "Tags",
+    "free": "Free",
+    "freemium": "Freemium",
+    "paid": "Paid",
+    "submit": "Submit",
+    "aboutUs": "About Us",
+    "contact": "Contact",
+    "search": "Search",
+    "loading": "Loading...",
+    "searchPlaceholder": "Search tools",
+    "viewAll": "View All"
+  },
+  "Navigation": {
+    "browse": "Browse",
+    "latest": "Latest",
+    "categories": "Categories",
+    "collections": "Collections",
+    "tags": "Tags",
+    "freeTools": "Free",
+    "freemiumTools": "Freemium",
+    "paidTools": "Paid",
+    "submit": "Submit",
+    "aboutUs": "About Us",
+    "toggleNavigation": "Toggle navigation"
+  },
+  "Home": {
+    "title": "Find the Perfect Work & Study Tools for You",
+    "description": "Discover the best tools for VinUniversity library and knowledge cloud. The best tool for your study & work to help you build faster and more efficiently.",
+    "countNewToolsAdded": "{count} new {unit} added",
+    "countToolsCollected": "{count}+ tools collected"
+  },
+  "Footer": {
+    "quickLinks": "Quick Links",
+    "browse": "Browse",
+    "categories": "Categories",
+    "collections": "Collections",
+    "tags": "Tags",
+    "addListing": "Add a Free Listing",
+    "aboutUs": "About Us",
+    "contact": "Contact",
+    "madeBy": "Made by VinUni Library Team",
+    "affiliateDisclosure": "This website may contain affiliate links",
+    "contactUs": "Contact us",
+    "followTwitter": "Follow us on X/Twitter",
+    "viewSource": "View source code"
+  },
+  "Submit": {
+    "title": "Submit a Tool",
+    "description": "Listing on {siteName} is a great way to get more exposure for your tool. We only list high-quality tools that are useful for work & study.",
+    "formTitle": "Tool Submission Form"
+  },
+  "SubmitForm": {
+    "alreadyLive": "{name} is already live on {host}.",
+    "queued": "{name} has been added to the review queue.",
+    "submitFailed": "Failed to submit tool. Please try again.",
+    "yourName": "Your Name:",
+    "yourNamePlaceholder": "John Doe",
+    "yourEmail": "Your Email:",
+    "yourEmailPlaceholder": "john@doe.com",
+    "toolName": "Name:",
+    "toolNamePlaceholder": "Acme Analytics",
+    "websiteUrl": "Website URL:",
+    "websiteUrlPlaceholder": "https://acmeanalytics.com",
+    "characterCount": "{count}/{max} characters",
+    "submit": "Submit"
+  },
+  "SubmitStatus": {
+    "successTitle": "Thanks for submitting {name}!",
+    "successDescription": "{name} is now sitting in our moderation queue. An admin will publish it once it clears review.",
+    "alreadyLiveTitle": "{name} is already live",
+    "alreadyLiveDescription": "We'll review any new details you requested and keep {name} in the queue for future updates.",
+    "statusTitle": "Submission status for {name}",
+    "statusDescription": "You're all set. We publish new listings every week once they move through the admin queue.",
+    "haveQuestions": "Have questions?",
+    "contactDescription": "If you have any questions, please contact us at",
+    "queueIntroLive": "{name} is already live on {siteName}. We'll review any updates you requested and keep it in our queue.",
+    "queueIntroPending": "{name} is queued for review. One of our admins will publish it as soon as it clears moderation.",
+    "queueStatus": "Queue status",
+    "nextStepsTitle": "What happens next?",
+    "manualPublishRate": "We manually publish about {rate} tools per week through an admin review flow that runs on a scheduled cron job.",
+    "toolsAhead": "Tools ahead",
+    "inQueue": "in queue",
+    "publishingRate": "Publishing rate",
+    "perWeek": "per week",
+    "estimatedWait": "Estimated wait",
+    "week": "week",
+    "weeks": "weeks",
+    "eta": "({eta})",
+    "footerNote": "Sit tight, our cron-driven moderation pass will pick up every pending submission in order. We'll email you as soon as {name} is scheduled."
+  },
+  "About": {
+    "title": "About Us"
+  },
+  "Tools": {
+    "sortBy": "Sort by",
+    "date": "Date",
+    "name": "Name",
+    "filterByPricing": "Filter by Pricing",
+    "noToolsFound": "No tools found",
+    "noToolsFoundFor": "No tools found for \"{query}\".",
+    "relatedTools": "Related Tools",
+    "visitWebsite": "Visit Website",
+    "visit": "Visit",
+    "reportIssue": "Report Issue",
+    "pricing": "Pricing",
+    "features": "Features",
+    "alternatives": "Alternatives",
+    "featured": "Featured",
+    "home": "Home",
+    "tools": "Tools",
+    "categoriesSection": "Categories:",
+    "tagsSection": "Tags:",
+    "similarToolsTitle": "Work & Study Tools Similar to {name}:",
+    "similarToolsLoading": "Similar Work & Study Tools:"
+  },
+  "Categories": {
+    "title": "Categories",
+    "description": "Browse tools by category",
+    "noCategoriesFound": "No categories found."
+  },
+  "Collections": {
+    "title": "Collections",
+    "description": "Curated collections of tools",
+    "noCollectionsFound": "No collections found."
+  },
+  "Tags": {
+    "title": "Tags",
+    "description": "Browse tools by tags",
+    "noTagsFound": "No tags found.",
+    "toolCount": "{count, plural, one {# tool} other {# tools}}"
+  },
+  "CategoryDetail": {
+    "home": "Home",
+    "categories": "Categories",
+    "titleWithCount": "{count} Best {name}",
+    "titleWithoutCount": "Best {name}",
+    "description": "{description} A curated collection of the best {name} to help you build your next project faster.",
+    "searchPlaceholder": "Search {name}..."
+  },
+  "CollectionDetail": {
+    "home": "Home",
+    "collections": "Collections",
+    "title": "{name} Work & Study Tools",
+    "searchPlaceholder": "Search {name} tools..."
+  },
+  "TagDetail": {
+    "home": "Home",
+    "tags": "Tags",
+    "title": "Work & Study Tools tagged \"{name}\"",
+    "searchPlaceholder": "Search in \"{name}\""
+  },
+  "Filters": {
+    "searchPlaceholder": "Search tools...",
+    "filterByCategory": "Filter by category",
+    "allCategories": "All categories",
+    "filterByPricing": "Filter by pricing",
+    "allPricing": "All pricing",
+    "sortBy": "Sort tools by",
+    "orderBy": "Order by",
+    "sortNewest": "Newest",
+    "sortOldest": "Oldest",
+    "sortNameAsc": "Name A-Z",
+    "sortNameDesc": "Name Z-A",
+    "pricingFree": "Free",
+    "pricingFreemium": "Freemium",
+    "pricingPaid": "Paid"
+  },
+  "Pagination": {
+    "prev": "Prev",
+    "next": "Next",
+    "pageOf": "Page {page} of {total}",
+    "pageLabel": "Page:"
+  },
+  "LocaleSwitcher": {
+    "label": "Language",
+    "en": "English",
+    "vi": "Tiếng Việt"
+  },
+  "Metadata": {
+    "siteName": "AI Knowledge Cloud",
+    "adminTitle": "{siteName} Admin",
+    "homeDescription": "Discover the best tools for VinUniversity library and knowledge cloud",
+    "homeKeywords": [
+      "library",
+      "AI tools",
+      "VinUniversity",
+      "knowledge",
+      "study tools"
+    ]
+  },
+  "NotFound": {
+    "title": "Page Not Found",
+    "description": "The page you're looking for doesn't exist.",
+    "backHome": "Back to Home"
+  },
+  "ToolErrors": {
+    "notFoundTitle": "Tool Not Found",
+    "notFoundDescription": "The tool you're looking for doesn't exist or has been removed. Try searching for similar tools or browse our directory.",
+    "searchTools": "Search Tools",
+    "browseDirectory": "Browse Directory",
+    "errorTitle": "Something went wrong",
+    "errorDescription": "We encountered an error while loading this tool. Please try again.",
+    "tryAgain": "Try Again",
+    "browseTools": "Browse Tools"
+  },
+  "Report": {
+    "button": "Report",
+    "title": "Report {name}",
+    "description": "What's wrong with this tool?",
+    "success": "Thank you for your report. We'll take a look at it shortly.",
+    "emailRequired": "Please enter your email address",
+    "yourEmail": "Your email",
+    "emailPlaceholder": "you@example.com",
+    "messageLabel": "Message",
+    "optional": "optional",
+    "messagePlaceholder": "Provide additional details about the issue...",
+    "cancel": "Cancel",
+    "send": "Send",
+    "types": {
+      "brokenLink": "Broken Link",
+      "wrongCategory": "Wrong Category",
+      "outdated": "Outdated",
+      "other": "Other"
+    }
+  },
+  "CommandPalette": {
+    "quickTools": "Tools",
+    "quickCategories": "Categories",
+    "quickTags": "Tags",
+    "quickSubmit": "Submit new tools",
+    "inputPlaceholder": "Type to search...",
+    "searching": "Searching",
+    "searchFailed": "Search failed: {error}",
+    "searchFailedFallback": "Search failed",
+    "noResults": "No results found. Try a different query.",
+    "emptyPrompt": "Type to search across tools, categories, collections, and tags.",
+    "srTitle": "Search",
+    "srDescription": "Search for AI tools, categories, collections, and tags.",
+    "close": "Close",
+    "quickLinksHeading": "Quick Links",
+    "toolsHeading": "Tools",
+    "categoriesHeading": "Categories",
+    "collectionsHeading": "Collections",
+    "tagsHeading": "Tags",
+    "tagShortcut": "Tag",
+    "appearanceHeading": "Appearance",
+    "switchToLightMode": "Switch to Light Mode",
+    "switchToDarkMode": "Switch to Dark Mode"
+  },
+  "ToolNav": {
+    "goHome": "Go Home",
+    "copyLink": "Copy Link",
+    "copied": "Link copied to clipboard",
+    "previousTool": "Previous Tool",
+    "nextTool": "Next Tool",
+    "shareOn": "Share on {platform}"
+  },
+  "Auth": {
+    "signIn": "Sign In",
+    "signOut": "Sign Out",
+    "signInGoogle": "Sign in with Google"
+  },
+  "Login": {
+    "title": "Sign in to your account",
+    "continueWithGoogle": "Continue with Google"
+  },
+  "Chat": {
+    "title": "AI Chat",
+    "placeholder": "How do I get started?",
+    "suggestedQuestions": "Suggested Questions",
+    "exampleQuestions": "Example Questions",
+    "openChat": "Open chat",
+    "srTitle": "AIKC Assistant",
+    "srDescription": "Chat with AIKC Assistant about Work & Study tools",
+    "assistantName": "AI Knowledge Cloud",
+    "assistantBadge": "AI assistant",
+    "greeting": "Hi, I'm {assistantName}!",
+    "welcomeDescription": "I'm an AI assistant trained on documentation, help articles, and other content.",
+    "askAnythingAbout": "Ask me anything about",
+    "assistant": "Assistant",
+    "startNewChat": "Start new chat",
+    "newChat": "New Chat",
+    "close": "Close",
+    "howCanIHelp": "How can I help you?",
+    "helpDescription": "Ask me about Work & Study tools, recommendations, or alternatives",
+    "videoLoadFailed": "Failed to load videos",
+    "thinking": "Thinking...",
+    "suggestedQuestionsList": [
+      "What Work & Study tools do you recommend?",
+      "Help me find a tool for API testing",
+      "What are the best free Work & Study tools?"
+    ],
+    "toolQuestionsTemplate": {
+      "howToUse": "How do I use {name}?",
+      "alternatives": "What are alternatives to {name}?",
+      "keyFeatures": "What are the key features of {name}?"
+    }
+  },
+  "Ads": {
+    "sponsored": "Sponsored",
+    "learnMore": "Learn More"
+  },
+  "SearchProgress": {
+    "keyword": "Keyword",
+    "semantic": "Semantic",
+    "loadingSemantic": "Searching with AI...",
+    "initialResults": "Showing fast results",
+    "searchComplete": "Search complete"
+  }
+}

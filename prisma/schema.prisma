@@ -1,0 +1,181 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [citext, pg_trgm]
+}
+
+enum ReportType {
+  BROKEN_LINK
+  WRONG_CATEGORY
+  OUTDATED
+  OTHER
+}
+
+enum AdType {
+  Banner
+  Similars
+  Tools
+  ToolPage
+  BlogPost
+  All
+}
+
+enum TranslationStatus {
+  MISSING
+  MACHINE
+  REVIEWED
+}
+
+enum PricingTier {
+  FREE
+  FREEMIUM
+  PAID
+  OPEN_SOURCE
+  CUSTOM
+}
+
+model Ad {
+  id          String   @id @default(cuid())
+  email       String
+  name        String
+  description String?
+  websiteUrl  String
+  buttonLabel String?
+  faviconUrl  String?
+  type        AdType   @default(All)
+  startsAt    DateTime
+  endsAt      DateTime
+  stepOrder   Int      @default(0)
+  listInjectionIndex Int @default(2)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Tool {
+  id             String    @id @default(cuid())
+  name           String    @db.Citext
+  nameVi         String?   @db.Citext
+  slug           String    @unique
+  tagline        String?
+  taglineVi      String?
+  description    String?
+  descriptionVi  String?
+  summary        String?   // 150-200 char snippet for AI citations
+  summaryVi      String?   // 150-200 char snippet for AI citations (Vietnamese)
+  content        String?
+  contentVi      String?
+  websiteUrl     String    @unique
+  affiliateUrl   String?
+  faviconUrl     String?
+  screenshotUrl  String?
+  pricing        String?
+  pricingVi      String?
+  pricingTier    PricingTier?
+  socials        Json?
+  isFeatured     Boolean   @default(false)
+  isBroken       Boolean   @default(false)
+  translationStatusVi TranslationStatus @default(MISSING)
+  translationUpdatedAtVi DateTime?
+  lastCheckedAt  DateTime?
+  xHandle        String?
+  submitterName  String?
+  submitterEmail String?
+  publishedAt    DateTime?
+  updatedAt      DateTime  @updatedAt
+  createdAt      DateTime  @default(now())
+  relatedTools   String[]  @default([])
+
+  // Relations
+  categories  Category[]
+  collections Collection[]
+  tags        Tag[]
+  reports     Report[]
+
+  // Indexes
+  @@index([id, slug])
+  @@index([name])
+  @@index([nameVi])
+  @@index([description])
+  @@index([descriptionVi])
+}
+
+model Report {
+  id        String     @id @default(cuid())
+  type      ReportType
+  message   String?
+  userEmail String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  // Relations
+  tool   Tool   @relation(fields: [toolId], references: [id], onDelete: Cascade)
+  toolId String
+
+  // Indexes
+  @@index([toolId])
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @db.Citext
+  nameVi      String?  @db.Citext
+  label       String?  @db.Citext
+  labelVi     String?  @db.Citext
+  slug        String   @unique
+  description String?
+  descriptionVi String?
+  translationStatusVi TranslationStatus @default(MISSING)
+  translationUpdatedAtVi DateTime?
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+
+  // Relations
+  tools Tool[]
+
+  // Indexes
+  @@index([name])
+  @@index([nameVi])
+}
+
+model Collection {
+  id          String   @id @default(cuid())
+  name        String   @db.Citext
+  nameVi      String?  @db.Citext
+  slug        String   @unique
+  description String?
+  descriptionVi String?
+  translationStatusVi TranslationStatus @default(MISSING)
+  translationUpdatedAtVi DateTime?
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+
+  // Relations
+  tools Tool[]
+
+  // Indexes
+  @@index([name])
+  @@index([nameVi])
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String   @db.Citext
+  nameVi    String?  @db.Citext
+  slug      String   @unique
+  translationStatusVi TranslationStatus @default(MISSING)
+  translationUpdatedAtVi DateTime?
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  // Relations
+  tools Tool[]
+
+  // Indexes
+  @@index([name])
+  @@index([nameVi])
+}

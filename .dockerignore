@@ -1,0 +1,17 @@
+node_modules
+.next
+.open-next
+.git
+.github
+.vscode
+.cursor
+.zed
+.claude
+.wrangler
+output
+docs
+plans
+*.md
+!README.md
+.env*
+!.env.example

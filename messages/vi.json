@@ -1,0 +1,316 @@
+{
+  "Common": {
+    "browse": "Duyệt",
+    "latest": "Mới nhất",
+    "categories": "Danh mục",
+    "collections": "Bộ sưu tập",
+    "tags": "Thẻ",
+    "free": "Miễn phí",
+    "freemium": "Freemium",
+    "paid": "Trả phí",
+    "submit": "Gửi",
+    "aboutUs": "Về chúng tôi",
+    "contact": "Liên hệ",
+    "search": "Tìm kiếm",
+    "loading": "Đang tải...",
+    "searchPlaceholder": "Tìm kiếm",
+    "viewAll": "Xem tất cả"
+  },
+  "Navigation": {
+    "browse": "Kham pha",
+    "latest": "Mới nhất",
+    "categories": "Danh mục",
+    "collections": "Bộ sưu tập",
+    "tags": "Thẻ",
+    "freeTools": "Miễn phí",
+    "freemiumTools": "Freemium",
+    "paidTools": "Trả phí",
+    "submit": "Gửi",
+    "aboutUs": "Về chúng tôi",
+    "toggleNavigation": "Mở menu điều hướng"
+  },
+  "Home": {
+    "title": "Tìm Công Cụ Học Tập & Làm Việc Hoàn Hảo",
+    "description": "Khám phá các công cụ tốt nhất cho thư viện và trung tâm kiến thức VinUniversity. Công cụ tốt nhất cho việc học và làm việc giúp bạn xây dựng nhanh hơn và hiệu quả hơn.",
+    "countNewToolsAdded": "{count} công cụ mới được thêm",
+    "countToolsCollected": "Đã tổng hợp {count}+ công cụ"
+  },
+  "Footer": {
+    "quickLinks": "Liên kết nhanh",
+    "browse": "Duyệt theo",
+    "categories": "Danh mục",
+    "collections": "Bộ sưu tập",
+    "tags": "Thẻ",
+    "addListing": "Thêm miễn phí",
+    "aboutUs": "Về chúng tôi",
+    "contact": "Liên hệ",
+    "madeBy": "Được tạo bởi Nhóm Thư viện VinUni",
+    "affiliateDisclosure": "Website này có thể chứa các liên kết tiếp thị liên kết",
+    "contactUs": "Liên hệ với chúng tôi",
+    "followTwitter": "Theo dõi trên X/Twitter",
+    "viewSource": "Xem mã nguồn"
+  },
+  "Submit": {
+    "title": "Gửi Công cụ",
+    "description": "Được liệt kê trên {siteName} là một cách tuyệt vời để công cụ của bạn tiếp cận nhiều người hơn. Chúng tôi chỉ liệt kê các công cụ chất lượng cao và hữu ích cho công việc & học tập.",
+    "formTitle": "Biểu mẫu gửi công cụ"
+  },
+  "SubmitForm": {
+    "alreadyLive": "{name} đã được xuất bản trên {host}.",
+    "queued": "{name} đã được thêm vào hàng đợi xét duyệt.",
+    "submitFailed": "Không thể gửi công cụ. Vui lòng thử lại.",
+    "yourName": "Tên của bạn:",
+    "yourNamePlaceholder": "Nguyen Van A",
+    "yourEmail": "Email của bạn:",
+    "yourEmailPlaceholder": "ban@vidu.com",
+    "toolName": "Tên công cụ:",
+    "toolNamePlaceholder": "Acme Analytics",
+    "websiteUrl": "URL website:",
+    "websiteUrlPlaceholder": "https://acmeanalytics.com",
+    "characterCount": "{count}/{max} ký tự",
+    "submit": "Gửi"
+  },
+  "SubmitStatus": {
+    "successTitle": "Cảm ơn bạn đã gửi {name}!",
+    "successDescription": "{name} hiện đang ở trong hàng đợi kiểm duyệt. Quản trị viên sẽ xuất bản sau khi duyệt xong.",
+    "alreadyLiveTitle": "{name} đã được xuất bản",
+    "alreadyLiveDescription": "Chúng tôi sẽ xem xét các thông tin cập nhật bạn đã yêu cầu và giữ {name} trong hàng đợi cho các lần cập nhật tiếp theo.",
+    "statusTitle": "Trạng thái gửi của {name}",
+    "statusDescription": "Mọi thứ đã sẵn sàng. Chúng tôi xuất bản danh sách mới hằng tuần sau khi qua hàng đợi quản trị.",
+    "haveQuestions": "Bạn có câu hỏi?",
+    "contactDescription": "Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ",
+    "queueIntroLive": "{name} đã xuất bản trên {siteName}. Chúng tôi sẽ xem xét mọi cập nhật bạn yêu cầu và giữ trong hàng đợi.",
+    "queueIntroPending": "{name} đang chờ duyệt. Quản trị viên sẽ xuất bản ngay khi qua kiểm duyệt.",
+    "queueStatus": "Trạng thái hàng đợi",
+    "nextStepsTitle": "Điều gì sẽ diễn ra tiếp theo?",
+    "manualPublishRate": "Chúng tôi xuất bản thủ công khoảng {rate} công cụ mỗi tuần thông qua luồng duyệt quản trị chạy theo lịch cron.",
+    "toolsAhead": "Công cụ phía trước",
+    "inQueue": "trong hàng đợi",
+    "publishingRate": "Tốc độ xuất bản",
+    "perWeek": "mỗi tuần",
+    "estimatedWait": "Thời gian chờ ước tính",
+    "week": "tuần",
+    "weeks": "tuần",
+    "eta": "({eta})",
+    "footerNote": "Bạn cứ yên tâm, tác vụ kiểm duyệt theo cron sẽ xử lý mọi lượt gửi đang chờ theo thứ tự. Chúng tôi sẽ gửi email ngay khi {name} được lên lịch."
+  },
+  "About": {
+    "title": "Về chúng tôi"
+  },
+  "Tools": {
+    "sortBy": "Sắp xếp theo",
+    "date": "Ngày",
+    "name": "Tên",
+    "filterByPricing": "Lọc theo giá",
+    "noToolsFound": "Không tìm thấy công cụ nào",
+    "noToolsFoundFor": "Không tìm thấy công cụ nào cho \"{query}\".",
+    "relatedTools": "Công cụ liên quan",
+    "visitWebsite": "Truy cập website",
+    "visit": "Truy cập",
+    "reportIssue": "Báo cáo vấn đề",
+    "pricing": "Giá",
+    "features": "Tính năng",
+    "alternatives": "Lựa chọn thay thế",
+    "featured": "Nổi bật",
+    "home": "Trang chủ",
+    "tools": "Công cụ",
+    "categoriesSection": "Danh mục:",
+    "tagsSection": "Thẻ:",
+    "similarToolsTitle": "Công cụ học tập & làm việc tương tự {name}:",
+    "similarToolsLoading": "Công cụ học tập & làm việc tương tự:"
+  },
+  "Categories": {
+    "title": "Danh mục",
+    "description": "Duyệt công cụ theo danh mục",
+    "noCategoriesFound": "Không tìm thấy danh mục nào."
+  },
+  "Collections": {
+    "title": "Bộ sưu tập",
+    "description": "Các bộ sưu tập công cụ được chọn lọc",
+    "noCollectionsFound": "Không tìm thấy bộ sưu tập nào."
+  },
+  "Tags": {
+    "title": "Thẻ",
+    "description": "Duyệt công cụ theo thẻ",
+    "noTagsFound": "Không tìm thấy thẻ nào.",
+    "toolCount": "{count} công cụ"
+  },
+  "CategoryDetail": {
+    "home": "Trang chủ",
+    "categories": "Danh mục",
+    "titleWithCount": "{count} công cụ {name} tốt nhất",
+    "titleWithoutCount": "Công cụ {name} tốt nhất",
+    "description": "{description} Bộ sưu tập {name} được chọn lọc giúp bạn xây dựng dự án tiếp theo nhanh hơn.",
+    "searchPlaceholder": "Tìm {name}..."
+  },
+  "CollectionDetail": {
+    "home": "Trang chủ",
+    "collections": "Bộ sưu tập",
+    "title": "{name} - Công cụ học tập & làm việc",
+    "searchPlaceholder": "Tìm công cụ trong {name}..."
+  },
+  "TagDetail": {
+    "home": "Trang chủ",
+    "tags": "Thẻ",
+    "title": "Công cụ học tập & làm việc gắn thẻ \"{name}\"",
+    "searchPlaceholder": "Tìm trong \"{name}\""
+  },
+  "Filters": {
+    "searchPlaceholder": "Tìm kiếm công cụ...",
+    "filterByCategory": "Lọc theo danh mục",
+    "allCategories": "Tất cả danh mục",
+    "filterByPricing": "Lọc theo giá",
+    "allPricing": "Tất cả mức giá",
+    "sortBy": "Sắp xếp công cụ theo",
+    "orderBy": "Sắp xếp",
+    "sortNewest": "Mới nhất",
+    "sortOldest": "Cũ nhất",
+    "sortNameAsc": "Tên A-Z",
+    "sortNameDesc": "Tên Z-A",
+    "pricingFree": "Miễn phí",
+    "pricingFreemium": "Freemium",
+    "pricingPaid": "Trả phí"
+  },
+  "Pagination": {
+    "prev": "Trước",
+    "next": "Sau",
+    "pageOf": "Trang {page} / {total}",
+    "pageLabel": "Trang:"
+  },
+  "LocaleSwitcher": {
+    "label": "Ngôn ngữ",
+    "en": "English",
+    "vi": "Tiếng Việt"
+  },
+  "Metadata": {
+    "siteName": "AI Knowledge Cloud",
+    "adminTitle": "Quản trị {siteName}",
+    "homeDescription": "Khám phá các công cụ tốt nhất cho thư viện VinUniversity",
+    "homeKeywords": [
+      "thư viện",
+      "công cụ AI",
+      "VinUniversity",
+      "kiến thức",
+      "công cụ học tập"
+    ]
+  },
+  "NotFound": {
+    "title": "Không tìm thấy trang",
+    "description": "Trang bạn đang tìm không tồn tại.",
+    "backHome": "Quay về trang chủ"
+  },
+  "ToolErrors": {
+    "notFoundTitle": "Không tìm thấy công cụ",
+    "notFoundDescription": "Công cụ bạn đang tìm không tồn tại hoặc đã bị gỡ. Hãy thử tìm công cụ tương tự hoặc duyệt thư mục của chúng tôi.",
+    "searchTools": "Tìm công cụ",
+    "browseDirectory": "Duyệt thư mục",
+    "errorTitle": "Đã có lỗi xảy ra",
+    "errorDescription": "Chúng tôi gặp lỗi khi tải công cụ này. Vui lòng thử lại.",
+    "tryAgain": "Thử lại",
+    "browseTools": "Duyệt công cụ"
+  },
+  "Report": {
+    "button": "Báo cáo",
+    "title": "Báo cáo {name}",
+    "description": "Công cụ này đang gặp vấn đề gì?",
+    "success": "Cảm ơn bạn đã gửi báo cáo. Chúng tôi sẽ kiểm tra sớm.",
+    "emailRequired": "Vui lòng nhập địa chỉ email",
+    "yourEmail": "Email của bạn",
+    "emailPlaceholder": "ban@vidu.com",
+    "messageLabel": "Nội dung",
+    "optional": "không bắt buộc",
+    "messagePlaceholder": "Cung cấp thêm chi tiết về vấn đề...",
+    "cancel": "Hủy",
+    "send": "Gửi",
+    "types": {
+      "brokenLink": "Liên kết hỏng",
+      "wrongCategory": "Sai danh mục",
+      "outdated": "Lỗi thời",
+      "other": "Khác"
+    }
+  },
+  "CommandPalette": {
+    "quickTools": "Công cụ",
+    "quickCategories": "Danh mục",
+    "quickTags": "Thẻ",
+    "quickSubmit": "Gửi công cụ mới",
+    "inputPlaceholder": "Nhập để tìm kiếm...",
+    "searching": "Đang tìm",
+    "searchFailed": "Tìm kiếm thất bại: {error}",
+    "searchFailedFallback": "Tìm kiếm thất bại",
+    "noResults": "Không có kết quả. Hãy thử từ khóa khác.",
+    "emptyPrompt": "Nhập để tìm trong công cụ, danh mục, bộ sưu tập và thẻ.",
+    "srTitle": "Tìm kiếm",
+    "srDescription": "Tìm công cụ AI, danh mục, bộ sưu tập và thẻ.",
+    "close": "Đóng",
+    "quickLinksHeading": "Liên kết nhanh",
+    "toolsHeading": "Công cụ",
+    "categoriesHeading": "Danh mục",
+    "collectionsHeading": "Bộ sưu tập",
+    "tagsHeading": "Thẻ",
+    "tagShortcut": "Thẻ",
+    "appearanceHeading": "Giao diện",
+    "switchToLightMode": "Chuyển sang chế độ sáng",
+    "switchToDarkMode": "Chuyển sang chế độ tối"
+  },
+  "ToolNav": {
+    "goHome": "Về trang chủ",
+    "copyLink": "Sao chép liên kết",
+    "copied": "Đã sao chép liên kết",
+    "previousTool": "Công cụ trước",
+    "nextTool": "Công cụ tiếp theo",
+    "shareOn": "Chia sẻ lên {platform}"
+  },
+  "Auth": {
+    "signIn": "Đăng nhập",
+    "signOut": "Đăng xuất",
+    "signInGoogle": "Đăng nhập bằng Google"
+  },
+  "Login": {
+    "title": "Đăng nhập vào tài khoản",
+    "continueWithGoogle": "Tiếp tục với Google"
+  },
+  "Chat": {
+    "title": "Trò chuyện AI",
+    "placeholder": "Tôi nên bắt đầu như thế nào?",
+    "suggestedQuestions": "Câu hỏi gợi ý",
+    "exampleQuestions": "Câu hỏi mẫu",
+    "openChat": "Mở chat",
+    "srTitle": "Trợ lý AIKC",
+    "srDescription": "Trò chuyện với trợ lý AIKC về các công cụ học tập và làm việc",
+    "assistantName": "AIKC",
+    "assistantBadge": "Trợ lý AI",
+    "greeting": "Xin chào, tôi là {assistantName}!",
+    "welcomeDescription": "Tôi là trợ lý AI được huấn luyện trên tài liệu, bài viết trợ giúp và các nội dung khác.",
+    "askAnythingAbout": "Hỏi tôi bất cứ điều gì về",
+    "assistant": "Trợ lý",
+    "startNewChat": "Bắt đầu cuộc trò chuyện mới",
+    "newChat": "Chat mới",
+    "close": "Đóng",
+    "howCanIHelp": "Tôi có thể giúp gì cho bạn?",
+    "helpDescription": "Hãy hỏi tôi về công cụ học tập và làm việc, gợi ý, hoặc lựa chọn thay thế",
+    "videoLoadFailed": "Không thể tải video",
+    "thinking": "Đang suy nghĩ...",
+    "suggestedQuestionsList": [
+      "Bạn gợi ý công cụ Học tập & Làm việc nào?",
+      "Giúp tôi tìm công cụ kiểm thử API",
+      "Công cụ Học tập & Làm việc miễn phí nào tốt nhất?"
+    ],
+    "toolQuestionsTemplate": {
+      "howToUse": "Cách sử dụng {name} như thế nào?",
+      "alternatives": "Có những lựa chọn thay thế nào cho {name}?",
+      "keyFeatures": "Những tính năng chính của {name} là gì?"
+    }
+  },
+  "Ads": {
+    "sponsored": "Tài trợ",
+    "learnMore": "Tìm hiểu thêm"
+  },
+  "SearchProgress": {
+    "keyword": "Từ khóa",
+    "semantic": "AI",
+    "loadingSemantic": "Đang tìm với AI...",
+    "initialResults": "Đang hiển thị kết quả nhanh",
+    "searchComplete": "Hoàn tất tìm kiếm"
+  }
+}
