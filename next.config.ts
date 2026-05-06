@@ -5,6 +5,23 @@ import createNextIntlPlugin from "next-intl/plugin";
 
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
+const isDev = process.env.NODE_ENV === "development";
+
+// React requires eval() in development mode for various debugging features
+// (e.g. reconstructing call stacks from a different environment).
+// React never uses eval() in production, so we keep the strict CSP there.
+const scriptSrc = [
+  "'self'",
+  "'unsafe-inline'",
+  isDev ? "'unsafe-eval'" : "",
+  "https://js.sentry-cdn.com",
+  "https://browser.sentry-cdn.com",
+]
+  .filter(Boolean)
+  .join(" ");
+
+const csp = `default-src 'self'; script-src ${scriptSrc}; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://img.youtube.com https://stukit-bucket.s3.us-east-1.amazonaws.com https://*.amazonaws.com; font-src 'self' data:; connect-src 'self' https://*.sentry.io https://*.ingest.sentry.io wss://*.sentry.io https://stukit-bucket.s3.us-east-1.amazonaws.com https://*.amazonaws.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://accounts.google.com; object-src 'none';`;
+
 const securityHeaders = [
   {
     key: "X-Frame-Options",
@@ -42,8 +59,7 @@ const securityHeaders = [
   },
   {
     key: "Content-Security-Policy",
-    value:
-      "default-src 'self'; script-src 'self' 'unsafe-inline' https://js.sentry-cdn.com https://browser.sentry-cdn.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://img.youtube.com https://stukit-bucket.s3.us-east-1.amazonaws.com https://*.amazonaws.com; font-src 'self' data:; connect-src 'self' https://*.sentry.io https://*.ingest.sentry.io wss://*.sentry.io https://stukit-bucket.s3.us-east-1.amazonaws.com https://*.amazonaws.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://accounts.google.com; object-src 'none';",
+    value: csp,
   },
 ];
 
