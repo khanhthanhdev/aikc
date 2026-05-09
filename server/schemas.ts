@@ -10,8 +10,8 @@ export const SUBMIT_LIMITS = {
 const SAFE_TEXT_PATTERN = /^[^<>"'&]*$/;
 
 export const submitToolSchema = z.object({
-  // Honeypot field — real users never see or fill this
-  hp: z.string().max(0).optional().default(""),
+  // Honeypot field — validated permissively so bots reach silent rejection.
+  hp: z.string().optional().default(""),
 
   name: z
     .string()
