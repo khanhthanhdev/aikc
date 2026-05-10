@@ -9,10 +9,7 @@ export const SUBMIT_LIMITS = {
 
 const SAFE_TEXT_PATTERN = /^[^<>"'&]*$/;
 
-export const submitToolSchema = z.object({
-  // Honeypot field — validated permissively so bots reach silent rejection.
-  hp: z.string().optional().default(""),
-
+const submitToolFieldsSchema = z.object({
   name: z
     .string()
     .trim()
@@ -58,3 +55,22 @@ export const submitToolSchema = z.object({
     )
     .email("Invalid email address"),
 });
+
+const honeypotSubmitSchema = z.object({
+  hp: z.string().min(1),
+  name: z.string().optional().default(""),
+  submitterEmail: z.string().optional().default(""),
+  submitterName: z.string().optional().default(""),
+  websiteUrl: z.string().optional().default(""),
+});
+
+const realSubmitSchema = z
+  .object({
+    hp: z.string().optional().default(""),
+  })
+  .extend(submitToolFieldsSchema.shape);
+
+export const submitToolSchema = z.union([
+  honeypotSubmitSchema,
+  realSubmitSchema,
+]);

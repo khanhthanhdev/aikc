@@ -44,6 +44,10 @@ export const SubmitForm = ({
     onSuccess: ({ data }) => {
       form.reset();
 
+      if (!data.slug) {
+        return;
+      }
+
       if (data.publishedAt && data.publishedAt <= new Date()) {
         toast.info(
           t("alreadyLive", { name: data.name, host: window.location.host })
