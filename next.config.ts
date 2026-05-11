@@ -138,7 +138,6 @@ const nextConfig: NextConfig = {
     "@aws-sdk/client-s3",
     "@qdrant/js-client-rest",
   ],
-
 };
 
 export default createMDX({})(withNextIntl(nextConfig));

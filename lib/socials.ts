@@ -1,5 +1,6 @@
 import "server-only";
 import wretch from "wretch";
+import { isDev } from "~/env";
 
 export type Socials = Record<
   string,
@@ -11,7 +12,9 @@ export const getSocialsFromUrl = async (url: string) => {
     const apiEndpoint = `https://brandlink.piotr-f64.workers.dev/api/links?url=${url}`;
     return await wretch(apiEndpoint).get().json<Socials>();
   } catch (error) {
-    console.error("Error fetching socials:", error);
+    if (isDev) {
+      console.error("Error fetching socials:", error);
+    }
     return {};
   }
 };

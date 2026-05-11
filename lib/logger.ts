@@ -23,7 +23,7 @@ const formatDurationMs = (durationMs?: number) =>
   durationMs === undefined ? undefined : Number(durationMs.toFixed(2));
 
 function shouldLog(level: LogLevel): boolean {
-  return LOG_LEVELS[level] >= LOG_LEVELS[currentLevel];
+  return isDev && LOG_LEVELS[level] >= LOG_LEVELS[currentLevel];
 }
 
 function formatMessage(

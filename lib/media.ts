@@ -3,7 +3,7 @@ import { DeleteObjectCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
 import { Upload } from "@aws-sdk/lib-storage";
 import { stripURLSubpath } from "@curiousleaf/utils";
 import wretch from "wretch";
-import { env, isProd } from "~/env";
+import { env, isDev, isProd } from "~/env";
 import { s3Client } from "~/services/aws-s3";
 
 /**
@@ -117,7 +117,9 @@ export const uploadFavicon = async (
 
     return s3Location;
   } catch (error) {
-    console.error("Error fetching or uploading favicon:", error);
+    if (isDev) {
+      console.error("Error fetching or uploading favicon:", error);
+    }
     throw error;
   }
 };
@@ -175,7 +177,9 @@ export const uploadScreenshot = async (
     // Append version timestamp for cache busting
     return `${store.location}?v=${Date.now()}`;
   } catch (error) {
-    console.error("Error fetching screenshot:", error);
+    if (isDev) {
+      console.error("Error fetching screenshot:", error);
+    }
     throw error;
   }
 };

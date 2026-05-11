@@ -95,7 +95,9 @@ export function CollectionForm({
           }
         },
         onError: ({ err }) => {
-          console.error("[CollectionForm] Translation error:", err);
+          if (process.env.NODE_ENV === "development") {
+            console.error("[CollectionForm] Translation error:", err);
+          }
           toast.error(err?.message || "Translation failed");
         },
       }

@@ -19,17 +19,17 @@ setInterval(
 export interface RateLimitConfig {
   /** Max requests per window */
   limit: number;
-  /** Window duration in seconds */
-  windowSeconds: number;
   /** Optional scope so multiple independent limits can share an IP */
   scope?: string;
+  /** Window duration in seconds */
+  windowSeconds: number;
 }
 
 export interface RateLimitResult {
-  success: boolean;
   remaining: number;
   resetAt: number;
   scope?: string;
+  success: boolean;
 }
 
 /**

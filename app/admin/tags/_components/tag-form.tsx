@@ -94,7 +94,9 @@ export function TagForm({
           }
         },
         onError: ({ err }) => {
-          console.error("[TagForm] Translation error:", err);
+          if (process.env.NODE_ENV === "development") {
+            console.error("[TagForm] Translation error:", err);
+          }
           toast.error(err?.message || "Translation failed");
         },
       }

@@ -8,6 +8,7 @@ import {
   type UIMessageChunk,
 } from "ai";
 import { z } from "zod";
+import { isDev } from "~/env";
 import {
   isSameOrigin,
   rateLimitByIpMulti,
@@ -365,13 +366,17 @@ export async function POST(req: Request) {
           toolResults: serializeToolResults(toolResults),
         });
       } catch (err) {
-        console.error("Failed to cache answer:", err);
+        if (isDev) {
+          console.error("Failed to cache answer:", err);
+        }
       }
     })();
 
     return result.toUIMessageStreamResponse();
   } catch (error) {
-    console.error("Chat API error:", error);
+    if (isDev) {
+      console.error("Chat API error:", error);
+    }
     return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },

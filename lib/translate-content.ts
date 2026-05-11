@@ -1,6 +1,7 @@
 "use server";
 
 import { generateText } from "ai";
+import { isDev } from "~/env";
 import { logger } from "~/lib/logger";
 import { googleFlashModel } from "~/services/google";
 
@@ -130,7 +131,9 @@ ${fieldsToTranslate.map((f) => `${f.field}: ${f.text}`).join("\n")}`,
     return result;
   } catch (error) {
     log.error("Translation failed", { error });
-    console.error("[translateToVietnamese] Detailed error:", error);
+    if (isDev) {
+      console.error("[translateToVietnamese] Detailed error:", error);
+    }
     throw new Error(`Failed to translate content: ${error}`);
   }
 }

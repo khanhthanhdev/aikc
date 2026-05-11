@@ -16,10 +16,14 @@ const intlMiddleware = createIntlMiddleware(routing);
  */
 function rewriteLinkHeader(response: NextResponse): void {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
-  if (!siteUrl) return;
+  if (!siteUrl) {
+    return;
+  }
 
   const linkHeader = response.headers.get("Link");
-  if (!linkHeader) return;
+  if (!linkHeader) {
+    return;
+  }
 
   let siteOrigin: string;
   try {
@@ -31,8 +35,8 @@ function rewriteLinkHeader(response: NextResponse): void {
   // Replace every URL origin inside angle brackets with the canonical one.
   // Pattern matches `<scheme://host[:port]/…>` and replaces the origin.
   const rewritten = linkHeader.replace(
-    /<(https?:\/\/[^\/]+)(\/[^>]*)>/g,
-    (_match, _origin, path) => `<${siteOrigin}${path}>`,
+    /<(https?:\/\/[^/]+)(\/[^>]*)>/g,
+    (_match, _origin, path) => `<${siteOrigin}${path}>`
   );
 
   if (rewritten !== linkHeader) {

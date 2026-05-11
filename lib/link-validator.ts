@@ -40,11 +40,16 @@ const PRIVATE_IPV4_CIDRS: Array<[bigint, number]> = [
 
 function ipv4ToBigInt(ip: string): bigint {
   const parts = ip.split(".").map((p) => BigInt(Number.parseInt(p, 10)));
-  return (parts[0]! << 24n) | (parts[1]! << 16n) | (parts[2]! << 8n) | parts[3]!;
+  return (
+    (parts[0]! << 24n) | (parts[1]! << 16n) | (parts[2]! << 8n) | parts[3]!
+  );
 }
 
 function inCidr(addr: bigint, base: bigint, prefix: number, bits: number) {
-  const mask = prefix === 0 ? 0n : ((1n << BigInt(bits)) - 1n) ^ ((1n << BigInt(bits - prefix)) - 1n);
+  const mask =
+    prefix === 0
+      ? 0n
+      : ((1n << BigInt(bits)) - 1n) ^ ((1n << BigInt(bits - prefix)) - 1n);
   return (addr & mask) === (base & mask);
 }
 
@@ -114,7 +119,11 @@ async function resolveAndCheckHost(hostname: string): Promise<{
 }> {
   // Normalize and reject obvious local names
   const lower = hostname.toLowerCase();
-  if (lower === "localhost" || lower.endsWith(".localhost") || lower.endsWith(".internal")) {
+  if (
+    lower === "localhost" ||
+    lower.endsWith(".localhost") ||
+    lower.endsWith(".internal")
+  ) {
     return { safe: false, reason: "blocked hostname" };
   }
 
@@ -193,7 +202,10 @@ async function safeFetch(
       if (redirects >= MAX_REDIRECTS) {
         throw new Error("Too many redirects");
       }
-      const next = new URL(response.headers.get("location")!, currentUrl).toString();
+      const next = new URL(
+        response.headers.get("location")!,
+        currentUrl
+      ).toString();
       currentUrl = next;
       redirects++;
       continue;

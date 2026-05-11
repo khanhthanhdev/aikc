@@ -1,16 +1,17 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import {
-  isSameOrigin,
-  rateLimitByIpMulti,
-  rateLimitResponse,
-} from "~/lib/rate-limit";
+import { isDev } from "~/env";
 import {
   answerToolQuestion,
   answerToolQuestionAdvanced,
   retrieveToolContext,
   retrieveToolContextWithRouting,
 } from "~/lib/rag";
+import {
+  isSameOrigin,
+  rateLimitByIpMulti,
+  rateLimitResponse,
+} from "~/lib/rate-limit";
 
 const ragQuerySchema = z.object({
   question: z.string().min(1).max(500),
@@ -58,8 +59,13 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { question, limit: take, category, temperature, advanced } =
-      ragQuerySchema.parse(body);
+    const {
+      question,
+      limit: take,
+      category,
+      temperature,
+      advanced,
+    } = ragQuerySchema.parse(body);
 
     const result = advanced
       ? await answerToolQuestionAdvanced(question, {
@@ -85,7 +91,9 @@ export async function POST(request: Request) {
       );
     }
 
-    console.error("RAG API error");
+    if (isDev) {
+      console.error("RAG API error");
+    }
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -139,7 +147,9 @@ export async function GET(request: Request) {
       );
     }
 
-    console.error("RAG context API error");
+    if (isDev) {
+      console.error("RAG context API error");
+    }
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

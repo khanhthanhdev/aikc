@@ -5,6 +5,7 @@ import { slugify } from "@curiousleaf/utils";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { categorySchema } from "~/app/admin/categories/_lib/validations";
+import { isDev } from "~/env";
 import { revalidatePublicToolCaches } from "~/lib/public-tool-cache";
 import { authedProcedure } from "~/lib/safe-actions";
 import { translateToVietnamese } from "~/lib/translate-content";
@@ -26,7 +27,9 @@ export const createCategory = authedProcedure
     try {
       await upsertCategoryVector(category);
     } catch (error) {
-      console.error("Failed to index category vector:", error);
+      if (isDev) {
+        console.error("Failed to index category vector:", error);
+      }
       // Don't fail the operation if vector indexing fails
     }
 
@@ -49,7 +52,9 @@ export const updateCategory = authedProcedure
     try {
       await upsertCategoryVector(category);
     } catch (error) {
-      console.error("Failed to update category vector:", error);
+      if (isDev) {
+        console.error("Failed to update category vector:", error);
+      }
       // Don't fail the operation if vector indexing fails
     }
 
@@ -78,7 +83,9 @@ export const updateCategories = authedProcedure
         updatedCategories.map((category) => upsertCategoryVector(category))
       );
     } catch (error) {
-      console.error("Failed to update category vectors:", error);
+      if (isDev) {
+        console.error("Failed to update category vectors:", error);
+      }
       // Don't fail the operation if vector indexing fails
     }
 
@@ -100,7 +107,9 @@ export const deleteCategories = authedProcedure
     try {
       await Promise.all(ids.map((id: string) => deleteCategoryVector(id)));
     } catch (error) {
-      console.error("Failed to delete category vectors:", error);
+      if (isDev) {
+        console.error("Failed to delete category vectors:", error);
+      }
       // Don't fail the operation if vector deletion fails
     }
 

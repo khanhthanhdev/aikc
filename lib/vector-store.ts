@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import type { Category, Tag, Tool } from "@prisma/client";
 import type { Schemas } from "@qdrant/js-client-rest";
 import { getSearchConfig } from "~/config/search";
+import { isDev } from "~/env";
 import { getCachedEmbedding } from "~/lib/embedding-cache";
 import { createLogger } from "~/lib/logger";
 import { EMBEDDING_MODEL, generateEmbedding } from "~/services/embedding";
@@ -218,7 +219,9 @@ export const deleteToolVector = async (toolId: string) => {
     });
   } catch (_error) {
     // Gracefully handle if vector doesn't exist
-    console.warn(`Vector for tool ${toolId} not found or already deleted`);
+    if (isDev) {
+      console.warn(`Vector for tool ${toolId} not found or already deleted`);
+    }
   }
 };
 
@@ -305,7 +308,9 @@ export const reindexAllTools = async (
           progress.processed++;
         } catch (error) {
           progress.failed.push(tool.slug);
-          console.error(`Failed to index tool ${tool.slug}:`, error);
+          if (isDev) {
+            console.error(`Failed to index tool ${tool.slug}:`, error);
+          }
         }
       })
     );

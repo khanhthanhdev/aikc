@@ -16,7 +16,7 @@ export const ExternalLink = forwardRef<HTMLAnchorElement, ExternalLinkProps>(
 
     // Placeholder for analytics
     const handleClick = () => {
-      if (eventName) {
+      if (eventName && process.env.NODE_ENV === "development") {
         console.log("Track event:", eventName, eventProps);
         // TODO: Integrate actual analytics here if found
       }

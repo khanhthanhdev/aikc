@@ -1,5 +1,6 @@
 import { tool } from "ai";
 import { z } from "zod";
+import { isDev } from "~/env";
 
 export interface YoutubeVideo {
   channelName?: string;
@@ -88,7 +89,9 @@ export const searchYoutubeVideos = tool({
 
       return videos;
     } catch (error) {
-      console.error("YouTube search error:", error);
+      if (isDev) {
+        console.error("YouTube search error:", error);
+      }
       return [];
     }
   },

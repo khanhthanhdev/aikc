@@ -95,7 +95,9 @@ export function CategoryForm({
           }
         },
         onError: ({ err }) => {
-          console.error("[CategoryForm] Translation error:", err);
+          if (process.env.NODE_ENV === "development") {
+            console.error("[CategoryForm] Translation error:", err);
+          }
           toast.error(err?.message || "Translation failed");
         },
       }

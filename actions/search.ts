@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { createServerAction } from "zsa";
 import { getSearchConfig } from "~/config/search";
+import { isDev } from "~/env";
 import { runWithEmbeddingCache } from "~/lib/embedding-cache";
 import { authedProcedure } from "~/lib/safe-actions";
 import { CircuitBreaker } from "~/lib/search-strategy";
@@ -187,7 +188,9 @@ const createSearchRunner = ({
     // Run Qdrant and keyword searches in parallel for true hybrid search
     const qdrantPromise = (async (): Promise<ToolVectorMatch[]> => {
       if (!circuitBreaker.canAttempt()) {
-        console.warn("Search skipped Qdrant due to open circuit breaker");
+        if (isDev) {
+          console.warn("Search skipped Qdrant due to open circuit breaker");
+        }
         return [];
       }
 
@@ -204,7 +207,12 @@ const createSearchRunner = ({
           : matches;
       } catch (error) {
         circuitBreaker.recordFailure();
-        console.warn("Qdrant tool search failed, will rely on keyword:", error);
+        if (isDev) {
+          console.warn(
+            "Qdrant tool search failed, will rely on keyword:",
+            error
+          );
+        }
         return [];
       }
     })();
@@ -318,9 +326,11 @@ const createSearchRunner = ({
     }
 
     if (!circuitBreaker.canAttempt()) {
-      console.warn(
-        "Search skipped Qdrant for categories due to open circuit breaker"
-      );
+      if (isDev) {
+        console.warn(
+          "Search skipped Qdrant for categories due to open circuit breaker"
+        );
+      }
       const categories = await prisma.category.findMany({
         where: {
           OR: [
@@ -380,10 +390,12 @@ const createSearchRunner = ({
         usedMode: "semantic",
       };
     } catch (error) {
-      console.warn(
-        "Qdrant category search failed, falling back to keyword:",
-        error
-      );
+      if (isDev) {
+        console.warn(
+          "Qdrant category search failed, falling back to keyword:",
+          error
+        );
+      }
       circuitBreaker.recordFailure();
       const categories = await prisma.category.findMany({
         where: {
@@ -432,7 +444,9 @@ const performSearch = async (
         return cached as unknown as SearchResults;
       }
     } catch (error) {
-      console.error("Failed to check semantic cache:", error);
+      if (isDev) {
+        console.error("Failed to check semantic cache:", error);
+      }
     }
   }
 
@@ -488,7 +502,11 @@ const performSearch = async (
     storeCachedSearch({
       question: q,
       searchResults: results,
-    }).catch((err) => console.error("Failed to store search cache:", err));
+    }).catch((err) => {
+      if (isDev) {
+        console.error("Failed to store search cache:", err);
+      }
+    });
   }
 
   return results;
@@ -506,9 +524,11 @@ export const searchItems = authedProcedure
     runWithEmbeddingCache(async () => {
       const results = await performSearch(q, mode, adminSearchRunner);
 
-      console.log(
-        `Admin search (${mode}): ${results.elapsedMs}ms [tools:${results.searchModes.tools}, categories:${results.searchModes.categories}]`
-      );
+      if (isDev) {
+        console.log(
+          `Admin search (${mode}): ${results.elapsedMs}ms [tools:${results.searchModes.tools}, categories:${results.searchModes.categories}]`
+        );
+      }
 
       return results;
     })
@@ -606,7 +626,9 @@ export const progressiveSearchPaletteItems = async ({
           error: null,
         };
       } catch (error) {
-        console.warn("Semantic search failed:", error);
+        if (isDev) {
+          console.warn("Semantic search failed:", error);
+        }
         return {
           toolsResult: null,
           categoriesResult: null,
@@ -760,7 +782,11 @@ export const progressiveSearchPaletteItems = async ({
       storeCachedSearch({
         question: q,
         searchResults: finalResults as unknown as Record<string, unknown>,
-      }).catch((err) => console.error("Failed to store search cache:", err));
+      }).catch((err) => {
+        if (isDev) {
+          console.error("Failed to store search cache:", err);
+        }
+      });
     }
   }
 

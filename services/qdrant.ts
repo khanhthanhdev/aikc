@@ -1,5 +1,5 @@
 import { QdrantClient } from "@qdrant/js-client-rest";
-import { env } from "~/env";
+import { env, isDev } from "~/env";
 
 const isSecureQdrantUrl = env.QDRANT_URL.startsWith("https://");
 const qdrantApiKey = isSecureQdrantUrl ? env.QDRANT_API_KEY : undefined;
@@ -44,14 +44,18 @@ export const ensureToolsCollection = async () => {
         typeof existsResult === "boolean" ? existsResult : existsResult?.exists;
 
       if (!exists) {
-        console.log(`Creating tools collection: ${QDRANT_TOOLS_COLLECTION}`);
+        if (isDev) {
+          console.log(`Creating tools collection: ${QDRANT_TOOLS_COLLECTION}`);
+        }
         await qdrantClient.createCollection(QDRANT_TOOLS_COLLECTION, {
           vectors: {
             size: QDRANT_TOOLS_VECTOR_SIZE,
             distance: "Cosine",
           },
         });
-        console.log("Tools collection created successfully");
+        if (isDev) {
+          console.log("Tools collection created successfully");
+        }
       }
     })();
   }
@@ -73,18 +77,24 @@ export const ensureSemanticCacheCollection = async () => {
         typeof existsResult === "boolean" ? existsResult : existsResult?.exists;
 
       if (!exists) {
-        console.log(
-          `Creating semantic cache collection: ${QDRANT_SEMANTIC_CACHE_COLLECTION}`
-        );
+        if (isDev) {
+          console.log(
+            `Creating semantic cache collection: ${QDRANT_SEMANTIC_CACHE_COLLECTION}`
+          );
+        }
         await qdrantClient.createCollection(QDRANT_SEMANTIC_CACHE_COLLECTION, {
           vectors: {
             size: QDRANT_DENSE_VECTOR_SIZE,
             distance: "Cosine",
           },
         });
-        console.log("Semantic cache collection created successfully");
+        if (isDev) {
+          console.log("Semantic cache collection created successfully");
+        }
 
-        console.log("Creating toolSlug index...");
+        if (isDev) {
+          console.log("Creating toolSlug index...");
+        }
         await qdrantClient.createPayloadIndex(
           QDRANT_SEMANTIC_CACHE_COLLECTION,
           {
@@ -93,7 +103,9 @@ export const ensureSemanticCacheCollection = async () => {
           }
         );
 
-        console.log("Creating type index...");
+        if (isDev) {
+          console.log("Creating type index...");
+        }
         await qdrantClient.createPayloadIndex(
           QDRANT_SEMANTIC_CACHE_COLLECTION,
           {
@@ -123,7 +135,11 @@ export const ensureHybridCollection = async () => {
         typeof existsResult === "boolean" ? existsResult : existsResult?.exists;
 
       if (!exists) {
-        console.log(`Creating hybrid collection: ${QDRANT_HYBRID_COLLECTION}`);
+        if (isDev) {
+          console.log(
+            `Creating hybrid collection: ${QDRANT_HYBRID_COLLECTION}`
+          );
+        }
         // Use REST API directly since JS client doesn't support sparse_vectors config
         try {
           const response = await fetch(
@@ -155,7 +171,9 @@ export const ensureHybridCollection = async () => {
               `Failed to create collection: ${error.status?.error || response.statusText}`
             );
           }
-          console.log("Hybrid collection created successfully");
+          if (isDev) {
+            console.log("Hybrid collection created successfully");
+          }
         } catch (error) {
           if (error instanceof TypeError && error.message.includes("fetch")) {
             throw new Error(`Qdrant unavailable at ${env.QDRANT_URL}`);
@@ -209,9 +227,11 @@ export const ensureAlternativesCollection = async () => {
         typeof existsResult === "boolean" ? existsResult : existsResult?.exists;
 
       if (!exists) {
-        console.log(
-          `Creating alternatives hybrid collection: ${QDRANT_ALTERNATIVES_COLLECTION}`
-        );
+        if (isDev) {
+          console.log(
+            `Creating alternatives hybrid collection: ${QDRANT_ALTERNATIVES_COLLECTION}`
+          );
+        }
         // Use REST API directly since JS client doesn't support sparse_vectors config
         try {
           const response = await fetch(
@@ -243,7 +263,9 @@ export const ensureAlternativesCollection = async () => {
               `Failed to create collection: ${error.status?.error || response.statusText}`
             );
           }
-          console.log("Alternatives hybrid collection created successfully");
+          if (isDev) {
+            console.log("Alternatives hybrid collection created successfully");
+          }
         } catch (error) {
           if (error instanceof TypeError && error.message.includes("fetch")) {
             throw new Error(`Qdrant unavailable at ${env.QDRANT_URL}`);
@@ -297,9 +319,11 @@ export const ensureCategoriesCollection = async () => {
         typeof existsResult === "boolean" ? existsResult : existsResult?.exists;
 
       if (!exists) {
-        console.log(
-          `Creating categories hybrid collection: ${QDRANT_CATEGORIES_COLLECTION}`
-        );
+        if (isDev) {
+          console.log(
+            `Creating categories hybrid collection: ${QDRANT_CATEGORIES_COLLECTION}`
+          );
+        }
         // Use REST API directly since JS client doesn't support sparse_vectors config
         try {
           const response = await fetch(
@@ -331,7 +355,9 @@ export const ensureCategoriesCollection = async () => {
               `Failed to create collection: ${error.status?.error || response.statusText}`
             );
           }
-          console.log("Categories hybrid collection created successfully");
+          if (isDev) {
+            console.log("Categories hybrid collection created successfully");
+          }
         } catch (error) {
           if (error instanceof TypeError && error.message.includes("fetch")) {
             throw new Error(`Qdrant unavailable at ${env.QDRANT_URL}`);
@@ -383,9 +409,11 @@ export const ensureSearchCacheCollection = async () => {
         typeof existsResult === "boolean" ? existsResult : existsResult?.exists;
 
       if (!exists) {
-        console.log(
-          `Creating search cache collection: ${QDRANT_SEARCH_CACHE_COLLECTION}`
-        );
+        if (isDev) {
+          console.log(
+            `Creating search cache collection: ${QDRANT_SEARCH_CACHE_COLLECTION}`
+          );
+        }
         await qdrantClient.createCollection(QDRANT_SEARCH_CACHE_COLLECTION, {
           vectors: {
             size: QDRANT_DENSE_VECTOR_SIZE,
@@ -395,7 +423,9 @@ export const ensureSearchCacheCollection = async () => {
           // We can also configure optimizers to keep segments in RAM,
           // but on_disk: false for vectors is the primary key for "in-memory for faster"
         });
-        console.log("Search cache collection created successfully");
+        if (isDev) {
+          console.log("Search cache collection created successfully");
+        }
       }
     })();
   }
