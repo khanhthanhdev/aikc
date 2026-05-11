@@ -65,6 +65,11 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   output: "standalone",
   poweredByHeader: false,
+  // Type checking and linting are run separately (CI / pre-commit). Skipping
+  // them in `next build` cuts ~1 GB of peak memory, which is what gets the
+  // build worker SIGKILL'd on small VPS hosts.
+  typescript: { ignoreBuildErrors: true },
+  eslint: { ignoreDuringBuilds: true },
   // Emit source maps for production client bundles so the browser DevTools
   // (and Lighthouse) can resolve minified first-party code back to source.
   productionBrowserSourceMaps: true,
