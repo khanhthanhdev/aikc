@@ -48,10 +48,11 @@ interface PageProps {
   params: Promise<{ slug: string; locale: string }>;
 }
 
-// new Date() in the query is evaluated at cache-miss time by unstable_cache
-// (revalidate: 31_536_000). Result is frozen until admin calls revalidateTag();
-// future publishing revalidates via the scheduled tool.published event.
-export const revalidate = 31_536_000; // 1 year
+// This page composes request-bound APIs (next-intl getLocale in the root
+// layout, AdCard DB query, findFirstTool with `new Date()`, RelatedTools that
+// uses Math.random()/Qdrant), so it cannot be safely rendered statically.
+// Static caching would otherwise throw `DYNAMIC_SERVER_USAGE` at request time.
+export const dynamic = "force-dynamic";
 
 export const dynamicParams = true;
 

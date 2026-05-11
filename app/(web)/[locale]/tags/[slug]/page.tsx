@@ -20,7 +20,10 @@ interface PageProps {
   searchParams: Promise<SearchParams>;
 }
 
-export const revalidate = 31_536_000; // 1 year; future publishing revalidates via scheduled tool.published events.
+// Layout uses next-intl getLocale() (request-bound) and the page composes
+// uncached DB queries, so it can't be statically rendered without throwing
+// DYNAMIC_SERVER_USAGE. The unstable_cache wrapper still memoizes the data.
+export const dynamic = "force-dynamic";
 
 const getTag = unstable_cache(
   async (slug: string) => findUniqueTag({ where: { slug } }),
