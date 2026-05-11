@@ -26,6 +26,7 @@ export const routing = defineRouting({
     "/about": { vi: "/ve-chung-toi" },
     "/submit": { vi: "/gui-tool" },
     "/login": { vi: "/dang-nhap" },
+    "/tools": { vi: "/tools" },
     "/categories": { vi: "/danh-muc" },
     "/collections": { vi: "/bo-suu-tap" },
     "/tags": { vi: "/the" },

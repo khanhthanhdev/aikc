@@ -30,6 +30,7 @@ export default async function Sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: number;
   }> = [
     { href: "/", changeFrequency: "daily", priority: 1 },
+    { href: "/tools", changeFrequency: "daily", priority: 0.9 },
     { href: "/about", changeFrequency: "monthly", priority: 0.5 },
     { href: "/submit", changeFrequency: "monthly", priority: 0.8 },
     { href: "/categories", changeFrequency: "daily", priority: 0.5 },

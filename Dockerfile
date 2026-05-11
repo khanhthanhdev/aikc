@@ -59,6 +59,9 @@ ENV HOSTNAME="0.0.0.0"
 RUN groupadd --system --gid 1001 nodejs && \
     useradd --system --uid 1001 --gid nodejs --no-create-home nextjs
 
+RUN mkdir -p /app/.next/cache && \
+    chown -R nextjs:nodejs /app/.next
+
 # Copy public assets
 COPY --from=builder /app/public ./public
 

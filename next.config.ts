@@ -74,16 +74,6 @@ const nextConfig: NextConfig = {
   skipTrailingSlashRedirect: true,
   pageExtensions: ["md", "mdx", "ts", "tsx"],
 
-  async redirects() {
-    return [
-      {
-        source: "/tools",
-        destination: "/",
-        permanent: true,
-      },
-    ];
-  },
-
   async headers() {
     return [
       {

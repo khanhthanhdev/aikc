@@ -158,6 +158,10 @@ services:
         condition: service_started
       inngest:
         condition: service_healthy
+    volumes:
+      # Persist Next.js runtime caches used by ISR/PPR/cacheComponents between
+      # container restarts on a single-node VPS deployment.
+      - app_next_cache:/app/.next/cache
 
   postgrest:
     image: postgrest/postgrest
@@ -194,6 +198,7 @@ services:
       - caddy_config:/config
 
 volumes:
+  app_next_cache:
   postgres_data:
   qdrant_data:
   infinity_cache:

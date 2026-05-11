@@ -1,3 +1,4 @@
+import { cacheLife, cacheTag } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { H5 } from "~/components/common/heading";
 import { Stack } from "~/components/common/stack";
@@ -14,9 +15,18 @@ interface SubmitProductsProps {
   tool: ToolOne;
 }
 
+const getQueueLength = async () => {
+  "use cache";
+
+  cacheLife("max");
+  cacheTag("tools");
+
+  return await countUpcomingTools({});
+};
+
 export const SubmitProducts = async ({ tool, locale }: SubmitProductsProps) => {
   const t = await getTranslations({ locale, namespace: "SubmitStatus" });
-  const queueLength = await countUpcomingTools({});
+  const queueLength = await getQueueLength();
   const metrics = getQueueMetrics(queueLength);
   const isPublished = isToolPublished(tool);
 
