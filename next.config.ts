@@ -16,11 +16,12 @@ const scriptSrc = [
   isDev ? "'unsafe-eval'" : "",
   "https://js.sentry-cdn.com",
   "https://browser.sentry-cdn.com",
+  "https://static.cloudflareinsights.com",
 ]
   .filter(Boolean)
   .join(" ");
 
-const csp = `default-src 'self'; script-src ${scriptSrc}; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://img.youtube.com https://stukit-bucket.s3.us-east-1.amazonaws.com https://*.amazonaws.com; font-src 'self' data:; connect-src 'self' https://*.sentry.io https://*.ingest.sentry.io wss://*.sentry.io https://stukit-bucket.s3.us-east-1.amazonaws.com https://*.amazonaws.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://accounts.google.com; object-src 'none';`;
+const csp = `default-src 'self'; script-src ${scriptSrc}; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://img.youtube.com https://stukit-bucket.s3.us-east-1.amazonaws.com https://*.amazonaws.com; font-src 'self' data:; connect-src 'self' https://*.sentry.io https://*.ingest.sentry.io wss://*.sentry.io https://stukit-bucket.s3.us-east-1.amazonaws.com https://*.amazonaws.com https://cloudflareinsights.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://accounts.google.com; object-src 'none';`;
 
 const securityHeaders = [
   {
@@ -66,6 +67,9 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   output: "standalone",
   poweredByHeader: false,
+  // Emit source maps for production client bundles so the browser DevTools
+  // (and Lighthouse) can resolve minified first-party code back to source.
+  productionBrowserSourceMaps: true,
   experimental: {
     optimizeCss: true,
   },
@@ -148,6 +152,12 @@ export default withSentryConfig(createMDX({})(withNextIntl(nextConfig)), {
 
   // Upload wider set of client source files for better stack trace resolution
   widenClientFileUpload: true,
+
+  // Keep source maps in the build output so they're publicly served alongside
+  // chunks (Lighthouse / DevTools can resolve minified first-party code).
+  sourcemaps: {
+    deleteSourcemapsAfterUpload: false,
+  },
 
   // Create a proxy API route to bypass ad-blockers
   tunnelRoute: "/monitoring",
