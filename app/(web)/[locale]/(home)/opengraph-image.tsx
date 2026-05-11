@@ -6,7 +6,6 @@ import { loadLocalFont } from "~/lib/og-fonts";
 export const contentType = "image/png";
 export const alt = "AI Knowledge Cloud";
 export const size = { width: 1200, height: 630 };
-export const runtime = "nodejs";
 
 export default async function Image() {
   return new ImageResponse(

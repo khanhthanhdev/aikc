@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { cacheLife, cacheTag } from "next/cache";
 import { routing } from "~/i18n/routing";
 import { findCategorySlugs } from "~/server/categories/queries";
 import { findCollectionSlugs } from "~/server/collections/queries";
@@ -6,16 +7,22 @@ import { findTagSlugs } from "~/server/tags/queries";
 import { findToolSlugs } from "~/server/tools/queries";
 import { buildLocalizedUrl } from "~/utils/seo";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 3600;
+const getSitemapData = async () => {
+  "use cache";
 
-export default async function Sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [tools, categories, collections, tags] = await Promise.all([
+  cacheLife("hours");
+  cacheTag("tools", "categories", "collections", "tags");
+
+  return await Promise.all([
     findToolSlugs({}),
     findCategorySlugs({}),
     findCollectionSlugs({}),
     findTagSlugs({}),
   ]);
+};
+
+export default async function Sitemap(): Promise<MetadataRoute.Sitemap> {
+  const [tools, categories, collections, tags] = await getSitemapData();
 
   const staticPages: Array<{
     href: string;

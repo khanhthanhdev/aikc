@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { cacheLife, cacheTag } from "next/cache";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
 import { getTranslations } from "next-intl/server";
 import type { SearchParams } from "nuqs";
 import { createSearchParamsCache, parseAsBoolean } from "nuqs/server";
@@ -21,23 +23,30 @@ interface PageProps {
   searchParams: Promise<SearchParams>;
 }
 
-export const dynamic = "force-dynamic";
-
 const searchParamsCache = createSearchParamsCache({
   success: parseAsBoolean.withDefault(false),
 });
 
-const getTool = cache(
-  async ({ slug, success }: { slug: string; success: boolean }) => {
-    return findUniqueTool({
-      where: {
-        slug,
-        publishedAt: undefined,
-        isFeatured: success ? undefined : false,
-      },
-    });
-  }
-);
+const getTool = async ({
+  slug,
+  success,
+}: {
+  slug: string;
+  success: boolean;
+}) => {
+  "use cache";
+
+  cacheLife("max");
+  cacheTag("tools");
+
+  return findUniqueTool({
+    where: {
+      slug,
+      publishedAt: undefined,
+      isFeatured: success ? undefined : false,
+    },
+  });
+};
 
 const getMetadata = cache(
   async (
@@ -113,6 +122,8 @@ export default async function SubmitPackages({
   params,
   searchParams,
 }: PageProps) {
+  await connection();
+
   const { slug, locale } = await params;
   const { success } = searchParamsCache.parse(await searchParams);
 

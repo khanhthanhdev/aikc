@@ -1,6 +1,6 @@
 import { DollarSignIcon, HashIcon, SparkleIcon, TagIcon } from "lucide-react";
 import type { Metadata } from "next";
-import { unstable_cache } from "next/cache";
+import { cacheLife, cacheTag } from "next/cache";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
@@ -48,19 +48,30 @@ interface PageProps {
   params: Promise<{ slug: string; locale: string }>;
 }
 
-// This page composes request-bound APIs (next-intl getLocale in the root
-// layout, AdCard DB query, findFirstTool with `new Date()`, RelatedTools that
-// uses Math.random()/Qdrant), so it cannot be safely rendered statically.
-// Static caching would otherwise throw `DYNAMIC_SERVER_USAGE` at request time.
-export const dynamic = "force-dynamic";
+const getTool = async (slug: string) => {
+  "use cache";
 
-export const dynamicParams = true;
+  cacheLife("max");
+  cacheTag("tools");
 
-const getTool = unstable_cache(
-  async (slug: string) => findUniqueTool({ where: { slug } }),
-  ["tool-detail"],
-  { revalidate: 31_536_000, tags: ["tools"] }
-);
+  return findUniqueTool({ where: { slug } });
+};
+
+const getAdjacentToolSlug = async (
+  id: string,
+  direction: "previous" | "next"
+) => {
+  "use cache";
+
+  cacheLife("max");
+  cacheTag("tools");
+
+  return findFirstTool({
+    where: direction === "previous" ? { id: { lt: id } } : { id: { gt: id } },
+    select: { slug: true },
+    orderBy: { id: direction === "previous" ? "desc" : "asc" },
+  });
+};
 
 export const generateStaticParams = async () => {
   if (!process.env.DATABASE_URL) {
@@ -144,17 +155,8 @@ export default async function ToolPage({ params }: PageProps) {
     : null;
 
   const [previous, next] = await Promise.all([
-    findFirstTool({
-      where: { id: { lt: tool.id } },
-      select: { slug: true },
-      orderBy: { id: "desc" },
-    }),
-
-    findFirstTool({
-      where: { id: { gt: tool.id } },
-      select: { slug: true },
-      orderBy: { id: "asc" },
-    }),
+    getAdjacentToolSlug(tool.id, "previous"),
+    getAdjacentToolSlug(tool.id, "next"),
   ]);
 
   const _socials = z

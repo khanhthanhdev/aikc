@@ -1,5 +1,6 @@
 import { getRandomElement } from "@curiousleaf/utils";
 import type { Prisma } from "@prisma/client";
+import { connection } from "next/server";
 import { getTranslations } from "next-intl/server";
 import { ToolCard } from "~/components/web/cards/tool-card";
 import { Listing } from "~/components/web/listing";
@@ -15,10 +16,6 @@ const generateRandomValues = (itemCount: number, take: number) => ({
   orderByDirection: getRandomElement(["asc", "desc"] as const),
 });
 
-// This component uses Math.random() for fallback random selection,
-// so it must be rendered dynamically and cannot be statically optimized
-export const dynamic = "force-dynamic";
-
 export const RelatedTools = async ({
   tool,
   locale,
@@ -26,6 +23,8 @@ export const RelatedTools = async ({
   tool: ToolOne;
   locale: string;
 }) => {
+  await connection();
+
   const take = 3;
   const isVietnamese = locale === "vi";
   const t = await getTranslations({ locale, namespace: "Tools" });

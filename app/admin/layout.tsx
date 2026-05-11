@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { unstable_cache } from "next/cache";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import type { PropsWithChildren } from "react";
 import { CommandMenu } from "~/components/admin/command-menu";
 import { Shell } from "~/components/admin/shell";
@@ -10,8 +11,6 @@ import { prisma } from "~/services/prisma";
 import { Providers } from "./providers";
 
 import "./styles.css";
-
-export const dynamic = "force-dynamic";
 
 const getStats = unstable_cache(
   () =>
@@ -34,6 +33,8 @@ export const metadata: Metadata = {
 };
 
 export default async function DashboardLayout({ children }: PropsWithChildren) {
+  await connection();
+
   const cookieStore = await cookies();
 
   const statsPromise = getStats();

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { unstable_cache } from "next/cache";
+import { cacheLife, cacheTag } from "next/cache";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import type { SearchParams } from "nuqs/server";
@@ -32,16 +32,14 @@ interface PageProps {
   searchParams: Promise<SearchParams>;
 }
 
-// Layout uses next-intl getLocale() (request-bound) and the page composes
-// uncached DB queries, so it can't be statically rendered without throwing
-// DYNAMIC_SERVER_USAGE. The unstable_cache wrapper still memoizes the data.
-export const dynamic = "force-dynamic";
+const getCategory = async (slug: string) => {
+  "use cache";
 
-const getCategory = unstable_cache(
-  async (slug: string) => findUniqueCategory({ where: { slug } }),
-  ["category-detail"],
-  { revalidate: 31_536_000, tags: ["categories"] }
-);
+  cacheLife("max");
+  cacheTag("categories", "tools");
+
+  return findUniqueCategory({ where: { slug } });
+};
 
 export const generateStaticParams = async () => {
   if (!process.env.DATABASE_URL) {

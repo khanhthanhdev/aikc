@@ -13,9 +13,6 @@ export const contentType = "image/png";
 export const alt = "Tag OpenGraph image";
 export const size = { width: 1200, height: 630 };
 
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
-
 export default async function Image({ params }: PageProps) {
   const { slug, locale } = await params;
   const isVietnamese = locale === "vi";

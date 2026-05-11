@@ -7,6 +7,8 @@ import { Gallery } from "~/components/web/ui/gallery";
 import { Tag } from "~/components/web/ui/tag";
 import { Wrapper } from "~/components/web/ui/wrapper";
 
+const lineWidths = [92, 81, 74, 88, 69, 95, 77, 84, 63, 90, 72, 58] as const;
+
 export default function Loading() {
   return (
     <>
@@ -42,11 +44,11 @@ export default function Loading() {
         <Gallery images={[""]} />
 
         <div className="space-y-2">
-          {[...new Array(12)].map((_, i) => (
+          {lineWidths.map((width, i) => (
             <Skeleton
               className="h-4"
               key={`line-${i}`}
-              style={{ width: `${50 + Math.random() * 50}%` }}
+              style={{ width: `${width}%` }}
             />
           ))}
         </div>

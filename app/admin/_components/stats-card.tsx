@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import {
   Card,
   CardDescription,
@@ -7,6 +8,8 @@ import {
 import { prisma } from "~/services/prisma";
 
 export const StatsCard = async () => {
+  await connection();
+
   const stats = await Promise.all([
     prisma.tool.count(),
     prisma.category.count(),

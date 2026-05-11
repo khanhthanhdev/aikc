@@ -1,7 +1,7 @@
 import type { Viewport } from "next";
-import { getLocale } from "next-intl/server";
-import type { PropsWithChildren } from "react";
+import { type PropsWithChildren, Suspense } from "react";
 import Providers from "~/app/providers";
+import { routing } from "~/i18n/routing";
 import { GeistSans, UncutSans } from "~/lib/fonts";
 
 export const viewport: Viewport = {
@@ -12,17 +12,17 @@ export const viewport: Viewport = {
   ],
 };
 
-export default async function RootLayout({ children }: PropsWithChildren) {
-  const locale = await getLocale();
-
+export default function RootLayout({ children }: PropsWithChildren) {
   return (
     <html
       className={`${UncutSans.variable} ${GeistSans.variable}`}
-      lang={locale}
+      lang={routing.defaultLocale}
       suppressHydrationWarning
     >
       <body className="flex min-h-dvh flex-col bg-background font-sans text-foreground">
-        <Providers>{children}</Providers>
+        <Providers>
+          <Suspense>{children}</Suspense>
+        </Providers>
       </body>
     </html>
   );

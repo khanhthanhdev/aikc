@@ -8,8 +8,6 @@ import { Card, CardHeader } from "~/components/admin/ui/card";
 import { H4 } from "~/components/common/heading";
 import { Skeleton } from "~/components/common/skeleton";
 
-export const dynamic = "force-dynamic";
-
 export default function DashboardPage() {
   return (
     <>

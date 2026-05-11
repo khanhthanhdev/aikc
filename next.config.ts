@@ -62,6 +62,7 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  cacheComponents: true,
   output: "standalone",
   poweredByHeader: false,
   // Emit source maps for production client bundles so the browser DevTools

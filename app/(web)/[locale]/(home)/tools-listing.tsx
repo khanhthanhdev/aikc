@@ -1,4 +1,5 @@
 import type { Prisma } from "@prisma/client";
+import { cacheLife, cacheTag } from "next/cache";
 import type { SearchParams } from "nuqs/server";
 import type { ComponentProps } from "react";
 import { ToolList } from "~/components/web/tool-list";
@@ -16,6 +17,22 @@ type ToolsListingProps = Omit<
   where?: Prisma.ToolWhereInput;
 };
 
+const getToolsListingData = async (
+  searchParams: SearchParams,
+  where?: Prisma.ToolWhereInput
+) => {
+  "use cache";
+
+  cacheLife("max");
+  cacheTag("tools", "categories", "ads");
+
+  return await Promise.all([
+    searchTools(searchParams, { where }),
+    findCategories({}),
+    findAds({ where: { type: "Tools" } }),
+  ]);
+};
+
 export const ToolsListing = async ({
   searchParams,
   where,
@@ -23,11 +40,8 @@ export const ToolsListing = async ({
 }: ToolsListingProps) => {
   const resolvedParams = await searchParams;
 
-  const [{ items: tools, totalCount }, categories, ads] = await Promise.all([
-    searchTools(resolvedParams, { where }),
-    findCategories({}),
-    findAds({ where: { type: "Tools" } }),
-  ]);
+  const [{ items: tools, totalCount }, categories, ads] =
+    await getToolsListingData(resolvedParams, where);
 
   return (
     <ToolList

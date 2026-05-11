@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { getTranslations } from "next-intl/server";
 import { cache } from "react";
 import { Button } from "~/components/web/ui/button";
@@ -23,8 +24,6 @@ interface PageProps {
   params: Promise<{ locale: string }>;
 }
 
-export const dynamic = "force-dynamic";
-
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
@@ -44,6 +43,8 @@ export async function generateMetadata({
 }
 
 export default async function LoginPage({ params }: PageProps) {
+  await connection();
+
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "Login" });
   const { title } = (await getMetadata(locale)) ?? {};

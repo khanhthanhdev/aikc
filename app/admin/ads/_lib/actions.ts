@@ -2,7 +2,7 @@
 
 import "server-only";
 import { slugify } from "@curiousleaf/utils";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 import { adSchema } from "~/app/admin/ads/_lib/validations";
 import { uploadToS3Storage } from "~/lib/media";
@@ -38,6 +38,7 @@ export const createAd = authedProcedure
     });
 
     revalidatePath("/admin/ads");
+    revalidateTag("ads", "max");
 
     return ad;
   });
@@ -56,6 +57,7 @@ export const updateAd = authedProcedure
 
     revalidatePath("/admin/ads");
     revalidatePath(`/admin/ads/${id}`);
+    revalidateTag("ads", "max");
 
     return ad;
   });
@@ -69,6 +71,7 @@ export const deleteAds = authedProcedure
     });
 
     revalidatePath("/admin/ads");
+    revalidateTag("ads", "max");
 
     return true;
   });

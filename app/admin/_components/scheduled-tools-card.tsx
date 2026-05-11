@@ -1,5 +1,6 @@
 import { formatDistanceToNowStrict } from "date-fns";
 import Link from "next/link";
+import { connection } from "next/server";
 import type { ComponentProps } from "react";
 import {
   Card,
@@ -15,6 +16,8 @@ import { prisma } from "~/services/prisma";
 export const ScheduledToolsCard = async ({
   ...props
 }: ComponentProps<typeof Card>) => {
+  await connection();
+
   const tools = await prisma.tool.findMany({
     where: { publishedAt: { gt: new Date() } },
     select: { slug: true, name: true, publishedAt: true },
