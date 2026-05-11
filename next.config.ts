@@ -1,3 +1,4 @@
+import path from "node:path";
 import createMDX from "@next/mdx";
 import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
@@ -141,6 +142,27 @@ const nextConfig: NextConfig = {
     "@aws-sdk/client-s3",
     "@qdrant/js-client-rest",
   ],
+
+  // Strip Next.js' built-in `polyfill-module` from client bundles.
+  // Every polyfill it ships (Array.from, Array.prototype.at/flat/flatMap,
+  // Object.fromEntries, Object.hasOwn, String.prototype.trimStart/trimEnd,
+  // Symbol.prototype.description, Promise.prototype.finally) is natively
+  // supported by all browsers in our `browserslist` (Chrome 105+, Firefox
+  // 104+, Safari 15.4+, Edge 105+). Replacing it with an empty module saves
+  // ~14 KiB of legacy JS flagged by Lighthouse.
+  webpack(config, { isServer }) {
+    if (!isServer) {
+      config.resolve = config.resolve ?? {};
+      config.resolve.alias = {
+        ...(config.resolve.alias ?? {}),
+        "next/dist/build/polyfills/polyfill-module": path.resolve(
+          __dirname,
+          "lib/empty-polyfill-module.js"
+        ),
+      };
+    }
+    return config;
+  },
 };
 
 export default withSentryConfig(createMDX({})(withNextIntl(nextConfig)), {

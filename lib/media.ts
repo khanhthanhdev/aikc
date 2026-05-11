@@ -12,6 +12,10 @@ import { s3Client } from "~/services/aws-s3";
  * @param key - The S3 key to upload the file to.
  * @returns The S3 location of the uploaded file.
  */
+// Cache uploaded assets for 1 year on the CDN/browser. Files are content-addressed
+// (favicon/logo paths change when re-uploaded), so immutable long-lived caching is safe.
+const S3_CACHE_CONTROL = "public, max-age=31536000, immutable";
+
 export const uploadToS3Storage = async (
   file: Buffer,
   key: string,
@@ -24,6 +28,7 @@ export const uploadToS3Storage = async (
       Key: key,
       Body: file,
       ContentType: contentType,
+      CacheControl: S3_CACHE_CONTROL,
       StorageClass: "STANDARD",
     },
     queueSize: 4,
