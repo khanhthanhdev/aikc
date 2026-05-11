@@ -21,70 +21,128 @@ export type SearchMode = "keyword" | "semantic";
 
 const SEARCH_LIMIT = 5;
 
+type SearchableTool = Pick<
+  ToolMany,
+  | "categories"
+  | "content"
+  | "contentVi"
+  | "description"
+  | "descriptionVi"
+  | "id"
+  | "name"
+  | "nameVi"
+  | "summary"
+  | "summaryVi"
+  | "tagline"
+  | "taglineVi"
+>;
+
+const normalizeSearchText = (value: string): string =>
+  value
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .trim()
+    .replace(/\s+/g, " ");
+
+const includesQuery = (
+  values: Array<string | null | undefined>,
+  normalizedQuery: string
+): boolean =>
+  values
+    .filter((value): value is string => Boolean(value))
+    .map(normalizeSearchText)
+    .some((value) => value.includes(normalizedQuery));
+
 /**
- * Compares two tools for sorting based on name match quality
+ * Compares two tools for sorting based on text match quality.
  */
 function createToolSortComparator(
-  queryLower: string,
+  normalizedQuery: string,
   qdrantToolIds: Set<string>
 ) {
-  return (
-    a: { name: string; nameVi: string | null; id: string },
-    b: { name: string; nameVi: string | null; id: string }
-  ): number => {
-    const scoreA = calculateMatchScore(
-      [a.name, a.nameVi],
-      queryLower,
-      qdrantToolIds,
-      a.id
-    );
-    const scoreB = calculateMatchScore(
-      [b.name, b.nameVi],
-      queryLower,
-      qdrantToolIds,
-      b.id
-    );
+  return (a: SearchableTool, b: SearchableTool): number => {
+    const scoreA = calculateMatchScore(a, normalizedQuery, qdrantToolIds);
+    const scoreB = calculateMatchScore(b, normalizedQuery, qdrantToolIds);
 
     return scoreB - scoreA;
   };
 }
 
 /**
- * Calculates a match score for a tool name against the query
+ * Calculates a match score for searchable tool fields against the query.
  */
 function calculateMatchScore(
-  names: Array<string | null>,
-  queryLower: string,
-  qdrantToolIds: Set<string>,
-  id: string
+  tool: SearchableTool,
+  normalizedQuery: string,
+  qdrantToolIds: Set<string>
 ): number {
   let score = 0;
-  const normalizedNames = names
+  const normalizedNames = [tool.name, tool.nameVi]
     .filter((name): name is string => Boolean(name))
-    .map((name) => name.toLowerCase());
+    .map(normalizeSearchText);
 
   // Exact match: highest priority (100 points)
-  if (normalizedNames.includes(queryLower)) {
+  if (normalizedNames.includes(normalizedQuery)) {
     score += 100;
   }
 
   // Starts with query: second priority (50 points)
-  if (normalizedNames.some((name) => name.startsWith(queryLower))) {
+  if (normalizedNames.some((name) => name.startsWith(normalizedQuery))) {
     score += 50;
   }
 
   // Contains query: third priority (25 points)
-  if (normalizedNames.some((name) => name.includes(queryLower))) {
+  if (normalizedNames.some((name) => name.includes(normalizedQuery))) {
     score += 25;
   }
 
-  // In Qdrant results: preserves vector order (10 points)
-  if (qdrantToolIds.has(id)) {
+  if (
+    includesQuery(
+      [tool.tagline, tool.taglineVi, tool.summary, tool.summaryVi],
+      normalizedQuery
+    )
+  ) {
+    score += 20;
+  }
+
+  if (
+    includesQuery(
+      [tool.description, tool.descriptionVi, tool.content, tool.contentVi],
+      normalizedQuery
+    )
+  ) {
     score += 10;
+  }
+
+  if (
+    tool.categories.some((category) =>
+      includesQuery(
+        [
+          category.slug,
+          category.name,
+          category.nameVi,
+          category.label,
+          category.labelVi,
+        ],
+        normalizedQuery
+      )
+    )
+  ) {
+    score += 30;
+  }
+
+  // Qdrant is a tie breaker only; semantic-only hits should not outrank text matches.
+  if (qdrantToolIds.has(tool.id)) {
+    score += 1;
   }
 
   return score;
 }
+
+const hasToolQueryMatch = (
+  tool: SearchableTool,
+  normalizedQuery: string
+): boolean => calculateMatchScore(tool, normalizedQuery, new Set()) > 0;
 
 const adminCircuitBreaker = new CircuitBreaker(
   getSearchConfig("admin").circuitBreaker
@@ -141,6 +199,7 @@ export type ProgressiveSearchMessage =
 interface EntitySearchOptions {
   circuitBreaker: CircuitBreaker;
   filterPublished?: boolean;
+  requireToolQueryMatch?: boolean;
   scoreThreshold?: number;
   searchLimit: number;
 }
@@ -149,6 +208,7 @@ const createSearchRunner = ({
   circuitBreaker,
   searchLimit,
   filterPublished = false,
+  requireToolQueryMatch = false,
   scoreThreshold = 0,
 }: EntitySearchOptions) => {
   const publishedFilter = () =>
@@ -268,8 +328,19 @@ const createSearchRunner = ({
         } => Boolean(entry)
       );
 
-    // Get IDs already in Qdrant results
-    const qdrantToolIds = new Set(orderedQdrant.map((entry) => entry.tool.id));
+    const normalizedQuery = normalizeSearchText(trimmedQuery);
+    const lexicallyMatchedQdrant = orderedQdrant.filter((entry) =>
+      hasToolQueryMatch(entry.tool, normalizedQuery)
+    );
+    const shouldRequireToolQueryMatch =
+      requireToolQueryMatch &&
+      (keywordTools.length > 0 || lexicallyMatchedQdrant.length > 0);
+    const visibleQdrant = shouldRequireToolQueryMatch
+      ? lexicallyMatchedQdrant
+      : orderedQdrant;
+
+    // Get IDs already in visible Qdrant results
+    const qdrantToolIds = new Set(visibleQdrant.map((entry) => entry.tool.id));
 
     // Append keyword-only results (not in Qdrant results)
     const keywordOnlyTools = keywordTools.filter(
@@ -278,14 +349,13 @@ const createSearchRunner = ({
 
     // Combine all tools for ranking
     const allToolsUnordered = [
-      ...orderedQdrant.map((entry) => entry.tool),
+      ...visibleQdrant.map((entry) => entry.tool),
       ...keywordOnlyTools,
     ];
 
     // Prioritize exact name matches first, then by match quality
-    const queryLower = trimmedQuery.toLowerCase();
     const allTools = allToolsUnordered
-      .sort(createToolSortComparator(queryLower, qdrantToolIds))
+      .sort(createToolSortComparator(normalizedQuery, qdrantToolIds))
       .slice(0, searchLimit);
 
     const allMatches = orderedQdrant
@@ -428,6 +498,7 @@ const publicSearchRunner = createSearchRunner({
   circuitBreaker: publicCircuitBreaker,
   searchLimit: SEARCH_LIMIT,
   filterPublished: true,
+  requireToolQueryMatch: true,
   scoreThreshold: getSearchConfig("public").scoreThreshold,
 });
 

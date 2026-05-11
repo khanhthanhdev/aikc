@@ -16,6 +16,7 @@ const log = createLogger("semantic-cache");
 
 export interface SemanticCachePayload {
   answer?: string;
+  cacheVersion?: number;
   context?: ToolVectorMatch[];
   createdAt: string;
   normalizedQuestion: string;
@@ -178,6 +179,7 @@ export const storeCachedAnswer = async (params: {
 };
 
 const SEARCH_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 7; // 1 week
+const SEARCH_CACHE_VERSION = 2;
 
 const redactCachedToolSubmitterFields = (
   searchResults: Record<string, unknown>
@@ -237,6 +239,13 @@ export const findCachedSearch = async (
     return null;
   }
 
+  if (
+    payload.normalizedQuestion !== normalizedQuestion ||
+    payload.cacheVersion !== SEARCH_CACHE_VERSION
+  ) {
+    return null;
+  }
+
   // Check TTL
   const createdAt = new Date(payload.createdAt).getTime();
   if (Date.now() - createdAt > SEARCH_CACHE_TTL_MS) {
@@ -280,6 +289,7 @@ export const storeCachedSearch = async (params: {
           vector,
           payload: {
             normalizedQuestion,
+            cacheVersion: SEARCH_CACHE_VERSION,
             searchResults,
             createdAt: new Date().toISOString(),
           } satisfies SemanticCachePayload,
