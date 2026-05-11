@@ -92,13 +92,8 @@ services:
       - infinity_cache:/app/.cache
 
   migrate:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: app
-      args:
-        NEXT_PUBLIC_SITE_URL: "${COMPOSE_SITE_URL:-http://localhost}"
-        NEXT_PUBLIC_SITE_EMAIL: "${COMPOSE_SITE_EMAIL:-hello@example.com}"
+    image: aikc-local-app:latest
+    pull_policy: never
     user: "0:0"
     environment: *app-environment
     depends_on:
@@ -111,13 +106,8 @@ services:
   # `docker build` because cacheComponents requires DB-backed
   # generateStaticParams to return non-empty results.
   build:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: app
-      args:
-        NEXT_PUBLIC_SITE_URL: "${COMPOSE_SITE_URL:-http://localhost}"
-        NEXT_PUBLIC_SITE_EMAIL: "${COMPOSE_SITE_EMAIL:-hello@example.com}"
+    image: aikc-local-app:latest
+    pull_policy: never
     environment: *app-environment
     depends_on:
       migrate:
@@ -129,10 +119,8 @@ services:
 
   qdrant-setup:
     profiles: ["setup"]
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: app
+    image: aikc-local-app:latest
+    pull_policy: never
     environment: *app-environment
     depends_on:
       postgres:
@@ -162,6 +150,8 @@ services:
       start_period: 10s
 
   app:
+    image: aikc-local-app:latest
+    pull_policy: never
     build:
       context: .
       dockerfile: Dockerfile
