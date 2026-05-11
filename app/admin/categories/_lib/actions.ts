@@ -5,6 +5,7 @@ import { slugify } from "@curiousleaf/utils";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { categorySchema } from "~/app/admin/categories/_lib/validations";
+import { revalidatePublicToolCaches } from "~/lib/public-tool-cache";
 import { authedProcedure } from "~/lib/safe-actions";
 import { translateToVietnamese } from "~/lib/translate-content";
 import { deleteCategoryVector, upsertCategoryVector } from "~/lib/vector-store";
@@ -30,6 +31,7 @@ export const createCategory = authedProcedure
     }
 
     revalidatePath("/admin/categories");
+    revalidatePublicToolCaches();
 
     return category;
   });
@@ -53,6 +55,7 @@ export const updateCategory = authedProcedure
 
     revalidatePath("/admin/categories");
     revalidatePath(`/admin/categories/${category.slug}`);
+    revalidatePublicToolCaches();
 
     return category;
   });
@@ -80,6 +83,7 @@ export const updateCategories = authedProcedure
     }
 
     revalidatePath("/admin/categories");
+    revalidatePublicToolCaches();
 
     return true;
   });
@@ -101,6 +105,7 @@ export const deleteCategories = authedProcedure
     }
 
     revalidatePath("/admin/categories");
+    revalidatePublicToolCaches();
 
     return true;
   });
@@ -128,6 +133,7 @@ export const translateCategoryToVietnamese = authedProcedure
     });
 
     revalidatePath("/admin/categories");
+    revalidatePublicToolCaches();
 
     return updatedCategory;
   });
@@ -161,6 +167,7 @@ export const batchTranslateCategoriesToVietnamese = authedProcedure
     );
 
     revalidatePath("/admin/categories");
+    revalidatePublicToolCaches();
 
     return true;
   });
@@ -223,6 +230,7 @@ export const translateCategoryFieldToVietnamese = authedProcedure
 
     revalidatePath("/admin/categories");
     revalidatePath(`/admin/categories/${category.slug}`);
+    revalidatePublicToolCaches();
 
     return { field: viField, value };
   });

@@ -15,7 +15,7 @@ interface PageProps {
   searchParams: Promise<SearchParams>;
 }
 
-export const dynamic = "force-dynamic";
+export const revalidate = 31_536_000; // 1 year; future publishing revalidates via scheduled tool.published events.
 
 const getMetadata = cache(async (locale: string): Promise<Metadata> => {
   const t = await getTranslations({ locale, namespace: "Tags" });

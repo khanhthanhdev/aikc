@@ -5,6 +5,7 @@ import { slugify } from "@curiousleaf/utils";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { collectionSchema } from "~/app/admin/collections/_lib/validations";
+import { revalidatePublicToolCaches } from "~/lib/public-tool-cache";
 import { authedProcedure } from "~/lib/safe-actions";
 import { translateToVietnamese } from "~/lib/translate-content";
 import { prisma } from "~/services/prisma";
@@ -21,6 +22,7 @@ export const createCollection = authedProcedure
     });
 
     revalidatePath("/admin/collections");
+    revalidatePublicToolCaches();
 
     return collection;
   });
@@ -36,6 +38,7 @@ export const updateCollection = authedProcedure
 
     revalidatePath("/admin/collections");
     revalidatePath(`/admin/collections/${collection.slug}`);
+    revalidatePublicToolCaches();
 
     return collection;
   });
@@ -52,6 +55,7 @@ export const updateCollections = authedProcedure
     });
 
     revalidatePath("/admin/collections");
+    revalidatePublicToolCaches();
 
     return true;
   });
@@ -65,6 +69,7 @@ export const deleteCollections = authedProcedure
     });
 
     revalidatePath("/admin/collections");
+    revalidatePublicToolCaches();
 
     return true;
   });
@@ -93,6 +98,7 @@ export const translateCollectionToVietnamese = authedProcedure
     });
 
     revalidatePath("/admin/collections");
+    revalidatePublicToolCaches();
 
     return updatedCollection;
   });
@@ -125,6 +131,7 @@ export const batchTranslateCollectionsToVietnamese = authedProcedure
     );
 
     revalidatePath("/admin/collections");
+    revalidatePublicToolCaches();
 
     return true;
   });
@@ -177,6 +184,7 @@ export const translateCollectionFieldToVietnamese = authedProcedure
 
     revalidatePath("/admin/collections");
     revalidatePath(`/admin/collections/${collection.slug}`);
+    revalidatePublicToolCaches();
 
     return { field: viField, value: viValue };
   });

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { unstable_cache } from "next/cache";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import type { SearchParams } from "nuqs/server";
@@ -31,7 +32,13 @@ interface PageProps {
   searchParams: Promise<SearchParams>;
 }
 
-export const dynamic = "force-dynamic";
+export const revalidate = 31_536_000; // 1 year; future publishing revalidates via scheduled tool.published events.
+
+const getCategory = unstable_cache(
+  async (slug: string) => findUniqueCategory({ where: { slug } }),
+  ["category-detail"],
+  { revalidate: 31_536_000, tags: ["categories"] }
+);
 
 export const generateStaticParams = async () => {
   if (!process.env.DATABASE_URL) {
@@ -81,7 +88,7 @@ export const generateMetadata = async ({
   params,
 }: PageProps): Promise<Metadata | undefined> => {
   const { slug, locale } = await params;
-  const category = await findUniqueCategory({ where: { slug } });
+  const category = await getCategory(slug);
   const url = `/categories/${slug}`;
 
   if (!category) {
@@ -101,7 +108,7 @@ export default async function CategoryPage({
   searchParams,
 }: PageProps) {
   const { slug, locale } = await params;
-  const category = await findUniqueCategory({ where: { slug } });
+  const category = await getCategory(slug);
 
   if (!category) {
     notFound();

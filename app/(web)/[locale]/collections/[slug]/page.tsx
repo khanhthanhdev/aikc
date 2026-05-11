@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { unstable_cache } from "next/cache";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import type { SearchParams } from "nuqs/server";
@@ -30,7 +31,13 @@ interface PageProps {
   searchParams: Promise<SearchParams>;
 }
 
-export const dynamic = "force-dynamic";
+export const revalidate = 31_536_000; // 1 year; future publishing revalidates via scheduled tool.published events.
+
+const getCollection = unstable_cache(
+  async (slug: string) => findUniqueCollection({ where: { slug } }),
+  ["collection-detail"],
+  { revalidate: 31_536_000, tags: ["collections"] }
+);
 
 export const generateStaticParams = async () => {
   if (!process.env.DATABASE_URL) {
@@ -72,7 +79,7 @@ export const generateMetadata = async ({
   params,
 }: PageProps): Promise<Metadata | undefined> => {
   const { slug, locale } = await params;
-  const collection = await findUniqueCollection({ where: { slug } });
+  const collection = await getCollection(slug);
   const url = `/collections/${slug}`;
 
   if (!collection) {
@@ -92,7 +99,7 @@ export default async function CollectionPage({
   searchParams,
 }: PageProps) {
   const { slug, locale } = await params;
-  const collection = await findUniqueCollection({ where: { slug } });
+  const collection = await getCollection(slug);
 
   if (!collection) {
     notFound();

@@ -1,19 +1,12 @@
 "use client";
 
-// biome-ignore lint/performance/noNamespaceImport: Sentry SDK uses namespace imports per official docs
-import * as Sentry from "@sentry/nextjs";
 import NextError from "next/error";
-import { useEffect } from "react";
 
 export default function GlobalError({
-  error,
+  error: _error,
 }: {
   error: Error & { digest?: string };
 }) {
-  useEffect(() => {
-    Sentry.captureException(error);
-  }, [error]);
-
   return (
     <html lang="en">
       <body>

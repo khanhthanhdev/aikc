@@ -137,12 +137,13 @@ export function buildSoftwareApplicationSchema(
     schema.offers = mapPricingToOffer(tool.pricing, tool.websiteUrl);
   }
 
+  // unstable_cache serializes Date → string, so handle both types
   if (tool.publishedAt) {
-    schema.datePublished = tool.publishedAt.toISOString();
+    schema.datePublished = new Date(tool.publishedAt).toISOString();
   }
 
   if (tool.updatedAt) {
-    schema.dateModified = tool.updatedAt.toISOString();
+    schema.dateModified = new Date(tool.updatedAt).toISOString();
   }
 
   return schema;

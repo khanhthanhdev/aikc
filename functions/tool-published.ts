@@ -2,6 +2,7 @@
 // import EmailToolPublished from "~/emails/tool-published";
 // import { sendEmails } from "~/lib/email";
 import { inngestLogger } from "~/lib/logger";
+import { revalidatePublicToolCaches } from "~/lib/public-tool-cache";
 import { inngest } from "~/services/inngest";
 import { prisma } from "~/services/prisma";
 
@@ -17,13 +18,13 @@ export const toolPublished = inngest.createFunction(
     try {
       inngestLogger.functionStarted(FUNCTION_ID, "tool.published", event.data);
 
-      const _tool = await step.run("fetch-tool", async () => {
+      const tool = await step.run("fetch-tool", async () => {
         const stepStartTime = performance.now();
         inngestLogger.stepStarted("fetch-tool", FUNCTION_ID, toolSlug);
 
         try {
-          const result = await prisma.tool.findUniqueOrThrow({
-            where: { slug: event.data.slug },
+          const result = await prisma.tool.findUnique({
+            where: { id: event.data.id },
           });
           const duration = performance.now() - stepStartTime;
           inngestLogger.stepCompleted(
@@ -38,6 +39,18 @@ export const toolPublished = inngest.createFunction(
           throw error;
         }
       });
+
+      await step.run("revalidate-public-tool-caches", () => {
+        revalidatePublicToolCaches();
+      });
+
+      if (!tool) {
+        inngestLogger.info("Skipping publish handling for missing tool", {
+          functionId: FUNCTION_ID,
+          toolSlug,
+          toolId: event.data.id,
+        });
+      }
 
       // Email sending temporarily disabled
       // const shouldSendPublishEmail =

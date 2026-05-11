@@ -89,13 +89,12 @@ export const config = {
     /*
      * Match all paths except for:
      * 1. /api/ routes
-     * 2. /monitoring (Sentry tunnel route)
-     * 3. /_next/ (Next.js internals)
-     * 4. /_proxy/ (proxies for third-party services)
-     * 5. /_static/ (static files inside /public folder)
-     * 6. Metadata files: favicon.ico, sitemap.xml, robots.txt, manifest.webmanifest, .well-known
+     * 2. /_next/ (Next.js internals)
+     * 3. /_proxy/ (proxies for third-party services)
+     * 4. /_static/ (static files inside /public folder)
+     * 5. Metadata files: favicon.ico, sitemap.xml, robots.txt, manifest.webmanifest, .well-known
      * biome-ignore format: complex regex pattern for Next.js middleware matcher
      */
-    "/((?!api/|monitoring|_next/|_proxy/|_static/|icons/|icon-192\\.png|icon-512\\.png|favicon.ico|manifest.json|sitemap(?:-\\d+)?.xml|robots.txt|manifest.webmanifest|.well-known).*)",
+    "/((?!api/|_next/|_proxy/|_static/|icons/|icon-192\\.png|icon-512\\.png|favicon.ico|manifest.json|sitemap(?:-\\d+)?.xml|robots.txt|manifest.webmanifest|.well-known).*)",
   ],
 };

@@ -4,6 +4,7 @@
 import { generateContent } from "~/lib/generate-content";
 import { inngestLogger } from "~/lib/logger";
 import { uploadFavicon, uploadScreenshot } from "~/lib/media";
+import { revalidatePublicToolCaches } from "~/lib/public-tool-cache";
 import { getSocialsFromUrl } from "~/lib/socials";
 import {
   upsertAlternativeVector,
@@ -274,6 +275,10 @@ export const toolScheduled = inngest.createFunction(
           );
           throw error;
         }
+      });
+
+      await step.run("revalidate-public-tool-caches", () => {
+        revalidatePublicToolCaches();
       });
 
       // Disconnect from DB

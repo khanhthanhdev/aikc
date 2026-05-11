@@ -8,6 +8,7 @@ import { toolSchema } from "~/app/admin/tools/_lib/validations";
 import { generateContent } from "~/lib/generate-content";
 import { logger } from "~/lib/logger";
 import { uploadFavicon, uploadScreenshot } from "~/lib/media";
+import { revalidatePublicToolCaches } from "~/lib/public-tool-cache";
 import { authedProcedure } from "~/lib/safe-actions";
 import { translateToVietnamese } from "~/lib/translate-content";
 import {
@@ -18,6 +19,24 @@ import { sendInngestEvent } from "~/services/inngest";
 import { prisma } from "~/services/prisma";
 
 const log = logger.action;
+
+const sendToolPublishEvents = async (tool: {
+  id: string;
+  slug: string;
+  publishedAt: Date;
+}) => {
+  await sendInngestEvent({
+    name: "tool.scheduled",
+    data: { id: tool.id, slug: tool.slug },
+  });
+
+  await sendInngestEvent({
+    name: "tool.published",
+    data: { id: tool.id, slug: tool.slug },
+    id: `tool.published:${tool.id}:${tool.publishedAt.getTime()}`,
+    ts: tool.publishedAt.getTime(),
+  });
+};
 
 export const createTool = authedProcedure
   .createServerAction()
@@ -40,6 +59,7 @@ export const createTool = authedProcedure
     });
 
     revalidatePath("/admin/tools");
+    revalidatePublicToolCaches();
 
     // Sync to Qdrant vector store
     await upsertHybridToolVector(tool);
@@ -47,10 +67,11 @@ export const createTool = authedProcedure
 
     // Send an event to the Inngest pipeline
     if (tool.publishedAt) {
-      log.info(`Sending tool.scheduled event for tool: ${tool.slug}`);
-      await sendInngestEvent({
-        name: "tool.scheduled",
-        data: { id: tool.id, slug: tool.slug },
+      log.info(`Sending publish events for tool: ${tool.slug}`);
+      await sendToolPublishEvents({
+        id: tool.id,
+        slug: tool.slug,
+        publishedAt: tool.publishedAt,
       });
     }
 
@@ -85,18 +106,23 @@ export const updateTool = authedProcedure
 
       revalidatePath("/admin/tools");
       revalidatePath(`/admin/tools/${tool.slug}`);
+      revalidatePublicToolCaches();
 
       // Sync to Qdrant vector store
       await upsertHybridToolVector(tool);
       log.info(`Vector synced for updated tool: ${tool.slug}`);
 
-      if (!previous.publishedAt && tool.publishedAt) {
-        log.info(
-          `Sending tool.scheduled event for newly published tool: ${tool.slug}`
-        );
-        await sendInngestEvent({
-          name: "tool.scheduled",
-          data: { id: tool.id, slug: tool.slug },
+      const publishedAt = tool.publishedAt;
+
+      if (
+        publishedAt &&
+        previous.publishedAt?.getTime() !== publishedAt.getTime()
+      ) {
+        log.info(`Sending publish events for tool: ${tool.slug}`);
+        await sendToolPublishEvents({
+          id: tool.id,
+          slug: tool.slug,
+          publishedAt,
         });
       }
 
@@ -127,6 +153,21 @@ export const updateTools = authedProcedure
     log.info(`Vector synced for ${updatedTools.length} tools`);
 
     revalidatePath("/admin/tools");
+    revalidatePublicToolCaches();
+
+    if (data.publishedAt) {
+      log.info(`Sending publish events for ${updatedTools.length} tool(s)`, {
+        slugs: updatedTools.map((tool) => tool.slug),
+        publishedAt: data.publishedAt,
+      });
+      for (const tool of updatedTools) {
+        await sendToolPublishEvents({
+          id: tool.id,
+          slug: tool.slug,
+          publishedAt: data.publishedAt,
+        });
+      }
+    }
 
     return true;
   });
@@ -149,6 +190,7 @@ export const deleteTools = authedProcedure
     });
 
     revalidatePath("/admin/tools");
+    revalidatePublicToolCaches();
 
     // Send an event to the Inngest pipeline
     log.info(`Sending tool.deleted events for ${tools.length} tool(s)`, {
@@ -179,17 +221,15 @@ export const scheduleTools = authedProcedure
     });
 
     revalidatePath("/admin/tools");
+    revalidatePublicToolCaches();
 
     // Send an event to the Inngest pipeline
-    log.info(`Sending tool.scheduled events for ${tools.length} tool(s)`, {
+    log.info(`Sending publish events for ${tools.length} tool(s)`, {
       slugs: tools.map((t) => t.slug),
       publishedAt,
     });
     for (const tool of tools) {
-      await sendInngestEvent({
-        name: "tool.scheduled",
-        data: { id: tool.id, slug: tool.slug },
-      });
+      await sendToolPublishEvents({ ...tool, publishedAt });
     }
 
     return true;
@@ -237,6 +277,7 @@ export const translateToolToVietnamese = authedProcedure
 
     revalidatePath("/admin/tools");
     revalidatePath(`/admin/tools/${tool.slug}`);
+    revalidatePublicToolCaches();
 
     return updatedTool;
   });
@@ -271,6 +312,7 @@ export const batchTranslateToVietnamese = authedProcedure
     );
 
     revalidatePath("/admin/tools");
+    revalidatePublicToolCaches();
 
     return true;
   });
@@ -322,6 +364,7 @@ export const translateToolFieldToVietnamese = authedProcedure
 
     revalidatePath("/admin/tools");
     revalidatePath(`/admin/tools/${tool.slug}`);
+    revalidatePublicToolCaches();
 
     return { field: viField, value: viValue };
   });
@@ -472,6 +515,7 @@ export const processTools = authedProcedure
     }
 
     revalidatePath("/admin/tools");
+    revalidatePublicToolCaches();
     log.info("Process tools completed");
     return true;
   });

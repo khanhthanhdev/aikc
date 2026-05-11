@@ -1,15 +1,3 @@
-// biome-ignore lint/performance/noNamespaceImport: Sentry SDK uses namespace imports per official docs
-import * as Sentry from "@sentry/nextjs";
-
 export async function register() {
-  if (process.env.NEXT_RUNTIME === "nodejs") {
-    await import("./sentry.server.config");
-  }
-
-  if (process.env.NEXT_RUNTIME === "edge") {
-    await import("./sentry.edge.config");
-  }
+  // No-op — instrumentation hooks reserved for future use.
 }
-
-// Automatically captures all unhandled server-side request errors
-export const onRequestError = Sentry.captureRequestError;

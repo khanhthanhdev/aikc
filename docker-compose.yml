@@ -148,6 +148,7 @@ services:
       args:
         NEXT_PUBLIC_SITE_URL: "${COMPOSE_SITE_URL:-http://localhost}"
         NEXT_PUBLIC_SITE_EMAIL: "${COMPOSE_SITE_EMAIL:-hello@example.com}"
+
     restart: unless-stopped
     environment: *app-environment
     depends_on:

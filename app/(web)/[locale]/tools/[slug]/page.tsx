@@ -1,5 +1,6 @@
 import { DollarSignIcon, HashIcon, SparkleIcon, TagIcon } from "lucide-react";
 import type { Metadata } from "next";
+import { unstable_cache } from "next/cache";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
@@ -47,11 +48,18 @@ interface PageProps {
   params: Promise<{ slug: string; locale: string }>;
 }
 
-// This page uses new Date() for dynamic date filtering,
-// so it must be rendered dynamically and cannot be statically optimized
-export const dynamic = "force-dynamic";
+// new Date() in the query is evaluated at cache-miss time by unstable_cache
+// (revalidate: 31_536_000). Result is frozen until admin calls revalidateTag();
+// future publishing revalidates via the scheduled tool.published event.
+export const revalidate = 31_536_000; // 1 year
 
 export const dynamicParams = true;
+
+const getTool = unstable_cache(
+  async (slug: string) => findUniqueTool({ where: { slug } }),
+  ["tool-detail"],
+  { revalidate: 31_536_000, tags: ["tools"] }
+);
 
 export const generateStaticParams = async () => {
   if (!process.env.DATABASE_URL) {
@@ -70,9 +78,7 @@ export const generateMetadata = async ({
   params,
 }: PageProps): Promise<Metadata | undefined> => {
   const { slug, locale } = await params;
-  const tool = await findUniqueTool({
-    where: { slug, publishedAt: { lte: new Date() } },
-  });
+  const tool = await getTool(slug);
   const url = `/tools/${slug}`;
 
   if (!tool) {
@@ -101,9 +107,9 @@ export const generateMetadata = async ({
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: page composition intentionally combines localized metadata, SEO, and conditional sections in one route entrypoint
 export default async function ToolPage({ params }: PageProps) {
   const { slug, locale } = await params;
-  const tool = await findUniqueTool({
-    where: { slug, publishedAt: { lte: new Date() } },
-  });
+  const toolPromise = getTool(slug);
+  const translationsPromise = getTranslations({ locale, namespace: "Tools" });
+  const tool = await toolPromise;
 
   if (!tool) {
     notFound();
@@ -123,7 +129,7 @@ export default async function ToolPage({ params }: PageProps) {
   const pricing = isVietnamese
     ? (tool.pricingVi ?? tool.pricing)
     : tool.pricing;
-  const t = await getTranslations({ locale, namespace: "Tools" });
+  const t = await translationsPromise;
   const getCategoryName = (category: (typeof tool.categories)[number]) =>
     isVietnamese
       ? (category.labelVi ?? category.label ?? category.nameVi ?? category.name)

@@ -5,6 +5,7 @@ import { slugify } from "@curiousleaf/utils";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { tagSchema } from "~/app/admin/tags/_lib/validations";
+import { revalidatePublicToolCaches } from "~/lib/public-tool-cache";
 import { authedProcedure } from "~/lib/safe-actions";
 import { translateToVietnamese } from "~/lib/translate-content";
 import { prisma } from "~/services/prisma";
@@ -24,6 +25,7 @@ export const createTag = authedProcedure
     });
 
     revalidatePath("/admin/tags");
+    revalidatePublicToolCaches();
 
     return tag;
   });
@@ -44,6 +46,7 @@ export const updateTag = authedProcedure
 
     revalidatePath("/admin/tags");
     revalidatePath(`/admin/tags/${tag.slug}`);
+    revalidatePublicToolCaches();
 
     return tag;
   });
@@ -58,6 +61,7 @@ export const updateTags = authedProcedure
     });
 
     revalidatePath("/admin/tags");
+    revalidatePublicToolCaches();
 
     return true;
   });
@@ -71,6 +75,7 @@ export const deleteTags = authedProcedure
     });
 
     revalidatePath("/admin/tags");
+    revalidatePublicToolCaches();
 
     return true;
   });
@@ -95,6 +100,7 @@ export const translateTagToVietnamese = authedProcedure
     });
 
     revalidatePath("/admin/tags");
+    revalidatePublicToolCaches();
 
     return updatedTag;
   });
@@ -125,6 +131,7 @@ export const batchTranslateTagsToVietnamese = authedProcedure
     );
 
     revalidatePath("/admin/tags");
+    revalidatePublicToolCaches();
 
     return true;
   });
@@ -172,6 +179,7 @@ export const translateTagFieldToVietnamese = authedProcedure
 
     revalidatePath("/admin/tags");
     revalidatePath(`/admin/tags/${tag.slug}`);
+    revalidatePublicToolCaches();
 
     return { field: viField, value: viValue };
   });

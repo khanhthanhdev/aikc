@@ -29,6 +29,8 @@ export const inngest = new Inngest({
 export const sendInngestEvent = async <T extends string & keyof Events>(event: {
   name: T;
   data: Events[T]["data"];
+  id?: string;
+  ts?: number;
 }) => {
   const startTime = performance.now();
 

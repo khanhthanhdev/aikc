@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { unstable_cache } from "next/cache";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import type { SearchParams } from "nuqs/server";
@@ -19,7 +20,13 @@ interface PageProps {
   searchParams: Promise<SearchParams>;
 }
 
-export const dynamic = "force-dynamic";
+export const revalidate = 31_536_000; // 1 year; future publishing revalidates via scheduled tool.published events.
+
+const getTag = unstable_cache(
+  async (slug: string) => findUniqueTag({ where: { slug } }),
+  ["tag-detail"],
+  { revalidate: 31_536_000, tags: ["tags"] }
+);
 
 export const generateStaticParams = async () => {
   if (!process.env.DATABASE_URL) {
@@ -55,7 +62,7 @@ export const generateMetadata = async ({
   params,
 }: PageProps): Promise<Metadata | undefined> => {
   const { slug, locale } = await params;
-  const tag = await findUniqueTag({ where: { slug } });
+  const tag = await getTag(slug);
   const url = `/tags/${slug}`;
 
   if (!tag) {
@@ -72,7 +79,7 @@ export const generateMetadata = async ({
 
 export default async function TagPage({ params, searchParams }: PageProps) {
   const { slug, locale } = await params;
-  const tag = await findUniqueTag({ where: { slug } });
+  const tag = await getTag(slug);
 
   if (!tag) {
     notFound();
