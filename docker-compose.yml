@@ -95,10 +95,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: builder
+      target: app
       args:
         NEXT_PUBLIC_SITE_URL: "${COMPOSE_SITE_URL:-http://localhost}"
         NEXT_PUBLIC_SITE_EMAIL: "${COMPOSE_SITE_EMAIL:-hello@example.com}"
+    user: "0:0"
     environment: *app-environment
     depends_on:
       postgres:
@@ -106,12 +107,32 @@ services:
     command: ["sh", "-ec", "bunx prisma db push --skip-generate"]
     restart: "no"
 
+  # Performs `next build` against the live postgres service. Cannot run during
+  # `docker build` because cacheComponents requires DB-backed
+  # generateStaticParams to return non-empty results.
+  build:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: app
+      args:
+        NEXT_PUBLIC_SITE_URL: "${COMPOSE_SITE_URL:-http://localhost}"
+        NEXT_PUBLIC_SITE_EMAIL: "${COMPOSE_SITE_EMAIL:-hello@example.com}"
+    environment: *app-environment
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    command: ["bun", "run", "build"]
+    volumes:
+      - app_next:/app/.next
+    restart: "no"
+
   qdrant-setup:
     profiles: ["setup"]
     build:
       context: .
       dockerfile: Dockerfile
-      target: builder
+      target: app
     environment: *app-environment
     depends_on:
       postgres:
@@ -144,7 +165,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: runner
+      target: app
       args:
         NEXT_PUBLIC_SITE_URL: "${COMPOSE_SITE_URL:-http://localhost}"
         NEXT_PUBLIC_SITE_EMAIL: "${COMPOSE_SITE_EMAIL:-hello@example.com}"
@@ -152,13 +173,17 @@ services:
     restart: unless-stopped
     environment: *app-environment
     depends_on:
-      migrate:
+      build:
         condition: service_completed_successfully
       qdrant:
         condition: service_started
       inngest:
         condition: service_healthy
     volumes:
+      # Built artifacts produced by the `build` service. Mounting the same
+      # named volume here makes `next start` find the `.next` output created
+      # against the live database.
+      - app_next:/app/.next
       # Persist Next.js runtime caches used by ISR/PPR/cacheComponents between
       # container restarts on a single-node VPS deployment.
       - app_next_cache:/app/.next/cache
@@ -198,6 +223,7 @@ services:
       - caddy_config:/config
 
 volumes:
+  app_next:
   app_next_cache:
   postgres_data:
   qdrant_data:
