@@ -1,5 +1,5 @@
 export const linksConfig = {
-  author: "https://khanhthanh.is-a.dev/",
+  author: "https://khanhthanhdev.github.io/",
   twitter: "#",
   github: "https://github.com/khanhthanhdev",
   producthunt: "#",
