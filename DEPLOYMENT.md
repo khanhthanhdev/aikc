@@ -161,10 +161,12 @@ git pull origin main
 
 ### Step 4: Verify Environment Variables
 
-Check `.env` file has correct values:
+Check `.env` file has correct values. The Gemini model names are passed to the
+application container at runtime, so changing either one requires recreating
+the `app` container.
 
 ```bash
-cat .env | grep -E "QDRANT|INFINITY|EMBEDDING"
+grep -E "QDRANT|INFINITY|EMBEDDING|GEMINI|GOOGLE_FLASH" .env
 ```
 
 Required variables:
@@ -175,6 +177,11 @@ INFINITY_EMBEDDING_URL="http://infinity:7997"
 INFINITY_EMBEDDING_MODEL="sentence-transformers/all-MiniLM-L6-v2"
 INFINITY_EMBEDDING_DIMENSIONS="384"
 USE_LOCAL_EMBEDDING="true"
+GEMINI_API_KEY="your-gemini-api-key"
+# Main chat, RAG, and translation model
+GOOGLE_FLASH_MODEL="gemini-2.5-flash"
+# Lightweight routing and content-generation model
+GOOGLE_FLASH_LITE_MODEL="gemini-2.5-flash-lite"
 ```
 
 ---

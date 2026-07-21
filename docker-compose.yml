@@ -20,6 +20,8 @@ x-app-environment: &app-environment
   OPENAI_API_KEY: "${OPENAI_API_KEY:-local-openai-api-key}"
   ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY:-local-anthropic-api-key}"
   GEMINI_API_KEY: "${GEMINI_API_KEY:-local-gemini-api-key}"
+  GOOGLE_FLASH_LITE_MODEL: "${GOOGLE_FLASH_LITE_MODEL:-gemini-2.5-flash-lite}"
+  GOOGLE_FLASH_MODEL: "${GOOGLE_FLASH_MODEL:-gemini-2.5-flash-lite}"
   FIRECRAWL_API_KEY: "${FIRECRAWL_API_KEY:-local-firecrawl-api-key}"
   RESEND_API_KEY: "${RESEND_API_KEY:-local-resend-api-key}"
   S3_BUCKET: "${S3_BUCKET:-local-bucket}"

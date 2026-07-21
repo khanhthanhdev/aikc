@@ -21,7 +21,7 @@ import {
   storeCachedAnswer,
 } from "~/lib/semantic-cache";
 import { searchYoutubeVideos } from "~/services/ai-chat-tools";
-import { googleFlashModel } from "~/services/google";
+import { googleFlashModel, googleFlashModelId } from "~/services/google";
 
 export const maxDuration = 30;
 
@@ -307,9 +307,9 @@ export async function POST(req: Request) {
     const query = getLastUserMessageText(messages);
     const cacheKey =
       query && toolSlug
-        ? `${toolSlug} :: ${query}`
+        ? `${googleFlashModelId} :: ${toolSlug} :: ${query}`
         : query && !toolSlug
-          ? `global :: ${query}`
+          ? `${googleFlashModelId} :: global :: ${query}`
           : "";
 
     if (process.env.NODE_ENV === "development") {
