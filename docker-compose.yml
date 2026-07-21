@@ -145,11 +145,11 @@ services:
       INNGEST_POLL_INTERVAL: "5"
       INNGEST_SDK_URL: "http://app:5175/api/inngest"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8288/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
+      test: ["CMD", "inngest", "alpha", "doctor", "healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   app:
     image: aikc-local-app:latest
