@@ -8,7 +8,11 @@ import { config } from "~/config";
 import { getErrorMessage } from "~/lib/handle-error";
 import { logger } from "~/lib/logger";
 import { firecrawlClient } from "~/services/firecrawl";
-import { googleFlashLiteModel, googleFlashModel } from "~/services/google";
+import {
+  googleFlashLiteModel,
+  googleFlashModel,
+  googleNoThinkingProviderOptions,
+} from "~/services/google";
 import { prisma } from "~/services/prisma";
 
 const log = logger.ai;
@@ -101,7 +105,7 @@ export const generateContent = async (tool: Tool | Jsonify<Tool>) => {
       // `,
       temperature: 0.3,
       experimental_telemetry: { isEnabled: true },
-      providerOptions: {},
+      providerOptions: googleNoThinkingProviderOptions,
     });
 
     // Slugify tags after generation (transforms can't be in JSON Schema)
@@ -160,6 +164,7 @@ export const generateLaunchTweet = async (tool: Tool | Jsonify<Tool>) => {
       Link: "${config.site.url}/tools/${tool.slug}"
     `,
     experimental_telemetry: { isEnabled: true },
+    providerOptions: googleNoThinkingProviderOptions,
   });
 
   return object;

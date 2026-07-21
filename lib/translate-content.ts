@@ -3,7 +3,10 @@
 import { generateText } from "ai";
 import { isDev } from "~/env";
 import { logger } from "~/lib/logger";
-import { googleFlashModel } from "~/services/google";
+import {
+  googleFlashModel,
+  googleNoThinkingProviderOptions,
+} from "~/services/google";
 
 const log = logger.ai;
 
@@ -75,6 +78,7 @@ IMPORTANT: Keep the field labels (name, tagline, description, content, pricing) 
 
 ${fieldsToTranslate.map((f) => `${f.field}: ${f.text}`).join("\n")}`,
       temperature: 0.3,
+      providerOptions: googleNoThinkingProviderOptions,
     });
 
     log.info(`Raw translation response: ${text.substring(0, 200)}...`);

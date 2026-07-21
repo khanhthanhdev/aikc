@@ -9,7 +9,10 @@ import {
   searchToolsByName,
   searchToolVectors,
 } from "~/lib/vector-store";
-import { googleFlashModel } from "~/services/google";
+import {
+  googleFlashModel,
+  googleNoThinkingProviderOptions,
+} from "~/services/google";
 
 const log = createLogger("rag");
 
@@ -282,6 +285,7 @@ Use the provided context snippets. Cite the tool slug inline whenever you refere
 If the context does not contain an answer, say you don't know.`,
     prompt: `Context:\n${formattedContext}\n\nQuestion: ${question}\nAnswer:`,
     experimental_telemetry: { isEnabled: true },
+    providerOptions: googleNoThinkingProviderOptions,
   });
 
   // Store in semantic cache for future zero-latency retrieval
@@ -384,6 +388,7 @@ If the context does not contain an answer, say you don't know.`;
     system: systemPrompt,
     prompt: `Context:\n${formattedContext}\n\nQuestion: ${question}\nAnswer:`,
     experimental_telemetry: { isEnabled: true },
+    providerOptions: googleNoThinkingProviderOptions,
   });
 
   // Store in semantic cache for future zero-latency retrieval

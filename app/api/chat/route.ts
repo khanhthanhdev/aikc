@@ -21,7 +21,11 @@ import {
   storeCachedAnswer,
 } from "~/lib/semantic-cache";
 import { searchYoutubeVideos } from "~/services/ai-chat-tools";
-import { googleFlashModel, googleFlashModelId } from "~/services/google";
+import {
+  googleFlashModel,
+  googleFlashModelId,
+  googleNoThinkingProviderOptions,
+} from "~/services/google";
 
 export const maxDuration = 30;
 
@@ -336,6 +340,7 @@ export async function POST(req: Request) {
       model: googleFlashModel,
       system: systemPrompt,
       messages: await convertToModelMessages(messages),
+      providerOptions: googleNoThinkingProviderOptions,
       tools: {
         searchYoutubeVideos, // YouTube search remains in English
       },

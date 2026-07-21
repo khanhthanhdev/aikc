@@ -1,7 +1,10 @@
 import { generateObject } from "ai";
 import { z } from "zod";
 import { createLogger } from "~/lib/logger";
-import { googleFlashLiteModel } from "~/services/google";
+import {
+  googleFlashLiteModel,
+  googleNoThinkingProviderOptions,
+} from "~/services/google";
 
 const log = createLogger("fused-query-router");
 
@@ -102,6 +105,7 @@ Then, depending on the chosen intent:
 Only populate fields that are clearly implied by the query. Leave others undefined.`,
     prompt: `Analyze this user query and return a single fused result:\n\n"${query}"`,
     experimental_telemetry: { isEnabled: true },
+    providerOptions: googleNoThinkingProviderOptions,
   });
 
   log.info(
