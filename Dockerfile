@@ -38,7 +38,7 @@ RUN bunx prisma generate
 RUN groupadd --system --gid 1001 nodejs && \
     useradd --system --uid 1001 --gid nodejs --no-create-home nextjs && \
     mkdir -p /app/.next/cache && \
-    chown -R nextjs:nodejs /app
+    chown nextjs:nodejs /app /app/.next /app/.next/cache
 
 USER nextjs
 
