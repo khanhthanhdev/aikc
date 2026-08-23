@@ -69,9 +69,9 @@ DevSuite uses the following third-party services:
 - Database: PostgreSQL in the local/VPS Compose stack, with cloud PostgreSQL used only as a bootstrap source during migration
 - Background Jobs: [Inngest](https://inngest.com)
 - File Storage: [AWS S3](https://aws.amazon.com/s3)
-- Screenshots: [ScreenshotOne](https://go.devsuite.co/screenshotone)
+- Screenshots: self-hosted [capture-website-api](https://github.com/robvanderleek/capture-website-api) in the Compose stack
 
-Make sure to set up accounts with these services and add the necessary environment variables to your `.env` file.
+Set the required service secrets and storage credentials in your `.env` file.
 
 ## Deployment
 

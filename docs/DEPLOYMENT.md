@@ -95,7 +95,9 @@ ALIBABA_API_KEY="..."
 # External Services
 FIRECRAWL_API_KEY="fc-..."
 RESEND_API_KEY="re_..."
-SCREENSHOTONE_ACCESS_KEY="..."
+
+# Self-hosted screenshot service
+SCREENSHOT_SERVICE_SECRET="replace-with-a-random-secret"
 
 # Amazon S3
 S3_BUCKET="your-bucket-name"
