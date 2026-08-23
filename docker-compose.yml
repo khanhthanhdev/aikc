@@ -16,7 +16,8 @@ x-app-environment: &app-environment
   AUTH_SECRET: "${AUTH_SECRET:-local-auth-secret}"
   AUTH_GOOGLE_ID: "${AUTH_GOOGLE_ID:-local-google-id}"
   AUTH_GOOGLE_SECRET: "${AUTH_GOOGLE_SECRET:-local-google-secret}"
-  SCREENSHOTONE_ACCESS_KEY: "${SCREENSHOTONE_ACCESS_KEY:-local-screenshotone-access-key}"
+  SCREENSHOT_SERVICE_URL: "http://screenshot:8080"
+  SCREENSHOT_SERVICE_SECRET: "${SCREENSHOT_SERVICE_SECRET:-local-screenshot-service-secret}"
   OPENAI_API_KEY: "${OPENAI_API_KEY:-local-openai-api-key}"
   ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY:-local-anthropic-api-key}"
   GEMINI_API_KEY: "${GEMINI_API_KEY:-local-gemini-api-key}"
@@ -151,6 +152,18 @@ services:
       retries: 3
       start_period: 40s
 
+  screenshot:
+    image: robvanderleek/capture-website-api@sha256:d6f91b71e25bfe71dfb4888fbf276791d5e2cd25eae3058443c8619bbe746209
+    restart: unless-stopped
+    environment:
+      SECRET: "${SCREENSHOT_SERVICE_SECRET:-local-screenshot-service-secret}"
+      CONCURRENCY: "1"
+      MAX_QUEUE_LENGTH: "2"
+      TIMEOUT: "45"
+      SHOW_RESULTS: "false"
+    networks:
+      - screenshot
+
   app:
     image: aikc-local-app:latest
     pull_policy: never
@@ -164,6 +177,9 @@ services:
 
     restart: unless-stopped
     environment: *app-environment
+    networks:
+      - default
+      - screenshot
     depends_on:
       build:
         condition: service_completed_successfully
@@ -171,6 +187,8 @@ services:
         condition: service_started
       inngest:
         condition: service_healthy
+      screenshot:
+        condition: service_started
     volumes:
       # Built artifacts produced by the `build` service. Mounting the same
       # named volume here makes `next start` find the `.next` output created
@@ -213,6 +231,9 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
+
+networks:
+  screenshot:
 
 volumes:
   app_next:
