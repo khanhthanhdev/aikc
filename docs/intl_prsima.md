@@ -44,11 +44,11 @@
 ## Events & Background Jobs (Inngest)
 - HTTP endpoint: `app/api/inngest/route.ts` registers:
   - `tool.submitted` → `functions/tool-submitted.ts` (dedupe, wait for expedite/feature, email submitter unless expedited/featured)
-  - `tool.scheduled` → `functions/tool-scheduled.ts` (AI content generation, S3 favicon/screenshot uploads, social scraping, submitter email)
+  - `tool.scheduled` → `functions/tool-scheduled.ts` (AI content generation, R2 favicon/screenshot uploads, social scraping, submitter email)
   - `tool.published` → `functions/tool-published.ts` (currently TODO)
   - `tool.expedited` → `functions/tool-expedited.ts` (admin + submitter emails)
   - `tool.featured` → `functions/tool-featured.ts` (admin + submitter emails)
-  - `tool.deleted` → `functions/tool-deleted.ts` (prunes S3 directory in prod)
+  - `tool.deleted` → `functions/tool-deleted.ts` (prunes the R2 directory in prod)
 - Emitters: `actions/submit.ts` (submitted), `app/admin/tools/_lib/actions.ts` (scheduled/deleted), and `functions/tool-submitted.ts` (waits for expedite/feature events).
 
 ## Data Shapes (Prisma)

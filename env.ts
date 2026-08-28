@@ -42,10 +42,10 @@ export const env = createEnv({
     INFINITY_EMBEDDING_DIMENSIONS: z.coerce.number().default(384),
     FIRECRAWL_API_KEY: z.string().min(1),
     RESEND_API_KEY: z.string().min(1),
-    S3_BUCKET: z.string().min(1),
-    S3_REGION: z.string().min(1),
-    S3_ACCESS_KEY: z.string().min(1),
-    S3_SECRET_ACCESS_KEY: z.string().min(1),
+    R2_ENDPOINT: z.url().min(1),
+    R2_BUCKET: z.string().min(1),
+    R2_ACCESS_KEY_ID: z.string().min(1),
+    R2_SECRET_ACCESS_KEY: z.string().min(1),
     QDRANT_URL: z.string().url().min(1),
     QDRANT_API_KEY: z.string().min(1),
   },
@@ -55,6 +55,7 @@ export const env = createEnv({
    * For them to be exposed to the client, prefix them with `NEXT_PUBLIC_`.
    */
   client: {
+    NEXT_PUBLIC_R2_PUBLIC_URL: z.url().min(1),
     NEXT_PUBLIC_SITE_URL: z.string().url().min(1),
     NEXT_PUBLIC_SITE_EMAIL: z.string().email().min(1),
   },
@@ -66,6 +67,7 @@ export const env = createEnv({
     PORT: process.env.PORT,
     VERCEL_URL: process.env.VERCEL_URL,
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+    NEXT_PUBLIC_R2_PUBLIC_URL: process.env.NEXT_PUBLIC_R2_PUBLIC_URL,
     NEXT_PUBLIC_SITE_EMAIL: process.env.NEXT_PUBLIC_SITE_EMAIL,
   },
 

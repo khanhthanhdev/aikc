@@ -6,6 +6,10 @@ const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
 const isDev = process.env.NODE_ENV === "development";
 
+const r2PublicUrl = new URL(
+  process.env.NEXT_PUBLIC_R2_PUBLIC_URL ?? "http://localhost"
+);
+
 // React requires eval() in development mode for various debugging features
 // (e.g. reconstructing call stacks from a different environment).
 // React never uses eval() in production, so we keep the strict CSP there.
@@ -18,7 +22,7 @@ const scriptSrc = [
   .filter(Boolean)
   .join(" ");
 
-const csp = `default-src 'self'; script-src ${scriptSrc}; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://img.youtube.com https://stukit-bucket.s3.us-east-1.amazonaws.com https://*.amazonaws.com; font-src 'self' data:; connect-src 'self' https://stukit-bucket.s3.us-east-1.amazonaws.com https://*.amazonaws.com https://cloudflareinsights.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://accounts.google.com; object-src 'none';`;
+const csp = `default-src 'self'; script-src ${scriptSrc}; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://img.youtube.com ${r2PublicUrl.origin}; font-src 'self' data:; connect-src 'self' https://cloudflareinsights.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://accounts.google.com; object-src 'none';`;
 
 const securityHeaders = [
   {
@@ -122,9 +126,8 @@ const nextConfig: NextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     remotePatterns: [
       {
-        hostname: "stukit-bucket.s3.us-east-1.amazonaws.com",
+        hostname: r2PublicUrl.hostname,
       },
-      { hostname: "**.amazonaws.com" },
     ],
   },
 

@@ -1,16 +1,14 @@
 #!/usr/bin/env bun
 /**
- * Backfills the `Cache-Control` header on every object in the configured S3 bucket.
+ * Backfills the `Cache-Control` header on every object in the configured R2 bucket.
  *
- * Lighthouse flags assets in our public S3 bucket because they are served with no
- * cache lifetime. New uploads get `Cache-Control: public, max-age=31536000, immutable`
- * via `uploadToS3Storage`, but existing objects (uploaded before that change) still
- * have no cache headers. This script copies each object onto itself with the new
- * metadata, which is the standard S3 way to update headers on existing files.
+ * Lighthouse flags assets served from R2 without a cache lifetime. New uploads set
+ * `Cache-Control: public, max-age=31536000, immutable` via `uploadToR2Storage`;
+ * this script copies older objects onto themselves with the same header.
  *
  * Usage:
- *   bun run scripts/backfill-s3-cache-control.ts            # all objects
- *   bun run scripts/backfill-s3-cache-control.ts ads/       # only a prefix
+ *   bun run scripts/backfill-r2-cache-control.ts            # all objects
+ *   bun run scripts/backfill-r2-cache-control.ts ads/       # only a prefix
  */
 import {
   CopyObjectCommand,
@@ -18,16 +16,16 @@ import {
   ListObjectsV2Command,
 } from "@aws-sdk/client-s3";
 import { env } from "~/env";
-import { s3Client } from "~/services/aws-s3";
+import { r2Client } from "~/services/r2";
 
 const CACHE_CONTROL = "public, max-age=31536000, immutable";
 
 async function main() {
   const prefix = process.argv[2] ?? "";
-  const bucket = env.S3_BUCKET;
+  const bucket = env.R2_BUCKET;
 
   console.log(
-    `🔧 Backfilling Cache-Control on s3://${bucket}/${prefix || "(all)"}`
+    `Backfilling Cache-Control on R2 bucket ${bucket}/${prefix || "(all)"}`
   );
   console.log(`   New header: ${CACHE_CONTROL}`);
 
@@ -38,7 +36,7 @@ async function main() {
   let failed = 0;
 
   do {
-    const list = await s3Client.send(
+    const list = await r2Client.send(
       new ListObjectsV2Command({
         Bucket: bucket,
         Prefix: prefix || undefined,
@@ -54,7 +52,7 @@ async function main() {
       scanned++;
 
       try {
-        const head = await s3Client.send(
+        const head = await r2Client.send(
           new HeadObjectCommand({ Bucket: bucket, Key: key })
         );
 
@@ -63,7 +61,7 @@ async function main() {
           continue;
         }
 
-        await s3Client.send(
+        await r2Client.send(
           new CopyObjectCommand({
             Bucket: bucket,
             Key: key,
@@ -80,14 +78,14 @@ async function main() {
         }
       } catch (error) {
         failed++;
-        console.error(`❌ Failed to update ${key}:`, error);
+        console.error(`Failed to update ${key}:`, error);
       }
     }
 
     continuationToken = list.NextContinuationToken;
   } while (continuationToken);
 
-  console.log("\n✅ Done.");
+  console.log("\nDone.");
   console.log(`   Scanned: ${scanned}`);
   console.log(`   Updated: ${updated}`);
   console.log(`   Already correct: ${skipped}`);

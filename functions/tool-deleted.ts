@@ -1,6 +1,6 @@
 import { isProd } from "~/env";
 import { inngestLogger } from "~/lib/logger";
-import { removeS3Directory } from "~/lib/media";
+import { removeR2Directory } from "~/lib/media";
 import { deleteAlternativeVector, deleteToolVector } from "~/lib/vector-store";
 import { inngest } from "~/services/inngest";
 
@@ -70,24 +70,24 @@ export const toolDeleted = inngest.createFunction(
         }
       });
 
-      await step.run("remove-s3-directory", async () => {
+      await step.run("remove-r2-directory", async () => {
         const stepStartTime = performance.now();
-        inngestLogger.stepStarted("remove-s3-directory", FUNCTION_ID, toolSlug);
+        inngestLogger.stepStarted("remove-r2-directory", FUNCTION_ID, toolSlug);
 
         try {
           const shouldRemove = isProd;
           const result = shouldRemove
-            ? await removeS3Directory(`tools/${event.data.slug}`)
+            ? await removeR2Directory(`tools/${event.data.slug}`)
             : Promise.resolve();
           const duration = performance.now() - stepStartTime;
           inngestLogger.stepCompleted(
-            "remove-s3-directory",
+            "remove-r2-directory",
             FUNCTION_ID,
             toolSlug,
             duration
           );
           if (!shouldRemove) {
-            inngestLogger.info("S3 cleanup skipped in non-production", {
+            inngestLogger.info("R2 cleanup skipped in non-production", {
               functionId: FUNCTION_ID,
               toolSlug,
               isProd,
@@ -96,7 +96,7 @@ export const toolDeleted = inngest.createFunction(
           return result;
         } catch (error) {
           inngestLogger.stepError(
-            "remove-s3-directory",
+            "remove-r2-directory",
             FUNCTION_ID,
             toolSlug,
             error

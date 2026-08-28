@@ -99,11 +99,12 @@ RESEND_API_KEY="re_..."
 # Self-hosted screenshot service
 SCREENSHOT_SERVICE_SECRET="replace-with-a-random-secret"
 
-# Amazon S3
-S3_BUCKET="your-bucket-name"
-S3_REGION="us-east-1"
-S3_ACCESS_KEY="..."
-S3_SECRET_ACCESS_KEY="..."
+# Cloudflare R2
+R2_ENDPOINT="https://<account-id>.r2.cloudflarestorage.com"
+NEXT_PUBLIC_R2_PUBLIC_URL="https://media.example.com"
+R2_BUCKET="your-bucket-name"
+R2_ACCESS_KEY_ID="..."
+R2_SECRET_ACCESS_KEY="..."
 
 # Qdrant
 QDRANT_API_KEY="<QDRANT_API_KEY>"
@@ -118,7 +119,7 @@ QDRANT_API_KEY="<QDRANT_API_KEY>"
 - [ ] All passwords are strong and unique
 - [ ] AUTH_SECRET is at least 32 random characters
 - [ ] API keys have minimal required permissions
-- [ ] S3 bucket has proper CORS and IAM policies
+- [ ] R2 bucket has a configured public custom domain and scoped API token
 - [ ] Database is not exposed to public internet
 
 ---

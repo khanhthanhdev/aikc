@@ -86,9 +86,9 @@ try {
 
 ---
 
-### 5. S3 Image Optimization
+### 5. R2 Image Optimization
 
-**Problem:** Next.js Image optimization fails for S3-hosted favicons.
+**Problem:** Next.js Image optimization fails for R2-hosted favicons.
 
 **Fix:** Add `unoptimized` prop:
 
@@ -130,8 +130,8 @@ git commit -m "fix: Qdrant hybrid search, Infinity embedding, and Docker deploym
 - Fix Infinity embedding dimension type mismatch
 - Add network error handling for Qdrant API calls
 - Add dynamic exports for server components using Math.random()/Date()
-- Add unoptimized prop for S3 images in favicon component
-- Fix next.config.ts S3 remote patterns
+- Add unoptimized prop for R2 images in favicon component
+- Fix next.config.ts R2 remote patterns
 
 Breaking: Qdrant collections recreated with named vectors (dense/sparse)"
 
@@ -298,7 +298,7 @@ docker compose up -d
 - [ ] No errors in app logs
 - [ ] Qdrant collections have correct points count
 - [ ] Hybrid search returns results (not 400 errors)
-- [ ] S3 images load correctly
+- [ ] R2 images load correctly
 - [ ] Tool pages render without dynamic errors
 - [ ] Semantic cache working (check logs for "cache hit")
 
@@ -325,10 +325,10 @@ curl -X POST http://localhost:7997/embeddings \
 # Should return embedding array
 ```
 
-### S3 Images 400
+### R2 Images 400
 ```bash
 # Check next.config.ts remotePatterns
-# Verify S3 bucket URL matches pattern
+# Verify the R2 public URL matches the pattern
 # Clear Next.js cache
 docker compose restart app
 ```

@@ -1,3 +1,5 @@
+import { env } from "~/env";
+
 export const mediaConfig = {
-  staticHost: "https://stukit.s3.ap-southeast-1.amazonaws.com",
+  staticHost: env.NEXT_PUBLIC_R2_PUBLIC_URL,
 };

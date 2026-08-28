@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useServerAction } from "zsa-react";
-import { updateFaviconUrls } from "~/actions/misc";
 import { searchItems } from "~/actions/search";
 import {
   CommandDialog,
@@ -97,10 +96,6 @@ export const CommandMenu = () => {
     setSearchQuery(value);
   };
 
-  const handleUpdateFaviconUrls = () => {
-    updateFaviconUrls();
-    toast.success("Favicon URLs updated");
-  };
 
   const handleSelect = (url: string) => {
     handleOpenChange(false);
@@ -142,11 +137,6 @@ export const CommandMenu = () => {
           </CommandItem>
         </CommandGroup>
 
-        <CommandGroup heading="Quick Commands">
-          <CommandItem onSelect={handleUpdateFaviconUrls}>
-            Update Favicon URLs
-          </CommandItem>
-        </CommandGroup>
 
         {!!searchResults?.tools.length && (
           <CommandGroup heading="Tools">

@@ -5,7 +5,7 @@ import { slugify } from "@curiousleaf/utils";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 import { adSchema } from "~/app/admin/ads/_lib/validations";
-import { uploadToS3Storage } from "~/lib/media";
+import { uploadToR2Storage } from "~/lib/media";
 import { authedProcedure } from "~/lib/safe-actions";
 import { prisma } from "~/services/prisma";
 
@@ -23,7 +23,7 @@ export const uploadAdImage = authedProcedure
     const extension = file.name.split(".").pop();
     const key = `ads/${slugify(filename)}-${Date.now()}.${extension}`;
 
-    return await uploadToS3Storage(buffer, key, file.type);
+    return await uploadToR2Storage(buffer, key, file.type);
   });
 
 export const createAd = authedProcedure
