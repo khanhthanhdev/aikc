@@ -97,11 +97,12 @@ FIRECRAWL_API_KEY="fc-..."
 RESEND_API_KEY="re_..."
 SCREENSHOTONE_ACCESS_KEY="..."
 
-# Amazon S3
-S3_BUCKET="your-bucket-name"
-S3_REGION="us-east-1"
-S3_ACCESS_KEY="..."
-S3_SECRET_ACCESS_KEY="..."
+# Cloudflare R2
+R2_BUCKET="aikc"
+R2_ENDPOINT="https://bf82bfb4dae9053291ad1217c99e32ae.r2.cloudflarestorage.com"
+R2_PUBLIC_URL="https://assets.example.com"
+R2_ACCESS_KEY_ID="..."
+R2_SECRET_ACCESS_KEY="..."
 
 # Qdrant
 QDRANT_API_KEY="<QDRANT_API_KEY>"
@@ -116,7 +117,7 @@ QDRANT_API_KEY="<QDRANT_API_KEY>"
 - [ ] All passwords are strong and unique
 - [ ] AUTH_SECRET is at least 32 random characters
 - [ ] API keys have minimal required permissions
-- [ ] S3 bucket has proper CORS and IAM policies
+- [ ] R2 API token is scoped to the aikc bucket and its public domain serves assets
 - [ ] Database is not exposed to public internet
 
 ---

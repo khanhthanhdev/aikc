@@ -24,7 +24,7 @@
   - `tool.scheduled`: generates content, uploads assets (favicon/screenshot), scrapes socials, emails submitter.
   - `tool.expedited` / `tool.featured`: notifies admin + submitter.
   - `tool.published`: placeholder for future messaging.
-  - `tool.deleted`: cleans S3 assets (prod only).
-- **Media**: `lib/media` handles favicon/screenshot uploads to S3 via `services/aws-s3.ts`.
+  - `tool.deleted`: cleans R2 assets (prod only).
+- **Media**: `lib/media` handles favicon/screenshot uploads to Cloudflare R2 via `services/r2.ts`.
 - **AI/content**: `lib/generate-content` (see service wrappers in `services/openai.ts`, `services/firecrawl.ts`) builds tool copy/tags during scheduling.
 - **Email**: `lib/email` + `services/resend.ts` send transactional emails rendered from `emails/`.

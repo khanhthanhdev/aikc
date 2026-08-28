@@ -39,6 +39,10 @@
 	# Cloudflare proxy health check
 	respond /cdn-cgi/trace 200
 
+	# Preserve separate CDN cache entries for HTML and Markdown homepages.
+	@markdown_home path / /en /en/ /vi /vi/
+	header @markdown_home +Vary "Accept"
+
 	# Main app
 	handle {
 		reverse_proxy app:5175 {

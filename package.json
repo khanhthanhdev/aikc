@@ -27,6 +27,7 @@
     "icons": "bun run scripts/build-icons.ts",
     "prebuild": "bun run icons",
     "postinstall": "bun run db:generate",
+    "test:agent-readiness": "SKIP_ENV_VALIDATION=1 bun test tests/agent-readiness.test.ts",
     "fix": "ultracite fix"
   },
   "dependencies": {

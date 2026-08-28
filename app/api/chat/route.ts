@@ -10,6 +10,11 @@ import {
 import { z } from "zod";
 import { isDev } from "~/env";
 import {
+  internalServerErrorResponse,
+  invalidRequestResponse,
+  originNotAllowedResponse,
+} from "~/lib/api-error";
+import {
   isSameOrigin,
   rateLimitByIpMulti,
   rateLimitResponse,
@@ -276,10 +281,7 @@ export async function POST(req: Request) {
     // Reject cross-origin POSTs — this endpoint should only be hit by our
     // own client, never embedded by third-party sites.
     if (!isSameOrigin(req)) {
-      return new Response(
-        JSON.stringify({ error: "Cross-origin requests are not allowed" }),
-        { status: 403, headers: { "Content-Type": "application/json" } }
-      );
+      return originNotAllowedResponse();
     }
 
     // ── Rate limit per IP: 10 chats / minute AND 50 chats / day ──
@@ -379,12 +381,17 @@ export async function POST(req: Request) {
 
     return result.toUIMessageStreamResponse();
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return invalidRequestResponse(error.issues);
+    }
+
+    if (error instanceof SyntaxError) {
+      return invalidRequestResponse();
+    }
+
     if (isDev) {
       console.error("Chat API error:", error);
     }
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    return internalServerErrorResponse();
   }
 }

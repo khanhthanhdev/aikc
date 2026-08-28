@@ -1,0 +1,28 @@
+# AI Knowledge Cloud
+
+> AI Knowledge Cloud is VinUniversity's curated directory of work and study tools, with machine-readable resources for agents and developers.
+
+AI Knowledge Cloud publishes human-facing tool discovery pages in English and Vietnamese. The public JSON API is currently restricted to same-origin requests; read its OpenAPI contract before attempting an integration.
+
+## Developer Resources
+
+- [AI Knowledge Cloud developer resources](https://aikc.vn/en/developers): API documentation, authentication policy, webhook availability, and MCP server status.
+- [AI Knowledge Cloud OpenAPI specification](https://aikc.vn/openapi.json): OpenAPI 3.1 contract for the RAG API and its JSON error responses.
+- [AI Knowledge Cloud homepage Markdown](https://aikc.vn/en.md): Markdown representation of the homepage.
+
+## Product Resources
+
+- [AI Knowledge Cloud tools](https://aikc.vn/en/tools): Searchable catalog of published work and study tools.
+- [AI Knowledge Cloud categories](https://aikc.vn/en/categories): Browse tools by category.
+- [AI Knowledge Cloud collections](https://aikc.vn/en/collections): Curated tool collections.
+
+## Trust Resources
+
+- [About AI Knowledge Cloud](https://aikc.vn/en/about): Project purpose, team, and institutional support.
+- [Contact AI Knowledge Cloud](https://aikc.vn/en/contact): Directory correction and support contact information.
+- [AI Knowledge Cloud Privacy Policy](https://aikc.vn/en/privacy): Information-handling terms for site interactions.
+
+## Optional
+
+- [AI Knowledge Cloud sitemap](https://aikc.vn/sitemap.xml): Full index of public localized pages.
+- [AI Knowledge Cloud robots policy](https://aikc.vn/robots.txt): Crawl access policy.

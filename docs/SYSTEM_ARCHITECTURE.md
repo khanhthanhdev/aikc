@@ -42,7 +42,7 @@ This is an **AI-powered tool directory platform** that:
 | **AI Models** | Alibaba Qwen | Content generation, translation |
 | **Background Jobs** | Inngest | Async job processing |
 | **Scraping** | Firecrawl | Web content extraction |
-| **Storage** | AWS S3 | Asset storage (screenshots, favicons) |
+| **Storage** | Cloudflare R2 | Asset storage (screenshots, favicons) |
 
 ### 1.3 Key Architectural Patterns
 
@@ -93,7 +93,7 @@ stukit/
 │   ├── inngest.ts            # Job queue client
 │   ├── alibaba.ts            # AI model client
 │   ├── firecrawl.ts          # Web scraper client
-│   ├── aws-s3.ts             # Storage client
+│   ├── r2.ts                 # Storage client
 │   └── embedding.ts          # Embedding generation
 │
 ├── lib/                      # Core Utilities
@@ -130,7 +130,7 @@ stukit/
 - Handles: content generation, asset uploads, vector sync, notifications
 
 #### `services/` - Infrastructure Layer
-- Wraps external APIs (Qdrant, Alibaba, Firecrawl, S3)
+- Wraps external APIs (Qdrant, Alibaba, Firecrawl, Cloudflare R2)
 - Manages connections and clients
 - Provides consistent interfaces
 
@@ -241,12 +241,12 @@ Trigger: tool.submitted event
   │    │
   │    ├─► upload-screenshot
   │    │    ├─► Capture via ScreenshotOne
-  │    │    ├─► Upload to S3
+  │    │    ├─► Upload to Cloudflare R2
   │    │    └─► Save URL to database
   │    │
   │    └─► upload-favicon
   │         ├─► Fetch from website
-  │         ├─► Upload to S3
+  │         ├─► Upload to Cloudflare R2
   │         └─► Save URL to database
   │
   ├─► STEP: translate-to-vietnamese
@@ -404,8 +404,8 @@ Tool
 ├── content: String?             # AI-generated long description
 ├── contentVi: String?
 ├── websiteUrl: String @unique
-├── faviconUrl: String?          # S3 URL
-├── screenshotUrl: String?       # S3 URL
+├── faviconUrl: String?          # R2 public URL
+├── screenshotUrl: String?       # R2 public URL
 ├── pricing: String?
 ├── pricingVi: String?
 ├── pricingTier: PricingTier?    # FREE, FREEMIUM, PAID, OPEN_SOURCE
@@ -588,10 +588,11 @@ INFINITY_EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
 FIRECRAWL_API_KEY=...
 RESEND_API_KEY=...
 SCREENSHOTONE_ACCESS_KEY=...
-S3_BUCKET=...
-S3_REGION=...
-S3_ACCESS_KEY=...
-S3_SECRET_ACCESS_KEY=...
+R2_BUCKET=...
+R2_ENDPOINT=https://bf82bfb4dae9053291ad1217c99e32ae.r2.cloudflarestorage.com
+R2_PUBLIC_URL=https://assets.example.com
+R2_ACCESS_KEY_ID=...
+R2_SECRET_ACCESS_KEY=...
 
 # Auth
 AUTH_SECRET=...

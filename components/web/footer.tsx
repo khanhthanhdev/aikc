@@ -88,9 +88,8 @@ export const Footer = ({
 
           <NavigationLink href="/submit">{t("addListing")}</NavigationLink>
           <NavigationLink href="/about">{t("aboutUs")}</NavigationLink>
-          <NavigationLink href={`mailto:${config.site.email}`}>
-            {t("contact")}
-          </NavigationLink>
+          <NavigationLink href="/contact">{t("contact")}</NavigationLink>
+          <NavigationLink href="/privacy">{t("privacy")}</NavigationLink>
         </Stack>
 
         <Stack className="flex-col items-start gap-x-4 text-sm/normal md:col-span-3">

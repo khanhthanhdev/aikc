@@ -1,4 +1,6 @@
 import { env } from "~/env";
+import { apiErrorResponse } from "~/lib/api-error";
+
 
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const MAX_ENTRIES = 10_000;
@@ -218,18 +220,15 @@ export function rateLimitResponse(
     1,
     Math.ceil((result.resetAt - Date.now()) / 1000)
   );
-  return new Response(
-    JSON.stringify({
-      error: message ?? "Too many requests. Please slow down.",
-      scope: result.scope,
-    }),
-    {
-      status: 429,
-      headers: {
-        "Content-Type": "application/json",
-        "Retry-After": String(retryAfter),
-        "X-RateLimit-Remaining": "0",
-      },
-    }
-  );
+  return apiErrorResponse({
+    status: 429,
+    code: "RATE_LIMITED",
+    message: message ?? "Too many requests. Please slow down.",
+    hint: `Wait ${retryAfter} seconds before retrying this request.`,
+    details: { scope: result.scope, retryAfter },
+    headers: {
+      "Retry-After": String(retryAfter),
+      "X-RateLimit-Remaining": "0",
+    },
+  });
 }

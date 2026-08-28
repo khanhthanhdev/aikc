@@ -35,6 +35,31 @@
     "countNewToolsAdded": "{count} công cụ mới được thêm",
     "countToolsCollected": "Đã tổng hợp {count}+ công cụ"
   },
+  "Developer": {
+    "title": "Tài nguyên cho nhà phát triển AI Knowledge Cloud",
+    "description": "Tài liệu API, chính sách xác thực, trạng thái webhook và tài nguyên máy đọc được cho AI Knowledge Cloud.",
+    "apiTitle": "Tài liệu API",
+    "apiDescription": "Đặc tả OpenAPI 3.1 mô tả các endpoint RAG JSON, kiểm tra yêu cầu, giới hạn tốc độ và phản hồi lỗi có cấu trúc.",
+    "quickstartTitle": "Bắt đầu nhanh",
+    "quickstartDescription": "API RAG nhận yêu cầu JSON từ aikc.vn. Ví dụ dùng header Origin bắt buộc và cấu trúc yêu cầu đã được tài liệu hóa.",
+    "sandboxTitle": "RAG sandbox",
+    "sandboxDescription": "Chạy một câu hỏi có giới hạn tốc độ trên danh mục công cụ đã xuất bản. Yêu cầu sandbox không tạo hoặc sửa dữ liệu danh mục.",
+    "sandboxQuestionLabel": "Câu hỏi",
+    "sandboxQuestionPlaceholder": "Công cụ nào hỗ trợ ghi chú?",
+    "sandboxSubmit": "Chạy câu hỏi",
+    "sandboxAnswerLabel": "Phản hồi",
+    "sandboxError": "Sandbox không thể hoàn thành yêu cầu. Vui lòng thử lại sau.",
+    "authTitle": "Xác thực",
+    "authDescription": "Các endpoint RAG được mô tả chỉ nhận yêu cầu có header Origin là https://aikc.vn.",
+    "apiKeysTitle": "API key",
+    "apiKeysDescription": "AI Knowledge Cloud hiện không cấp API key công khai hoặc hỗ trợ đăng ký ứng dụng khách OAuth.",
+    "webhooksTitle": "Webhook",
+    "webhooksDescription": "AI Knowledge Cloud hiện không cung cấp đăng ký webhook công khai. Endpoint Inngest là hạ tầng xử lý sự kiện nội bộ, không phải API tích hợp.",
+    "mcpTitle": "Máy chủ MCP",
+    "mcpDescription": "AI Knowledge Cloud hiện không công bố máy chủ MCP. Agent có thể dùng hợp đồng OpenAPI và các trang danh mục công khai.",
+    "agentResourcesTitle": "Tài nguyên cho agent",
+    "llmsDescription": "Chỉ mục llms.txt liên kết tới đặc tả OpenAPI, trang chủ Markdown và các tài nguyên máy đọc được khác."
+  },
   "Footer": {
     "quickLinks": "Liên kết nhanh",
     "browse": "Duyệt theo",
@@ -44,6 +69,7 @@
     "addListing": "Thêm miễn phí",
     "aboutUs": "Về chúng tôi",
     "contact": "Liên hệ",
+    "privacy": "Chính sách quyền riêng tư",
     "madeBy": "Được tạo bởi Nhóm Thư viện VinUni",
     "affiliateDisclosure": "Website này có thể chứa các liên kết tiếp thị liên kết",
     "contactUs": "Liên hệ với chúng tôi",
@@ -96,6 +122,12 @@
   },
   "About": {
     "title": "Về chúng tôi"
+  },
+  "Contact": {
+    "title": "Liên hệ"
+  },
+  "Privacy": {
+    "title": "Chính sách quyền riêng tư"
   },
   "Tools": {
     "sortBy": "Sắp xếp theo",

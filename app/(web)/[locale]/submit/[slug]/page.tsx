@@ -143,15 +143,6 @@ export default async function SubmitPackages({
         <IntroDescription>{description}</IntroDescription>
       </Intro>
 
-      {/* {success && (
-        <Image
-          src={`${config.media.staticHost}/3d-heart.webp`}
-          alt=""
-          className="max-w-64 w-2/3 h-auto mx-auto"
-          width={256}
-          height={228}
-        />
-      )} */}
 
       <div className="flex justify-center">
         <SubmitProducts locale={locale} tool={tool} />

@@ -1,6 +1,6 @@
 import { isProd } from "~/env";
 import { inngestLogger } from "~/lib/logger";
-import { removeS3Directory } from "~/lib/media";
+import { removeR2Directory } from "~/lib/media";
 import { deleteAlternativeVector, deleteToolVector } from "~/lib/vector-store";
 import { inngest } from "~/services/inngest";
 
@@ -77,7 +77,7 @@ export const toolDeleted = inngest.createFunction(
         try {
           const shouldRemove = isProd;
           const result = shouldRemove
-            ? await removeS3Directory(`tools/${event.data.slug}`)
+            ? await removeR2Directory(`tools/${event.data.slug}`)
             : Promise.resolve();
           const duration = performance.now() - stepStartTime;
           inngestLogger.stepCompleted(

@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { isDev } from "~/env";
 import {
+  internalServerErrorResponse,
+  invalidRequestResponse,
+  originNotAllowedResponse,
+} from "~/lib/api-error";
+import {
   answerToolQuestion,
   answerToolQuestionAdvanced,
   retrieveToolContext,
@@ -35,16 +40,10 @@ const RAG_LIMITS = [
   { scope: "rag:day", limit: 100, windowSeconds: 24 * 60 * 60 },
 ] as const;
 
-function originDenied() {
-  return NextResponse.json(
-    { error: "Cross-origin requests are not allowed" },
-    { status: 403 }
-  );
-}
 
 export async function POST(request: Request) {
   if (!isSameOrigin(request)) {
-    return originDenied();
+    return originNotAllowedResponse();
   }
 
   const limit = rateLimitByIpMulti(request, [...RAG_LIMITS]);
@@ -85,27 +84,24 @@ export async function POST(request: Request) {
     return NextResponse.json(responseBody);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: "Invalid request", details: error.issues },
-        { status: 400 }
-      );
+      return invalidRequestResponse(error.issues);
+    }
+
+    if (error instanceof SyntaxError) {
+      return invalidRequestResponse();
     }
 
     if (isDev) {
       console.error("RAG API error");
     }
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return internalServerErrorResponse();
   }
 }
 
 export async function GET(request: Request) {
   if (!isSameOrigin(request)) {
-    return originDenied();
+    return originNotAllowedResponse();
   }
-
   const limit = rateLimitByIpMulti(request, [...RAG_LIMITS]);
   if (!limit.success) {
     return rateLimitResponse(limit);
@@ -141,18 +137,12 @@ export async function GET(request: Request) {
     return NextResponse.json({ context });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: "Invalid request", details: error.issues },
-        { status: 400 }
-      );
+      return invalidRequestResponse(error.issues);
     }
 
     if (isDev) {
       console.error("RAG context API error");
     }
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return internalServerErrorResponse();
   }
 }

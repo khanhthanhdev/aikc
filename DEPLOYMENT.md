@@ -86,22 +86,13 @@ try {
 
 ---
 
-### 5. S3 Image Optimization
+### 5. R2 Image Optimization
 
-**Problem:** Next.js Image optimization fails for S3-hosted favicons.
+**Problem:** Next.js Image optimization must allow the R2 public domain.
 
-**Fix:** Add `unoptimized` prop:
+**Fix:** Set `R2_PUBLIC_URL` to the R2 custom domain (or r2.dev development URL); `next.config.ts` derives the CSP and remote image allowlist from it.
 
-```tsx
-// components/web/ui/favicon.tsx
-<Image
-  src={src}
-  unoptimized={src.includes("amazonaws.com")}
-  {...props}
-/>
-```
-
-**Files:** `components/web/ui/favicon.tsx`
+**Files:** `next.config.ts`
 
 ---
 
@@ -130,8 +121,7 @@ git commit -m "fix: Qdrant hybrid search, Infinity embedding, and Docker deploym
 - Fix Infinity embedding dimension type mismatch
 - Add network error handling for Qdrant API calls
 - Add dynamic exports for server components using Math.random()/Date()
-- Add unoptimized prop for S3 images in favicon component
-- Fix next.config.ts S3 remote patterns
+- Configure Next.js image and CSP policies from `R2_PUBLIC_URL`
 
 Breaking: Qdrant collections recreated with named vectors (dense/sparse)"
 
@@ -298,7 +288,7 @@ docker compose up -d
 - [ ] No errors in app logs
 - [ ] Qdrant collections have correct points count
 - [ ] Hybrid search returns results (not 400 errors)
-- [ ] S3 images load correctly
+- [ ] R2 images load correctly
 - [ ] Tool pages render without dynamic errors
 - [ ] Semantic cache working (check logs for "cache hit")
 
@@ -325,10 +315,9 @@ curl -X POST http://localhost:7997/embeddings \
 # Should return embedding array
 ```
 
-### S3 Images 400
+### R2 Images 400
 ```bash
-# Check next.config.ts remotePatterns
-# Verify S3 bucket URL matches pattern
+# Check R2_PUBLIC_URL matches the bucket's public custom domain.
 # Clear Next.js cache
 docker compose restart app
 ```

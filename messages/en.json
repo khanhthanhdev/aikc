@@ -35,6 +35,31 @@
     "countNewToolsAdded": "{count} new {unit} added",
     "countToolsCollected": "{count}+ tools collected"
   },
+  "Developer": {
+    "title": "AI Knowledge Cloud Developer Resources",
+    "description": "API documentation, authentication policy, webhook availability, and machine-readable resources for AI Knowledge Cloud.",
+    "apiTitle": "API documentation",
+    "apiDescription": "The OpenAPI 3.1 specification documents the JSON RAG endpoints, request validation, rate limits, and structured error responses.",
+    "quickstartTitle": "Quickstart",
+    "quickstartDescription": "The RAG API accepts JSON requests from aikc.vn. The example uses the required Origin header and the documented request shape.",
+    "sandboxTitle": "RAG sandbox",
+    "sandboxDescription": "Run a rate-limited question against the live published-tool catalog. Sandbox requests do not create or modify catalog data.",
+    "sandboxQuestionLabel": "Question",
+    "sandboxQuestionPlaceholder": "Which tools help with note taking?",
+    "sandboxSubmit": "Run question",
+    "sandboxAnswerLabel": "Response",
+    "sandboxError": "The sandbox could not complete the request. Please try again later.",
+    "authTitle": "Authentication",
+    "authDescription": "The documented RAG endpoints are restricted to requests with an Origin header of https://aikc.vn.",
+    "apiKeysTitle": "API keys",
+    "apiKeysDescription": "AI Knowledge Cloud does not currently issue public API keys or support OAuth client registration.",
+    "webhooksTitle": "Webhooks",
+    "webhooksDescription": "AI Knowledge Cloud does not currently offer public webhook subscriptions. Inngest endpoints are internal event-processing infrastructure, not an integration API.",
+    "mcpTitle": "MCP server",
+    "mcpDescription": "AI Knowledge Cloud does not currently publish an MCP server. Agents can use the OpenAPI contract and public catalog pages instead.",
+    "agentResourcesTitle": "Agent resources",
+    "llmsDescription": "The llms.txt index links to the OpenAPI specification, Markdown homepage, and other machine-readable resources."
+  },
   "Footer": {
     "quickLinks": "Quick Links",
     "browse": "Browse",
@@ -44,6 +69,7 @@
     "addListing": "Add a Free Listing",
     "aboutUs": "About Us",
     "contact": "Contact",
+    "privacy": "Privacy Policy",
     "madeBy": "Made by VinUni Library Team",
     "affiliateDisclosure": "This website may contain affiliate links",
     "contactUs": "Contact us",
@@ -96,6 +122,12 @@
   },
   "About": {
     "title": "About Us"
+  },
+  "Contact": {
+    "title": "Contact"
+  },
+  "Privacy": {
+    "title": "Privacy Policy"
   },
   "Tools": {
     "sortBy": "Sort by",

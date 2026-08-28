@@ -177,10 +177,11 @@ At minimum, review these values carefully:
 - `ALIBABA_API_KEY=...`
 - `FIRECRAWL_API_KEY=...`
 - `RESEND_API_KEY=...`
-- `S3_BUCKET=...`
-- `S3_REGION=...`
-- `S3_ACCESS_KEY=...`
-- `S3_SECRET_ACCESS_KEY=...`
+- `R2_BUCKET=...`
+- `R2_ENDPOINT=https://bf82bfb4dae9053291ad1217c99e32ae.r2.cloudflarestorage.com`
+- `R2_PUBLIC_URL=https://assets.example.com`
+- `R2_ACCESS_KEY_ID=...`
+- `R2_SECRET_ACCESS_KEY=...`
 - `QDRANT_API_KEY=...`
 
 Notes:

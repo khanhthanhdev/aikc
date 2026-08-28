@@ -6,6 +6,10 @@ const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
 const isDev = process.env.NODE_ENV === "development";
 
+const r2PublicUrl = process.env.R2_PUBLIC_URL
+  ? new URL(process.env.R2_PUBLIC_URL)
+  : undefined;
+
 // React requires eval() in development mode for various debugging features
 // (e.g. reconstructing call stacks from a different environment).
 // React never uses eval() in production, so we keep the strict CSP there.
@@ -18,7 +22,17 @@ const scriptSrc = [
   .filter(Boolean)
   .join(" ");
 
-const csp = `default-src 'self'; script-src ${scriptSrc}; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://img.youtube.com https://stukit-bucket.s3.us-east-1.amazonaws.com https://*.amazonaws.com; font-src 'self' data:; connect-src 'self' https://stukit-bucket.s3.us-east-1.amazonaws.com https://*.amazonaws.com https://cloudflareinsights.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://accounts.google.com; object-src 'none';`;
+const imageSrc = [
+  "'self'",
+  "data:",
+  "blob:",
+  "https://img.youtube.com",
+  r2PublicUrl?.origin,
+]
+  .filter(Boolean)
+  .join(" ");
+
+const csp = `default-src 'self'; script-src ${scriptSrc}; style-src 'self' 'unsafe-inline'; img-src ${imageSrc}; font-src 'self' data:; connect-src 'self' https://cloudflareinsights.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://accounts.google.com; object-src 'none';`;
 
 const securityHeaders = [
   {
@@ -120,12 +134,9 @@ const nextConfig: NextConfig = {
     minimumCacheTTL: 31_536_000, // 1 year cache
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    remotePatterns: [
-      {
-        hostname: "stukit-bucket.s3.us-east-1.amazonaws.com",
-      },
-      { hostname: "**.amazonaws.com" },
-    ],
+    remotePatterns: r2PublicUrl
+      ? [{ hostname: r2PublicUrl.hostname }]
+      : [],
   },
 
   // Cloudflare Pages compatibility
