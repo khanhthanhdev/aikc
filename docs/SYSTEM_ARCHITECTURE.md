@@ -450,7 +450,7 @@ Category, Collection, Tag
        └────────────▶│  Services    │◀─────────────┘
                      │ (database,   │
                      │  vector DB,  │
-                     │  AI, S3)     │
+                     │  AI, R2)     │
                      └──────────────┘
 ```
 
@@ -587,7 +587,7 @@ INFINITY_EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
 # Services
 FIRECRAWL_API_KEY=...
 RESEND_API_KEY=...
-SCREENSHOTONE_ACCESS_KEY=...
+SCREENSHOT_SERVICE_SECRET=...
 R2_BUCKET=...
 R2_ENDPOINT=https://bf82bfb4dae9053291ad1217c99e32ae.r2.cloudflarestorage.com
 R2_PUBLIC_URL=https://assets.example.com

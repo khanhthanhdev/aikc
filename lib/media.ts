@@ -35,6 +35,7 @@ export const uploadToR2 = async (
       Body: file,
       ContentType: contentType,
       CacheControl: R2_CACHE_CONTROL,
+
     },
     queueSize: 4,
     partSize: 1024 * 1024 * 5,
@@ -116,8 +117,32 @@ export const uploadFavicon = async (
 };
 
 /**
+ * Captures a website screenshot from the internal screenshot service.
+ * @param url - The URL of the website to capture.
+ * @returns The PNG image.
+ */
+export const captureScreenshot = async (url: string): Promise<Buffer> => {
+  const queryParams = new URLSearchParams({
+    url,
+    secret: env.SCREENSHOT_SERVICE_SECRET,
+    width: "1280",
+    height: "720",
+    scaleFactor: "1",
+    type: "png",
+    delay: "3",
+    disableAnimations: "true",
+    blockAds: "true",
+  });
+  const endpointUrl = new URL("/capture", env.SCREENSHOT_SERVICE_URL);
+  endpointUrl.search = queryParams.toString();
+
+  const image = await wretch(endpointUrl.toString()).get().arrayBuffer();
+  return Buffer.from(image);
+};
+
+/**
  * Uploads a screenshot to R2 and returns its public URL.
- * @param url - The URL of the website to fetch the screenshot from.
+ * @param url - The URL of the website to capture.
  * @param storageKey - The R2 object key to upload the screenshot to.
  * @returns The public URL of the uploaded screenshot.
  */
@@ -125,47 +150,18 @@ export const uploadScreenshot = async (
   url: string,
   storageKey: string
 ): Promise<string> => {
-  const queryParams = new URLSearchParams({
-    url,
-    access_key: env.SCREENSHOTONE_ACCESS_KEY,
-    response_type: "json",
-
-    // Cache
-    cache: "true",
-    cache_ttl: "2592000",
-
-    // Emulations
-    dark_mode: "true",
-    reduced_motion: "true",
-
-    // Blockers
-    delay: "3",
-    block_ads: "true",
-    block_chats: "true",
-    block_trackers: "true",
-    block_cookie_banners: "true",
-
-    // Image and viewport options
-    format: "webp",
-    viewport_width: "1280",
-    viewport_height: "720",
-
-    // Storage options
-    store: "true",
-    storage_path: storageKey,
-    storage_endpoint: env.R2_ENDPOINT,
-    storage_bucket: env.R2_BUCKET,
-    storage_access_key_id: env.R2_ACCESS_KEY_ID,
-    storage_secret_access_key: env.R2_SECRET_ACCESS_KEY,
-  });
-
   try {
-    const endpointUrl = `https://api.screenshotone.com/take?${queryParams.toString()}`;
-    await wretch(endpointUrl).get().res();
-    return `${getR2PublicUrl(`${storageKey}.webp`)}?v=${Date.now()}`;
+    const location = await uploadToR2(
+      await captureScreenshot(url),
+      `${storageKey}.png`,
+      "image/png"
+    );
+
+    // Append version timestamp for cache busting
+    return `${location}?v=${Date.now()}`;
   } catch (error) {
     if (isDev) {
-      console.error("Error fetching screenshot:", error);
+      console.error("Error capturing or uploading screenshot:", error);
     }
     throw error;
   }

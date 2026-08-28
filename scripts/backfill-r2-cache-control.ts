@@ -77,14 +77,14 @@ async function main() {
         }
       } catch (error) {
         failed++;
-        console.error(`❌ Failed to update ${key}:`, error);
+        console.error(`Failed to update ${key}:`, error);
       }
     }
 
     continuationToken = list.NextContinuationToken;
   } while (continuationToken);
 
-  console.log("\n✅ Done.");
+  console.log("\nDone.");
   console.log(`   Scanned: ${scanned}`);
   console.log(`   Updated: ${updated}`);
   console.log(`   Already correct: ${skipped}`);

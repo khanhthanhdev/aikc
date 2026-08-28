@@ -95,7 +95,6 @@ ALIBABA_API_KEY="..."
 # External Services
 FIRECRAWL_API_KEY="fc-..."
 RESEND_API_KEY="re_..."
-SCREENSHOTONE_ACCESS_KEY="..."
 
 # Cloudflare R2
 R2_BUCKET="aikc"
