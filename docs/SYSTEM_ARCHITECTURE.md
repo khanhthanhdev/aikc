@@ -240,7 +240,7 @@ Trigger: tool.submitted event
   │    │    └─► Save to database
   │    │
   │    ├─► upload-screenshot
-  │    │    ├─► Capture via ScreenshotOne
+  │    │    ├─► Capture via Firecrawl
   │    │    ├─► Upload to Cloudflare R2
   │    │    └─► Save URL to database
   │    │
@@ -587,10 +587,9 @@ INFINITY_EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
 # Services
 FIRECRAWL_API_KEY=...
 RESEND_API_KEY=...
-SCREENSHOT_SERVICE_SECRET=...
 R2_BUCKET=...
 R2_ENDPOINT=https://bf82bfb4dae9053291ad1217c99e32ae.r2.cloudflarestorage.com
-R2_PUBLIC_URL=https://assets.example.com
+R2_PUBLIC_URL=https://assets.aikc.vn
 R2_ACCESS_KEY_ID=...
 R2_SECRET_ACCESS_KEY=...
 

@@ -4,6 +4,7 @@ import { Upload } from "@aws-sdk/lib-storage";
 import { stripURLSubpath } from "@curiousleaf/utils";
 import wretch from "wretch";
 import { env, isDev, isProd } from "~/env";
+import { firecrawlClient } from "~/services/firecrawl";
 import { r2Client } from "~/services/r2";
 
 /**
@@ -117,27 +118,30 @@ export const uploadFavicon = async (
 };
 
 /**
- * Captures a website screenshot from the internal screenshot service.
+ * Captures a website screenshot using Firecrawl.
  * @param url - The URL of the website to capture.
- * @returns The PNG image.
+ * @returns The image Buffer.
  */
 export const captureScreenshot = async (url: string): Promise<Buffer> => {
-  const queryParams = new URLSearchParams({
-    url,
-    secret: env.SCREENSHOT_SERVICE_SECRET,
-    width: "1280",
-    height: "720",
-    scaleFactor: "1",
-    type: "png",
-    delay: "3",
-    disableAnimations: "true",
-    blockAds: "true",
+  const scrapeResponse = await firecrawlClient.scrapeUrl(url, {
+    formats: ["screenshot"],
   });
-  const endpointUrl = new URL("/capture", env.SCREENSHOT_SERVICE_URL);
-  endpointUrl.search = queryParams.toString();
 
-  const image = await wretch(endpointUrl.toString()).get().arrayBuffer();
-  return Buffer.from(image);
+  if (!scrapeResponse.success || !scrapeResponse.screenshot) {
+    throw new Error(
+      `Failed to capture screenshot with Firecrawl: ${scrapeResponse.error ?? "No screenshot returned"}`
+    );
+  }
+
+  const res = await fetch(scrapeResponse.screenshot);
+  if (!res.ok) {
+    throw new Error(
+      `Failed to download screenshot from Firecrawl (${res.status})`
+    );
+  }
+
+  const arrayBuffer = await res.arrayBuffer();
+  return Buffer.from(arrayBuffer);
 };
 
 /**

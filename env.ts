@@ -28,8 +28,6 @@ export const env = createEnv({
     AUTH_SECRET: z.string().min(1),
     AUTH_GOOGLE_ID: z.string().min(1),
     AUTH_GOOGLE_SECRET: z.string().min(1),
-    SCREENSHOT_SERVICE_URL: z.string().url().default("http://localhost:8080"),
-    SCREENSHOT_SERVICE_SECRET: z.string().min(1),
     OPENAI_API_KEY: z.string().min(1),
     ANTHROPIC_API_KEY: z.string().min(1),
     GEMINI_API_KEY: z.string().min(1),

@@ -99,7 +99,7 @@ RESEND_API_KEY="re_..."
 # Cloudflare R2
 R2_BUCKET="aikc"
 R2_ENDPOINT="https://bf82bfb4dae9053291ad1217c99e32ae.r2.cloudflarestorage.com"
-R2_PUBLIC_URL="https://assets.example.com"
+R2_PUBLIC_URL="https://assets.aikc.vn"
 R2_ACCESS_KEY_ID="..."
 R2_SECRET_ACCESS_KEY="..."
 

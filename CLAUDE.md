@@ -154,7 +154,7 @@ export const someAction = createServerAction()
 
 #### Background Job Pipeline
 1. Tool submitted → Firecrawl scrapes metadata
-2. Capture screenshot via the self-hosted capture service
+2. Capture screenshot via Firecrawl
 3. Upload assets to R2
 4. Update database
 5. Schedule publishing or publish immediately
@@ -184,7 +184,7 @@ Required environment variables (see `.env.example`):
 - AI APIs: `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`
 - Vector DB: `QDRANT_URL`, `QDRANT_API_KEY`
 - Storage: `R2_ENDPOINT`, `R2_PUBLIC_URL`, `R2_BUCKET`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`
-- Services: `FIRECRAWL_API_KEY`, `RESEND_API_KEY`, `SCREENSHOT_SERVICE_SECRET`
+- Services: `FIRECRAWL_API_KEY`, `RESEND_API_KEY`
 - Public: `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_SITE_EMAIL`
 - Feature flags: `RAG_ENABLED`, `PUBLISH_SUBMITTER_EMAILS`
 

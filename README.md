@@ -69,7 +69,7 @@ DevSuite uses the following third-party services:
 - Database: PostgreSQL in the local/VPS Compose stack, with cloud PostgreSQL used only as a bootstrap source during migration
 - Background Jobs: [Inngest](https://inngest.com)
 - File Storage: [Cloudflare R2](https://www.cloudflare.com/developer-platform/products/r2/)
-- Screenshots: self-hosted [capture-website-api](https://github.com/robvanderleek/capture-website-api) in the Compose stack
+- Screenshots: [Firecrawl](https://firecrawl.dev) (stored in Cloudflare R2)
 
 Set the required service secrets and storage credentials in your `.env` file.
 

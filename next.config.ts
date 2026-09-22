@@ -8,7 +8,7 @@ const isDev = process.env.NODE_ENV === "development";
 
 const r2PublicUrl = process.env.R2_PUBLIC_URL
   ? new URL(process.env.R2_PUBLIC_URL)
-  : undefined;
+  : new URL("https://assets.aikc.vn");
 
 // React requires eval() in development mode for various debugging features
 // (e.g. reconstructing call stacks from a different environment).
@@ -83,7 +83,6 @@ const nextConfig: NextConfig = {
   // them in `next build` cuts ~1 GB of peak memory, which is what gets the
   // build worker SIGKILL'd on small VPS hosts.
   typescript: { ignoreBuildErrors: true },
-  eslint: { ignoreDuringBuilds: true },
   // Emit source maps for production client bundles so the browser DevTools
   // (and Lighthouse) can resolve minified first-party code back to source.
   productionBrowserSourceMaps: true,
