@@ -7,7 +7,7 @@ node_modules
 .env.test.local
 .env.production.local
 .env.sentry-build-plugin
-
+.env.production
 # testing
 /coverage
 

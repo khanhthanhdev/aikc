@@ -9,6 +9,7 @@ import { getErrorMessage } from "~/lib/handle-error";
 import { logger } from "~/lib/logger";
 import { firecrawlClient } from "~/services/firecrawl";
 import {
+  generateObjectWithGemma,
   googleFlashLiteModel,
   googleFlashModel,
   googleNoThinkingProviderOptions,
@@ -82,8 +83,7 @@ export const generateContent = async (tool: Tool | Jsonify<Tool>) => {
         ),
     });
 
-    const { object } = await generateObject({
-      model,
+    const { object } = await generateObjectWithGemma({
       schema,
       system: `
         You are an expert content creator specializing in Work & Study tool software products.
@@ -111,7 +111,7 @@ export const generateContent = async (tool: Tool | Jsonify<Tool>) => {
     // Slugify tags after generation (transforms can't be in JSON Schema)
     const result = {
       ...object,
-      tags: object.tags?.map((tag) => slugify(tag)),
+      tags: object.tags?.map((tag: string) => slugify(tag)),
     };
 
     log.info(`Content generated successfully for: ${tool.name}`, {
@@ -134,10 +134,7 @@ export const generateContent = async (tool: Tool | Jsonify<Tool>) => {
  * @returns The launch tweet.
  */
 export const generateLaunchTweet = async (tool: Tool | Jsonify<Tool>) => {
-  const model = googleFlashModel;
-
-  const { object } = await generateObject({
-    model,
+  const { object } = await generateObjectWithGemma({
     schema: z.object({
       tweet: z.string().max(280).describe("The launch tweet"),
     }),

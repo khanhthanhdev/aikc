@@ -12,7 +12,14 @@ import { prisma } from "~/services/prisma";
 const FUNCTION_ID = "tool.submitted";
 
 export const toolSubmitted = inngest.createFunction(
-  { id: FUNCTION_ID, concurrency: { limit: 2 } },
+  {
+    id: FUNCTION_ID,
+    concurrency: { limit: 4 },
+    rateLimit: {
+      limit: 40,
+      period: "1m",
+    },
+  },
   { event: "tool.submitted" },
   async ({ event, step }) => {
     const functionStartTime = performance.now();
