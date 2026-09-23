@@ -5,8 +5,12 @@ import type { ComponentProps } from "react";
 import { ToolList } from "~/components/web/tool-list";
 import { config } from "~/config";
 import { findCategories } from "~/server/categories/queries";
-import type { ToolMany } from "~/server/tools/payloads";
-import { searchTools } from "~/server/tools/queries";
+import type { ToolCardData } from "~/server/tools/payloads";
+import { searchToolsFromParsedParams } from "~/server/tools/queries";
+import {
+  type FilterSchema,
+  searchParamsCache,
+} from "~/server/tools/search-params";
 import { findAds } from "~/server/web/ads/queries";
 
 type ToolsListingProps = Omit<
@@ -18,7 +22,7 @@ type ToolsListingProps = Omit<
 };
 
 const getToolsListingData = async (
-  searchParams: SearchParams,
+  searchParams: FilterSchema,
   where?: Prisma.ToolWhereInput
 ) => {
   "use cache";
@@ -27,7 +31,7 @@ const getToolsListingData = async (
   cacheTag("tools", "categories", "ads");
 
   return await Promise.all([
-    searchTools(searchParams, { where }),
+    searchToolsFromParsedParams(searchParams, { where }),
     findCategories({}),
     findAds({ where: { type: "Tools" } }),
   ]);
@@ -38,7 +42,7 @@ export const ToolsListing = async ({
   where,
   ...props
 }: ToolsListingProps) => {
-  const resolvedParams = await searchParams;
+  const resolvedParams = searchParamsCache.parse(await searchParams);
 
   const [{ items: tools, totalCount }, categories, ads] =
     await getToolsListingData(resolvedParams, where);
@@ -47,7 +51,7 @@ export const ToolsListing = async ({
     <ToolList
       ads={ads.length > 0 ? ads : [config.ads.defaultAd]}
       categories={where?.categories ? undefined : categories}
-      tools={tools as ToolMany[]}
+      tools={tools as ToolCardData[]}
       totalCount={totalCount}
       {...props}
     />

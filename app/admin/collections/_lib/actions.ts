@@ -22,7 +22,7 @@ export const createCollection = authedProcedure
     });
 
     revalidatePath("/admin/collections");
-    revalidatePublicToolCaches();
+    revalidatePublicToolCaches("collections");
 
     return collection;
   });
@@ -38,7 +38,7 @@ export const updateCollection = authedProcedure
 
     revalidatePath("/admin/collections");
     revalidatePath(`/admin/collections/${collection.slug}`);
-    revalidatePublicToolCaches();
+    revalidatePublicToolCaches("collections");
 
     return collection;
   });
@@ -55,7 +55,7 @@ export const updateCollections = authedProcedure
     });
 
     revalidatePath("/admin/collections");
-    revalidatePublicToolCaches();
+    revalidatePublicToolCaches("collections");
 
     return true;
   });
@@ -69,7 +69,7 @@ export const deleteCollections = authedProcedure
     });
 
     revalidatePath("/admin/collections");
-    revalidatePublicToolCaches();
+    revalidatePublicToolCaches("collections");
 
     return true;
   });
@@ -98,7 +98,7 @@ export const translateCollectionToVietnamese = authedProcedure
     });
 
     revalidatePath("/admin/collections");
-    revalidatePublicToolCaches();
+    revalidatePublicToolCaches("collections");
 
     return updatedCollection;
   });
@@ -131,7 +131,7 @@ export const batchTranslateCollectionsToVietnamese = authedProcedure
     );
 
     revalidatePath("/admin/collections");
-    revalidatePublicToolCaches();
+    revalidatePublicToolCaches("collections");
 
     return true;
   });
@@ -184,7 +184,7 @@ export const translateCollectionFieldToVietnamese = authedProcedure
 
     revalidatePath("/admin/collections");
     revalidatePath(`/admin/collections/${collection.slug}`);
-    revalidatePublicToolCaches();
+    revalidatePublicToolCaches("collections");
 
     return { field: viField, value: viValue };
   });

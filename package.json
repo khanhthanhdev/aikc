@@ -23,6 +23,8 @@
     "qdrant:test": "bun run scripts/test-qdrant-search.ts",
     "qdrant:drift": "bun run scripts/check-qdrant-drift.ts",
     "qdrant:clear-cache": "bun run scripts/clear-semantic-cache.ts",
+    "benchmark:app": "bun run scripts/benchmark-app.ts",
+    "profile:keyword-search": "bash ./scripts/profile-keyword-search.sh",
     "import:ai-tools": "bun run scripts/import-ai-study-tools.ts",
     "collect:ai-tools": "bun run scripts/collect-ai-tool-urls.ts",
     "firecrawl:mass-crawl": "bun run scripts/firecrawl-mass-crawl.ts",

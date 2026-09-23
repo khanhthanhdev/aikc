@@ -36,6 +36,22 @@ const publicToolFields = {
   relatedTools: true,
 } satisfies Prisma.ToolSelect;
 
+const toolCardFields = {
+  id: true,
+  name: true,
+  nameVi: true,
+  slug: true,
+  tagline: true,
+  taglineVi: true,
+  description: true,
+  descriptionVi: true,
+  faviconUrl: true,
+  pricing: true,
+  pricingVi: true,
+  pricingTier: true,
+  isFeatured: true,
+} satisfies Prisma.ToolSelect;
+
 export const toolOnePayload = () =>
   Prisma.validator<Prisma.ToolSelect>()({
     ...publicToolFields,
@@ -51,9 +67,17 @@ export const toolManyPayload = () =>
     collections: { include: collectionManyPayload() },
   });
 
+export const toolCardPayload = () =>
+  Prisma.validator<Prisma.ToolSelect>()({
+    ...toolCardFields,
+  });
+
 export type ToolOne = Prisma.ToolGetPayload<{
   select: ReturnType<typeof toolOnePayload>;
 }>;
 export type ToolMany = Prisma.ToolGetPayload<{
   select: ReturnType<typeof toolManyPayload>;
+}>;
+export type ToolCardData = Prisma.ToolGetPayload<{
+  select: ReturnType<typeof toolCardPayload>;
 }>;

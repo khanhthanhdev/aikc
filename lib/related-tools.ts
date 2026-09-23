@@ -3,7 +3,10 @@ import type { Schemas } from "@qdrant/js-client-rest";
 import { getSearchConfig } from "~/config/search";
 import { createLogger } from "~/lib/logger";
 import type { ToolVectorMatch, ToolVectorPayload } from "~/lib/vector-store";
-import { type ToolMany, toolManyPayload } from "~/server/tools/payloads";
+import {
+  type ToolCardData,
+  toolCardPayload,
+} from "~/server/tools/payloads";
 import { prisma } from "~/services/prisma";
 import {
   ensureHybridCollection,
@@ -32,7 +35,7 @@ export interface FindRelatedToolsOptions {
 
 export interface RelatedToolResult {
   score: number;
-  tool: ToolMany;
+  tool: ToolCardData;
 }
 
 /**
@@ -123,7 +126,7 @@ export const findRelatedTools = async (
         id: { in: toolIds },
         ...(publishedOnly ? { publishedAt: { lte: new Date() } } : {}),
       },
-      select: toolManyPayload(),
+      select: toolCardPayload(),
     });
 
     // Build a map for efficient lookup

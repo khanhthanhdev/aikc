@@ -9,10 +9,10 @@ import { Badge } from "~/components/web/ui/badge";
 import { Card, CardDescription, CardStars } from "~/components/web/ui/card";
 import { Favicon } from "~/components/web/ui/favicon";
 import { Link } from "~/i18n/navigation";
-import type { ToolMany } from "~/server/tools/payloads";
+import type { ToolCardData } from "~/server/tools/payloads";
 
 type ToolCardProps = HTMLAttributes<HTMLElement> & {
-  tool: ToolMany;
+  tool: ToolCardData;
   showBadges?: boolean;
 };
 
