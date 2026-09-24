@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { NextRequest } from "next/server";
+import middleware from "~/proxy";
 import { GET, POST } from "~/app/api/[...path]/route";
 import {
   type ApiErrorCode,
@@ -159,6 +161,40 @@ test("Markdown representations vary by Accept and return Markdown", async () => 
   assert.equal(response.headers.get("Vary"), "Accept, Accept-Encoding");
   assert.match(body, /^# Find the Perfect Work & Study Tools for You/m);
   assert.ok(body.length >= 500);
+});
+
+test("homepage middleware permits Server Actions and RSC requests without 406", async () => {
+  // Server Action on /en
+  const serverActionReq = new NextRequest("https://aikc.vn/en", {
+    method: "POST",
+    headers: {
+      "next-action": "action-hash-id",
+      accept: "text/x-component",
+    },
+  });
+  const serverActionRes = await middleware(serverActionReq);
+  assert.notEqual(serverActionRes.status, 406);
+
+  // RSC client-side navigation on /en
+  const rscReq = new NextRequest("https://aikc.vn/en", {
+    method: "GET",
+    headers: {
+      rsc: "1",
+      accept: "text/x-component",
+    },
+  });
+  const rscRes = await middleware(rscReq);
+  assert.notEqual(rscRes.status, 406);
+
+  // Unsupported media type GET request to /en still returns 406
+  const unsupportedReq = new NextRequest("https://aikc.vn/en", {
+    method: "GET",
+    headers: {
+      accept: "application/json",
+    },
+  });
+  const unsupportedRes = await middleware(unsupportedReq);
+  assert.equal(unsupportedRes.status, 406);
 });
 
 test("llms.txt indexes developer and trust resources", async () => {

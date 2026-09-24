@@ -65,6 +65,32 @@ const usesSecureAuthCookies = (req: NextRequest) => {
   );
 };
 
+/**
+ * Determines whether a request to a content-negotiated route is eligible
+ * for representation negotiation (e.g. text/html vs text/markdown).
+ *
+ * Server Actions (POST with next-action) and Next.js internal RSC requests
+ * (with RSC headers or text/x-component) should never undergo Markdown
+ * negotiation or be rejected with 406.
+ */
+function isContentNegotiable(req: NextRequest): boolean {
+  if (req.method !== "GET" && req.method !== "HEAD") {
+    return false;
+  }
+
+  if (
+    req.headers.has("next-action") ||
+    req.headers.has("rsc") ||
+    req.headers.has("next-router-state-tree") ||
+    req.headers.has("next-router-prefetch") ||
+    req.headers.get("accept")?.includes("text/x-component")
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
 export default async function middleware(req: NextRequest) {
   const { nextUrl } = req;
   const normalizedPathname = nextUrl.pathname.replace(/\/+$/, "") || "/";
@@ -88,7 +114,7 @@ export default async function middleware(req: NextRequest) {
     return response;
   }
 
-  if (isMarkdownHomepage) {
+  if (isMarkdownHomepage && isContentNegotiable(req)) {
     const representation = preferredRepresentation(req.headers.get("accept"));
     if (representation === MARKDOWN_MEDIA_TYPE) {
       const markdownUrl = nextUrl.clone();
@@ -133,7 +159,7 @@ export default async function middleware(req: NextRequest) {
 
   // Let next-intl handle all other routes without invoking auth middleware
   const response = intlMiddleware(req);
-  if (isMarkdownHomepage) {
+  if (isMarkdownHomepage && isContentNegotiable(req)) {
     appendMarkdownVary(response.headers);
     const markdownPath =
       normalizedPathname === "/" ? "/en.md" : `${normalizedPathname}.md`;
