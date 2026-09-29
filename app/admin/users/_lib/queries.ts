@@ -68,8 +68,11 @@ export async function getUsers(input: GetUsersSchema) {
 
 export type UserRow = Awaited<ReturnType<typeof getUsers>>["users"][number];
 
-/** Placeholder the bulk import (data/ai-study-tools.ts) puts on every tool. */
-const IMPORT_SUBMITTER_EMAIL = "system@stukit.com";
+/**
+ * Placeholders the bulk imports put on every tool: data/ai-study-tools.ts and
+ * the Firecrawl mass crawl (scripts/firecrawl-mass-crawl.ts).
+ */
+const IMPORT_SUBMITTER_EMAILS = new Set(["system@stukit.com", "system@aikc.vn"]);
 
 /**
  * People who suggested tools through the public submit form, newest first.
@@ -104,7 +107,7 @@ export async function getToolSubmitters() {
 
     for (const { submitterEmail, submitterName, createdAt, ...tool } of tools) {
       const email = submitterEmail?.trim().toLowerCase();
-      if (!email || email === IMPORT_SUBMITTER_EMAIL) {
+      if (!email || IMPORT_SUBMITTER_EMAILS.has(email)) {
         continue;
       }
 

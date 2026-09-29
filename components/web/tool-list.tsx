@@ -15,11 +15,11 @@ import {
 import { Grid } from "~/components/web/ui/grid";
 import type { DefaultAd } from "~/config/ads";
 import type { CategoryMany } from "~/server/categories/payloads";
-import type { ToolMany } from "~/server/tools/payloads";
+import type { ToolCardData } from "~/server/tools/payloads";
 import { searchParams } from "~/server/tools/search-params";
 
 type ToolListProps = ToolListFiltersProps & {
-  tools: ToolMany[];
+  tools: ToolCardData[];
   categories?: CategoryMany[];
   totalCount: number;
   showFilters?: boolean;

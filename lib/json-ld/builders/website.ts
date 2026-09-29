@@ -7,7 +7,9 @@ export function buildWebSiteSchema(): WebSiteSchema {
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
+    "@id": `${site.url}/#website`,
     name: site.name,
+    alternateName: ["AIKC", "AI Knowledge Cloud"],
     url: site.url,
     description: site.description,
     potentialAction: {

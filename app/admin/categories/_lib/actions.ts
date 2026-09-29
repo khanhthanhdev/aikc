@@ -34,7 +34,7 @@ export const createCategory = authedProcedure
     }
 
     revalidatePath("/admin/categories");
-    revalidatePublicToolCaches();
+    revalidatePublicToolCaches("categories");
 
     return category;
   });
@@ -60,7 +60,7 @@ export const updateCategory = authedProcedure
 
     revalidatePath("/admin/categories");
     revalidatePath(`/admin/categories/${category.slug}`);
-    revalidatePublicToolCaches();
+    revalidatePublicToolCaches("categories");
 
     return category;
   });
@@ -90,7 +90,7 @@ export const updateCategories = authedProcedure
     }
 
     revalidatePath("/admin/categories");
-    revalidatePublicToolCaches();
+    revalidatePublicToolCaches("categories");
 
     return true;
   });
@@ -114,7 +114,7 @@ export const deleteCategories = authedProcedure
     }
 
     revalidatePath("/admin/categories");
-    revalidatePublicToolCaches();
+    revalidatePublicToolCaches("categories");
 
     return true;
   });
@@ -142,7 +142,7 @@ export const translateCategoryToVietnamese = authedProcedure
     });
 
     revalidatePath("/admin/categories");
-    revalidatePublicToolCaches();
+    revalidatePublicToolCaches("categories");
 
     return updatedCategory;
   });
@@ -176,7 +176,7 @@ export const batchTranslateCategoriesToVietnamese = authedProcedure
     );
 
     revalidatePath("/admin/categories");
-    revalidatePublicToolCaches();
+    revalidatePublicToolCaches("categories");
 
     return true;
   });
@@ -239,7 +239,7 @@ export const translateCategoryFieldToVietnamese = authedProcedure
 
     revalidatePath("/admin/categories");
     revalidatePath(`/admin/categories/${category.slug}`);
-    revalidatePublicToolCaches();
+    revalidatePublicToolCaches("categories");
 
     return { field: viField, value };
   });

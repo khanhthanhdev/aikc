@@ -95,16 +95,18 @@ type ChatErrorKind = "rateLimitMinute" | "rateLimitDay" | "generic";
 
 /**
  * The transport throws with the response body as the message; /api/chat
- * answers limits with `{ code: "rate_limited", scope }`.
+ * answers limits with the shared API error body (lib/api-error.ts):
+ * `{ error: { code: "RATE_LIMITED", details: { scope } } }`.
  */
 function getChatErrorKind(error: Error): ChatErrorKind {
   try {
     const body = JSON.parse(error.message) as {
-      code?: unknown;
-      scope?: unknown;
+      error?: { code?: unknown; details?: { scope?: unknown } };
     };
-    if (body.code === "rate_limited") {
-      return body.scope === "minute" ? "rateLimitMinute" : "rateLimitDay";
+    if (body.error?.code === "RATE_LIMITED") {
+      return body.error.details?.scope === "minute"
+        ? "rateLimitMinute"
+        : "rateLimitDay";
     }
   } catch {
     // Not a JSON error body: network failure, broken stream, ...

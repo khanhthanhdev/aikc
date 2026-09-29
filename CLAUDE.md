@@ -58,7 +58,7 @@ bun run roles:assign              # AI-assign audience roles + sample questions 
 - **State**: nuqs for URL query state management
 - **AI**: Vercel AI SDK with multiple providers (OpenAI, Anthropic, Google Gemini, Groq)
 - **Background Jobs**: Inngest for tool lifecycle events
-- **Storage**: AWS S3 for images/screenshots
+- **Storage**: Cloudflare R2 for images/screenshots
 - **Email**: Resend for transactional emails
 
 ### Directory Structure
@@ -97,7 +97,7 @@ Third-party service integrations and clients:
 - `google.ts` - Google Gemini embedding and chat models
 - `openai.ts` - OpenAI client
 - `groq.ts` - Groq client
-- `aws-s3.ts` - S3 upload utilities
+- `r2.ts` - Cloudflare R2 client
 - `resend.ts` - Email client
 - `firecrawl.ts` - Web scraping client
 - `inngest.ts` - Inngest client and event definitions
@@ -155,8 +155,8 @@ export const someAction = createServerAction()
 
 #### Background Job Pipeline
 1. Tool submitted → Firecrawl scrapes metadata
-2. Generate screenshot via ScreenshotOne
-3. Upload assets to S3
+2. Capture screenshot via Firecrawl
+3. Upload assets to R2
 4. Update database
 5. Schedule publishing or publish immediately
 6. Send notifications on publish/feature
@@ -184,8 +184,8 @@ Required environment variables (see `.env.example`):
 - Auth: `AUTH_SECRET`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`
 - AI APIs: `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`
 - Vector DB: `QDRANT_URL`, `QDRANT_API_KEY`
-- Storage: `S3_BUCKET`, `S3_REGION`, `S3_ACCESS_KEY`, `S3_SECRET_ACCESS_KEY`
-- Services: `FIRECRAWL_API_KEY`, `RESEND_API_KEY`, `SCREENSHOTONE_ACCESS_KEY`
+- Storage: `R2_ENDPOINT`, `R2_PUBLIC_URL`, `R2_BUCKET`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`
+- Services: `FIRECRAWL_API_KEY`, `RESEND_API_KEY`
 - Public: `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_SITE_EMAIL`
 - Feature flags: `RAG_ENABLED`, `PUBLISH_SUBMITTER_EMAILS`
 

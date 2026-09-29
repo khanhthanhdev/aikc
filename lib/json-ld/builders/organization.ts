@@ -7,17 +7,24 @@ export function buildOrganizationSchema(): OrganizationSchema {
   const schema: OrganizationSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
+    "@id": `${site.url}/#organization`,
     name: site.name,
-    alternateName: "AI Knowledge Cloud",
+    alternateName: ["AIKC", "AI Knowledge Cloud"],
     url: site.url,
     description: site.description,
     logo: `${site.url}/icon-512.png`,
     sameAs: [links.github, links.author].filter((link) => link !== "#"),
+    contactPoint: {
+      "@type": "ContactPoint",
+      email: site.email,
+      telephone: site.contact.telephone,
+      contactType: site.contact.contactType,
+      availableLanguage: ["en", "vi"],
+    },
+    address: {
+      "@type": "PostalAddress",
+      ...site.contact.address,
+    },
   };
-
-  if (site.email && site.email !== "hello@example.com") {
-    (schema as any).email = site.email;
-  }
-
   return schema;
 }

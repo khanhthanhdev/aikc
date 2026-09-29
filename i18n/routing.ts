@@ -24,6 +24,9 @@ export const routing = defineRouting({
   pathnames: {
     "/": "/",
     "/about": { vi: "/ve-chung-toi" },
+    "/contact": { vi: "/lien-he" },
+    "/privacy": { vi: "/quyen-rieng-tu" },
+    "/developers": { vi: "/nha-phat-trien" },
     "/submit": { vi: "/gui-tool" },
     "/login": { vi: "/dang-nhap" },
     "/tools": { vi: "/tools" },

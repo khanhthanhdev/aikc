@@ -1,0 +1,359 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "AI Knowledge Cloud API",
+    "version": "1.0.0",
+    "description": "Machine-readable contract for AI Knowledge Cloud's JSON RAG endpoints. Each request must include an Origin header equal to https://aikc.vn. Error responses use the ApiError schema.",
+    "license": {
+      "name": "GPL-3.0-only",
+      "identifier": "GPL-3.0-only"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://aikc.vn",
+      "description": "Production"
+    }
+  ],
+  "security": [
+    {
+      "OriginHeader": []
+    }
+  ],
+  "paths": {
+    "/api/rag": {
+      "get": {
+        "operationId": "retrieveToolContext",
+        "summary": "Retrieve relevant tool context",
+        "description": "Returns semantically relevant published tool records for a search query. Set advanced=true to include query-routing metadata.",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 20,
+              "default": 5
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            }
+          },
+          {
+            "name": "advanced",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Relevant tool context",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RetrievalResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/InvalidRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/OriginNotAllowed"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      },
+      "post": {
+        "operationId": "answerToolQuestion",
+        "summary": "Answer a question using the tool catalog",
+        "description": "Generates an answer grounded in relevant published tool records.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RagQuestion"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Grounded answer and retrieved context",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RagAnswer"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/InvalidRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/OriginNotAllowed"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalError"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "OriginHeader": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "Origin",
+        "description": "Requests must send the exact value https://aikc.vn."
+      }
+    },
+    "schemas": {
+      "RagQuestion": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "question"
+        ],
+        "properties": {
+          "question": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20,
+            "default": 5
+          },
+          "category": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "temperature": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 2
+          },
+          "advanced": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "ToolContext": {
+        "type": "object",
+        "description": "A tool record returned by semantic retrieval. Fields vary with the indexed tool metadata.",
+        "additionalProperties": true
+      },
+      "RetrievalResponse": {
+        "type": "object",
+        "required": [
+          "context"
+        ],
+        "properties": {
+          "context": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ToolContext"
+            }
+          },
+          "intent": {
+            "$ref": "#/components/schemas/QueryIntent"
+          },
+          "processedQuery": {
+            "type": "string"
+          }
+        }
+      },
+      "RagAnswer": {
+        "type": "object",
+        "required": [
+          "answer",
+          "context"
+        ],
+        "properties": {
+          "answer": {
+            "type": "string"
+          },
+          "context": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ToolContext"
+            }
+          },
+          "intent": {
+            "$ref": "#/components/schemas/QueryIntent"
+          },
+          "cache": {
+            "type": "object",
+            "required": [
+              "id",
+              "score",
+              "createdAt"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "score": {
+                "type": "number"
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          },
+          "cached": {
+            "type": "boolean"
+          }
+        }
+      },
+      "QueryIntent": {
+        "type": "object",
+        "required": [
+          "intent",
+          "confidence",
+          "reasoning"
+        ],
+        "properties": {
+          "intent": {
+            "type": "string",
+            "enum": [
+              "search",
+              "recommendation",
+              "comparison"
+            ]
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "reasoning": {
+            "type": "string"
+          }
+        }
+      },
+      "ApiError": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": [
+              "code",
+              "message",
+              "hint"
+            ],
+            "properties": {
+              "code": {
+                "type": "string",
+                "enum": [
+                  "INVALID_REQUEST",
+                  "ORIGIN_NOT_ALLOWED",
+                  "RATE_LIMITED",
+                  "NOT_FOUND",
+                  "METHOD_NOT_ALLOWED",
+                  "INTERNAL_ERROR"
+                ]
+              },
+              "message": {
+                "type": "string"
+              },
+              "hint": {
+                "type": "string"
+              },
+              "details": {}
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "InvalidRequest": {
+        "description": "The request body or parameters are invalid.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            }
+          }
+        }
+      },
+      "OriginNotAllowed": {
+        "description": "The request was sent from an unauthorized origin.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            }
+          }
+        }
+      },
+      "RateLimited": {
+        "description": "The request exceeded a rate limit. The Retry-After header gives the wait time in seconds.",
+        "headers": {
+          "Retry-After": {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            }
+          }
+        }
+      },
+      "InternalError": {
+        "description": "The server could not complete the request.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -25,7 +25,14 @@ const FUNCTION_ID = "tool.scheduled";
 const skipOptionalStep = () => null;
 
 export const toolScheduled = inngest.createFunction(
-  { id: FUNCTION_ID, concurrency: { limit: 2 } },
+  {
+    id: FUNCTION_ID,
+    concurrency: { limit: 4 },
+    rateLimit: {
+      limit: 40,
+      period: "1m",
+    },
+  },
   { event: "tool.scheduled" },
   async ({ event, step }) => {
     const functionStartTime = performance.now();
@@ -338,7 +345,7 @@ export const toolScheduled = inngest.createFunction(
       });
 
       await step.run("revalidate-public-tool-caches", () => {
-        revalidatePublicToolCaches();
+        revalidatePublicToolCaches("tools");
       });
 
       // Disconnect from DB

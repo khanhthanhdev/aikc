@@ -4,7 +4,7 @@ import { generateText } from "ai";
 import { isDev } from "~/env";
 import { logger } from "~/lib/logger";
 import {
-  googleFlashModel,
+  generateTextWithGemma,
   googleNoThinkingProviderOptions,
 } from "~/services/google";
 
@@ -59,8 +59,7 @@ export async function translateToVietnamese(
     log.info(`Translating ${fieldsToTranslate.length} fields to Vietnamese`);
     log.info(`Fields: ${fieldsToTranslate.map((f) => f.field).join(", ")}`);
 
-    const { text } = await generateText({
-      model: googleFlashModel,
+    const { text } = await generateTextWithGemma({
       system: `
 You are a professional translator specializing in software and technology products.
 Translate the following content from English to Vietnamese.
