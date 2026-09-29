@@ -5,11 +5,18 @@ import { slugify } from "@curiousleaf/utils";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { toolSchema } from "~/app/admin/tools/_lib/validations";
+import { autoAssignToolCategories } from "~/lib/categorize-tool";
 import { generateContent } from "~/lib/generate-content";
 import { logger } from "~/lib/logger";
 import { uploadFavicon, uploadScreenshot } from "~/lib/media";
 import { revalidatePublicToolCaches } from "~/lib/public-tool-cache";
+import { parseRoleQuestions } from "~/lib/role-questions";
 import { authedProcedure } from "~/lib/safe-actions";
+import {
+  autoAssignToolRoles,
+  fillMissingRoleQuestions,
+  suggestToolRoles,
+} from "~/lib/tool-roles";
 import { translateToVietnamese } from "~/lib/translate-content";
 import {
   deleteHybridToolVector,
@@ -38,18 +45,37 @@ const sendToolPublishEvents = async (tool: {
   });
 };
 
+/**
+ * Write sample questions for the roles an admin picked without any, so every
+ * role shows tool-specific questions in the chat. Non-critical: a failure
+ * leaves the generic questions and must not fail the save.
+ */
+const fillRoleQuestionsOnSave = async (tool: { id: string; slug: string }) => {
+  try {
+    const { filled, roleQuestions } = await fillMissingRoleQuestions(tool.id);
+    if (filled.length) {
+      log.info(`[${tool.slug}] Questions written for roles`, { filled });
+    }
+    return { filledRoles: filled, roleQuestions };
+  } catch (error) {
+    log.error(`[${tool.slug}] Writing role questions failed`, { error });
+    return null;
+  }
+};
+
 export const createTool = authedProcedure
   .createServerAction()
   .input(toolSchema)
-  .handler(async ({ input: { categories, collections, tags, ...input } }) => {
+  .handler(async ({ input: { categories, tags, roleQuestions, ...input } }) => {
     const tool = await prisma.tool.create({
       data: {
         ...input,
         slug: input.slug || slugify(input.name),
+        roleQuestions:
+          roleQuestions && parseRoleQuestions(roleQuestions, input.roles),
 
         // Relations
         categories: { connect: categories?.map((id: string) => ({ id })) },
-        collections: { connect: collections?.map((id: string) => ({ id })) },
         tags: { connect: tags?.map((id: string) => ({ id })) },
       },
       include: {
@@ -57,6 +83,8 @@ export const createTool = authedProcedure
         tags: { select: { slug: true } },
       },
     });
+
+    const questions = await fillRoleQuestionsOnSave(tool);
 
     revalidatePath("/admin/tools");
     revalidatePublicToolCaches();
@@ -75,14 +103,14 @@ export const createTool = authedProcedure
       });
     }
 
-    return tool;
+    return { ...tool, ...questions };
   });
 
 export const updateTool = authedProcedure
   .createServerAction()
   .input(toolSchema.extend({ id: z.string() }))
   .handler(
-    async ({ input: { id, categories, collections, tags, ...input } }) => {
+    async ({ input: { id, categories, tags, roleQuestions, ...input } }) => {
       const previous = await prisma.tool.findUniqueOrThrow({
         where: { id },
         select: { publishedAt: true },
@@ -92,10 +120,12 @@ export const updateTool = authedProcedure
         where: { id },
         data: {
           ...input,
+          // Questions of roles that were just removed are dropped with them
+          roleQuestions:
+            roleQuestions && parseRoleQuestions(roleQuestions, input.roles),
 
           // Relations
           categories: { set: categories?.map((id: string) => ({ id })) },
-          collections: { set: collections?.map((id: string) => ({ id })) },
           tags: { set: tags?.map((id: string) => ({ id })) },
         },
         include: {
@@ -103,6 +133,8 @@ export const updateTool = authedProcedure
           tags: { select: { slug: true } },
         },
       });
+
+      const questions = await fillRoleQuestionsOnSave(tool);
 
       revalidatePath("/admin/tools");
       revalidatePath(`/admin/tools/${tool.slug}`);
@@ -126,9 +158,32 @@ export const updateTool = authedProcedure
         });
       }
 
-      return tool;
+      return { ...tool, ...questions };
     }
   );
+
+/**
+ * Let AI suggest audience roles and their sample questions for the tool form.
+ * Nothing is saved: the admin reviews the suggestion and saves the form.
+ */
+export const suggestToolRolesForForm = authedProcedure
+  .createServerAction()
+  .input(z.object({ id: z.string() }))
+  .handler(async ({ input: { id } }) => {
+    const tool = await prisma.tool.findUniqueOrThrow({
+      where: { id },
+      select: {
+        name: true,
+        websiteUrl: true,
+        tagline: true,
+        description: true,
+        content: true,
+        categories: { select: { name: true } },
+      },
+    });
+
+    return suggestToolRoles(tool);
+  });
 
 export const updateTools = authedProcedure
   .createServerAction()
@@ -412,7 +467,12 @@ const processToolPipeline = async (toolId: string) => {
           data: { screenshotUrl },
         });
         log.info(`[${tool.slug}] Screenshot uploaded: ${screenshotUrl}`);
-      })(),
+      })().catch((error) => {
+        // Nice to have: carry on so the tool still gets categories and roles
+        log.error(`[${tool.slug}] Screenshot upload failed, continuing`, {
+          error,
+        });
+      }),
 
       (async () => {
         log.debug(`[${tool.slug}] Starting favicon upload`);
@@ -425,8 +485,24 @@ const processToolPipeline = async (toolId: string) => {
           data: { faviconUrl },
         });
         log.info(`[${tool.slug}] Favicon uploaded: ${faviconUrl}`);
-      })(),
+      })().catch((error) => {
+        // Nice to have: carry on so the tool still gets categories and roles
+        log.error(`[${tool.slug}] Favicon upload failed, continuing`, {
+          error,
+        });
+      }),
     ]);
+
+    // File the tool under existing categories, unless an admin already did.
+    // Non-critical: an admin can still pick categories by hand.
+    await autoAssignToolCategories(tool.id).catch((error) =>
+      log.error(`[${tool.slug}] Category assignment failed`, { error })
+    );
+
+    // Match audience roles and write their sample questions (non-critical)
+    await autoAssignToolRoles(tool.id).catch((error) =>
+      log.error(`[${tool.slug}] Role assignment failed`, { error })
+    );
 
     // Translate to Vietnamese
     log.debug(`[${tool.slug}] Starting Vietnamese translation`);

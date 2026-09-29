@@ -23,6 +23,8 @@
     "qdrant:drift": "bun run scripts/check-qdrant-drift.ts",
     "qdrant:clear-cache": "bun run scripts/clear-semantic-cache.ts",
     "import:ai-tools": "bun run scripts/import-ai-study-tools.ts",
+    "categories:assign": "bun run scripts/assign-categories.ts",
+    "roles:assign": "bun run scripts/assign-roles.ts",
     "related-tools:populate": "bun run scripts/populate-related-tools.ts",
     "icons": "bun run scripts/build-icons.ts",
     "prebuild": "bun run icons",
