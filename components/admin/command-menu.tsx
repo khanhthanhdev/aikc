@@ -1,6 +1,6 @@
 "use client";
 
-import type { Category, Collection, Tag, Tool } from "@prisma/client";
+import type { Category, Tag, Tool } from "@prisma/client";
 import { LoaderIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -20,7 +20,6 @@ import { useDebouncedState } from "~/hooks/use-debounced-state";
 
 interface SearchResult {
   categories: Category[];
-  collections: Collection[];
   tags: Tag[];
   tools: Tool[];
 }
@@ -134,9 +133,6 @@ export const CommandMenu = () => {
           <CommandItem onSelect={() => handleSelect("/admin/categories/new")}>
             New Category
           </CommandItem>
-          <CommandItem onSelect={() => handleSelect("/admin/collections/new")}>
-            New Collection
-          </CommandItem>
           <CommandItem onSelect={() => handleSelect("/admin/tags/new")}>
             New Tag
           </CommandItem>
@@ -172,22 +168,6 @@ export const CommandMenu = () => {
                 }
               >
                 {category.name}
-              </CommandItem>
-            ))}
-          </CommandGroup>
-        )}
-
-        {!!searchResults?.collections.length && (
-          <CommandGroup heading="Collections">
-            {searchResults.collections.map((collection) => (
-              <CommandItem
-                key={collection.id}
-                onSelect={() =>
-                  handleSelect(`/admin/collections/${collection.slug}`)
-                }
-                value={`collection:${collection.name}`}
-              >
-                {collection.name}
               </CommandItem>
             ))}
           </CommandGroup>

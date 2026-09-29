@@ -4,7 +4,6 @@ import { ToolActions } from "~/app/admin/tools/_components/tool-actions";
 import { ToolForm } from "~/app/admin/tools/_components/tool-form";
 import {
   getCategories,
-  getCollections,
   getTags,
   getToolBySlug,
 } from "~/app/admin/tools/_lib/queries";
@@ -22,10 +21,9 @@ export const metadata: Metadata = {
 export default async function UpdateToolPage({ params }: PageProps) {
   const { slug } = await params;
 
-  const [tool, categories, collections, tags] = await Promise.all([
+  const [tool, categories, tags] = await Promise.all([
     getToolBySlug(slug),
     getCategories(),
-    getCollections(),
     getTags(),
   ]);
 
@@ -41,12 +39,7 @@ export default async function UpdateToolPage({ params }: PageProps) {
         <ToolActions tool={tool} />
       </div>
 
-      <ToolForm
-        categories={categories}
-        collections={collections}
-        tags={tags}
-        tool={tool}
-      />
+      <ToolForm categories={categories} tags={tags} tool={tool} />
     </Wrapper>
   );
 }

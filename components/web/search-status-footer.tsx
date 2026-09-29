@@ -9,7 +9,6 @@ interface SearchStatusFooterProps {
   searchModes: {
     tools: SearchMode;
     categories: SearchMode;
-    collections: SearchMode;
     tags: SearchMode;
   };
   semanticComplete: boolean;

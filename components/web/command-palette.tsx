@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  BookmarkIcon,
   FolderIcon,
   HashIcon,
   LoaderIcon,
@@ -264,12 +263,10 @@ export const CommandPalette = () => {
   const _totalHits = results
     ? results.tools.length +
       results.categories.length +
-      results.collections.length +
       results.tags.length
     : 0;
   const hasTools = !!results?.tools.length;
   const hasCategories = !!results?.categories.length;
-  const hasCollections = !!results?.collections.length;
   const hasTags = !!results?.tags.length;
   const quickLinks = [
     { label: t("quickTools"), href: "/", icon: WrenchIcon },
@@ -291,7 +288,7 @@ export const CommandPalette = () => {
       return "";
     }
     const { searchModes } = results;
-    return `tools:${searchModes.tools} • categories:${searchModes.categories} • collections:${searchModes.collections} • tags:${searchModes.tags}`;
+    return `tools:${searchModes.tools} • categories:${searchModes.categories} • tags:${searchModes.tags}`;
   }, [results]);
 
   return (
@@ -410,37 +407,9 @@ export const CommandPalette = () => {
           </>
         )}
 
-        {hasCollections && (
-          <>
-            {(hasTools || hasCategories) && <CommandSeparator />}
-            <CommandGroup heading={t("collectionsHeading")}>
-              {results.collections.map(
-                (collection: PaletteResults["collections"][0]) => (
-                  <CommandItem
-                    key={collection.id}
-                    onSelect={() =>
-                      handleSelect(`/collections/${collection.slug}`)
-                    }
-                    value={`collection:${collection.slug}`}
-                  >
-                    <BookmarkIcon className="size-4 shrink-0 text-muted-foreground" />
-                    <span className="flex-1 truncate">
-                      {locale === "vi"
-                        ? (collection.nameVi ?? collection.name)
-                        : collection.name}
-                    </span>
-                  </CommandItem>
-                )
-              )}
-            </CommandGroup>
-          </>
-        )}
-
         {hasTags && (
           <>
-            {(hasTools || hasCategories || hasCollections) && (
-              <CommandSeparator />
-            )}
+            {(hasTools || hasCategories) && <CommandSeparator />}
             <CommandGroup heading={t("tagsHeading")}>
               {results.tags.map((tag: PaletteResults["tags"][0]) => (
                 <CommandItem

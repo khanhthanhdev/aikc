@@ -64,26 +64,6 @@ export function getLocalizedCategory(
 }
 
 /**
- * Helper to get localized collection fields
- */
-export function getLocalizedCollection(
-  collection: Record<string, unknown>,
-  locale: string
-) {
-  const isVietnamese = locale === "vi";
-
-  if (!isVietnamese) {
-    return collection;
-  }
-
-  return {
-    ...collection,
-    name: collection.nameVi ?? collection.name,
-    description: collection.descriptionVi ?? collection.description,
-  };
-}
-
-/**
  * Helper to get localized tag fields
  */
 export function getLocalizedTag(tag: Record<string, unknown>, locale: string) {

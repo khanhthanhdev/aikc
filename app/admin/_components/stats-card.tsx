@@ -13,15 +13,13 @@ export const StatsCard = async () => {
   const stats = await Promise.all([
     prisma.tool.count(),
     prisma.category.count(),
-    prisma.collection.count(),
     prisma.tag.count(),
   ]);
 
   const statsLabels = {
     0: "Tools",
     1: "Categories",
-    2: "Collections",
-    3: "Tags",
+    2: "Tags",
   };
 
   return (
