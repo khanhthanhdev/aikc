@@ -3,7 +3,6 @@
     "browse": "Duyệt",
     "latest": "Mới nhất",
     "categories": "Danh mục",
-    "collections": "Bộ sưu tập",
     "tags": "Thẻ",
     "free": "Miễn phí",
     "freemium": "Freemium",
@@ -17,14 +16,10 @@
     "viewAll": "Xem tất cả"
   },
   "Navigation": {
-    "browse": "Kham pha",
+    "browse": "Khám phá",
     "latest": "Mới nhất",
     "categories": "Danh mục",
-    "collections": "Bộ sưu tập",
     "tags": "Thẻ",
-    "freeTools": "Miễn phí",
-    "freemiumTools": "Freemium",
-    "paidTools": "Trả phí",
     "submit": "Gửi",
     "aboutUs": "Về chúng tôi",
     "toggleNavigation": "Mở menu điều hướng"
@@ -39,7 +34,6 @@
     "quickLinks": "Liên kết nhanh",
     "browse": "Duyệt theo",
     "categories": "Danh mục",
-    "collections": "Bộ sưu tập",
     "tags": "Thẻ",
     "addListing": "Thêm miễn phí",
     "aboutUs": "Về chúng tôi",
@@ -124,11 +118,6 @@
     "description": "Duyệt công cụ theo danh mục",
     "noCategoriesFound": "Không tìm thấy danh mục nào."
   },
-  "Collections": {
-    "title": "Bộ sưu tập",
-    "description": "Các bộ sưu tập công cụ được chọn lọc",
-    "noCollectionsFound": "Không tìm thấy bộ sưu tập nào."
-  },
   "Tags": {
     "title": "Thẻ",
     "description": "Duyệt công cụ theo thẻ",
@@ -142,12 +131,6 @@
     "titleWithoutCount": "Công cụ {name} tốt nhất",
     "description": "{description} Bộ sưu tập {name} được chọn lọc giúp bạn xây dựng dự án tiếp theo nhanh hơn.",
     "searchPlaceholder": "Tìm {name}..."
-  },
-  "CollectionDetail": {
-    "home": "Trang chủ",
-    "collections": "Bộ sưu tập",
-    "title": "{name} - Công cụ học tập & làm việc",
-    "searchPlaceholder": "Tìm công cụ trong {name}..."
   },
   "TagDetail": {
     "home": "Trang chủ",
@@ -169,6 +152,7 @@
     "sortNameDesc": "Tên Z-A",
     "pricingFree": "Miễn phí",
     "pricingFreemium": "Freemium",
+    "pricingOpenSource": "Mã nguồn mở",
     "pricingPaid": "Trả phí"
   },
   "Pagination": {
@@ -239,14 +223,13 @@
     "searchFailed": "Tìm kiếm thất bại: {error}",
     "searchFailedFallback": "Tìm kiếm thất bại",
     "noResults": "Không có kết quả. Hãy thử từ khóa khác.",
-    "emptyPrompt": "Nhập để tìm trong công cụ, danh mục, bộ sưu tập và thẻ.",
+    "emptyPrompt": "Nhập để tìm trong công cụ, danh mục và thẻ.",
     "srTitle": "Tìm kiếm",
-    "srDescription": "Tìm công cụ AI, danh mục, bộ sưu tập và thẻ.",
+    "srDescription": "Tìm công cụ AI, danh mục và thẻ.",
     "close": "Đóng",
     "quickLinksHeading": "Liên kết nhanh",
     "toolsHeading": "Công cụ",
     "categoriesHeading": "Danh mục",
-    "collectionsHeading": "Bộ sưu tập",
     "tagsHeading": "Thẻ",
     "tagShortcut": "Thẻ",
     "appearanceHeading": "Giao diện",
@@ -268,7 +251,10 @@
   },
   "Login": {
     "title": "Đăng nhập vào tài khoản",
-    "continueWithGoogle": "Tiếp tục với Google"
+    "continueWithGoogle": "Tiếp tục với Google",
+    "accessDenied": "Tài khoản này không có quyền quản trị. Hãy nhờ một quản trị viên thêm bạn, hoặc đăng nhập bằng tài khoản khác.",
+    "signedInAs": "Đang đăng nhập với {email}",
+    "useAnotherAccount": "Dùng tài khoản khác"
   },
   "Chat": {
     "title": "Trò chuyện AI",
@@ -291,6 +277,12 @@
     "helpDescription": "Hãy hỏi tôi về công cụ học tập và làm việc, gợi ý, hoặc lựa chọn thay thế",
     "videoLoadFailed": "Không thể tải video",
     "thinking": "Đang suy nghĩ...",
+    "retry": "Thử lại",
+    "errors": {
+      "rateLimitMinute": "Bạn hỏi hơi nhanh, vui lòng đợi 1 phút rồi thử lại.",
+      "rateLimitDay": "Bạn đã hết lượt hỏi hôm nay. Vui lòng quay lại vào ngày mai.",
+      "generic": "Đã có lỗi xảy ra, vui lòng thử lại sau."
+    },
     "suggestedQuestionsList": [
       "Bạn gợi ý công cụ Học tập & Làm việc nào?",
       "Giúp tôi tìm công cụ kiểm thử API",
@@ -312,5 +304,163 @@
     "loadingSemantic": "Đang tìm với AI...",
     "initialResults": "Đang hiển thị kết quả nhanh",
     "searchComplete": "Hoàn tất tìm kiếm"
+  },
+  "Roles": {
+    "dialogTitle": "Bạn làm nghề gì?",
+    "dialogDescription": "Chọn vai trò để chúng tôi gợi ý công cụ AI và câu hỏi phù hợp với công việc của bạn. Bạn có thể đổi bất cứ lúc nào.",
+    "skip": "Để sau",
+    "change": "Đổi vai trò",
+    "pickRole": "Chọn vai trò",
+    "youAre": "Bạn là: {role}",
+    "forYouTitle": "Gợi ý dành cho bạn",
+    "forYouDescription": "Công cụ AI chọn theo vai trò của bạn: {role}",
+    "viewAll": "Xem tất cả",
+    "suitedFor": "Phù hợp cho",
+    "filterByRole": "Lọc theo vai trò",
+    "allRoles": "Mọi vai trò",
+    "toolQuestion": "Là {persona}, tôi dùng {name} thế nào?",
+    "student": {
+      "label": "Sinh viên",
+      "persona": "sinh viên",
+      "hint": "Học tập, bài tập, ôn thi",
+      "questions": [
+        "Công cụ AI nào giúp tôi ghi chép bài giảng tốt hơn?",
+        "Công cụ nào tốt nhất để ôn thi?",
+        "Công cụ nào giúp tôi viết và kiểm tra bài luận?",
+        "AI có thể giúp tôi tạo flashcard từ ghi chép như thế nào?",
+        "Công cụ nào giúp tôi học ngoại ngữ?",
+        "Công cụ nào giúp tôi lên lịch học tập?"
+      ]
+    },
+    "lecturer": {
+      "label": "Giảng viên / Giáo viên",
+      "persona": "giáo viên",
+      "hint": "Bài giảng, slide, câu hỏi, chấm bài",
+      "questions": [
+        "Công cụ AI nào giúp tôi soạn slide bài giảng nhanh?",
+        "AI có thể giúp tôi tạo câu hỏi kiểm tra như thế nào?",
+        "Công cụ nào giúp chấm bài nhanh hơn?",
+        "Công cụ nào giúp sinh viên hứng thú hơn trong giờ học?",
+        "AI có thể giúp tôi soạn giáo án như thế nào?",
+        "Công cụ nào biến bài giảng thành bài tập luyện tập?"
+      ]
+    },
+    "researcher": {
+      "label": "Nghiên cứu viên",
+      "persona": "nhà nghiên cứu",
+      "hint": "Bài báo, trích dẫn, viết học thuật",
+      "questions": [
+        "Công cụ AI nào giúp tôi tìm bài báo khoa học liên quan?",
+        "Công cụ nào tốt nhất để quản lý trích dẫn?",
+        "AI có thể giúp tôi tóm tắt bài báo dài như thế nào?",
+        "Công cụ nào giúp tôi viết tổng quan tài liệu?",
+        "AI có thể giúp tôi phân tích dữ liệu nghiên cứu như thế nào?",
+        "Công cụ nào tốt nhất để đọc và chú thích PDF?"
+      ]
+    },
+    "developer": {
+      "label": "Lập trình viên",
+      "persona": "lập trình viên",
+      "hint": "Viết code, gỡ lỗi, API",
+      "questions": [
+        "Trợ lý lập trình AI nào tốt nhất?",
+        "Công cụ nào giúp tôi gỡ lỗi code nhanh hơn?",
+        "Giúp tôi tìm công cụ kiểm thử API",
+        "Công cụ nào giúp tôi viết tài liệu kỹ thuật?",
+        "AI có thể review pull request cho tôi như thế nào?",
+        "Công cụ nào giúp tôi làm web app nhanh hơn?"
+      ]
+    },
+    "data-analyst": {
+      "label": "Phân tích dữ liệu",
+      "persona": "người phân tích dữ liệu",
+      "hint": "Bảng tính, SQL, dashboard",
+      "questions": [
+        "Công cụ AI nào giúp tôi phân tích dữ liệu bảng tính?",
+        "Công cụ nào tốt nhất để vẽ biểu đồ từ dữ liệu?",
+        "AI có thể giúp tôi viết câu lệnh SQL như thế nào?",
+        "Công cụ nào tạo dashboard từ dữ liệu của tôi?",
+        "AI có thể giúp tôi làm sạch dữ liệu như thế nào?",
+        "Công cụ nào tốt nhất để phân tích thống kê?"
+      ]
+    },
+    "designer": {
+      "label": "Nhà thiết kế",
+      "persona": "nhà thiết kế",
+      "hint": "UI/UX, đồ họa, thương hiệu",
+      "questions": [
+        "Công cụ AI nào giúp tôi thiết kế giao diện?",
+        "Công cụ tạo ảnh AI nào tốt nhất cho nhà thiết kế?",
+        "Công cụ nào giúp tôi xây dựng nhận diện thương hiệu?",
+        "Công cụ nào giúp tôi làm prototype nhanh?",
+        "AI có thể giúp tôi chỉnh sửa ảnh như thế nào?",
+        "Công cụ nào tốt nhất để thiết kế bài thuyết trình?"
+      ]
+    },
+    "content-creator": {
+      "label": "Sáng tạo nội dung",
+      "persona": "người sáng tạo nội dung",
+      "hint": "Bài viết, video, mạng xã hội",
+      "questions": [
+        "Công cụ AI nào giúp tôi dựng video nhanh hơn?",
+        "Công cụ nào tốt nhất để viết bài mạng xã hội?",
+        "Công cụ nào chuyển văn bản thành giọng đọc?",
+        "Công cụ nào giúp tôi lên lịch nội dung?",
+        "AI có thể giúp tôi cải thiện SEO như thế nào?",
+        "Công cụ nào tốt nhất để dựng podcast?"
+      ]
+    },
+    "business": {
+      "label": "Kinh doanh & quản lý",
+      "persona": "người làm quản lý",
+      "hint": "CRM, bán hàng, kế hoạch, báo cáo",
+      "questions": [
+        "Công cụ AI nào giúp tôi quản lý khách hàng và bán hàng?",
+        "Công cụ nào giúp tôi viết báo cáo kinh doanh?",
+        "AI có thể giúp tôi lập kế hoạch dự án cho nhóm như thế nào?",
+        "Công cụ nào giúp tôi phân tích tài chính doanh nghiệp?",
+        "AI có thể giúp tôi viết kế hoạch kinh doanh như thế nào?",
+        "Công cụ nào giúp nhóm tôi làm việc cùng nhau?"
+      ]
+    },
+    "customer-support": {
+      "label": "Chăm sóc khách hàng",
+      "persona": "nhân viên chăm sóc khách hàng",
+      "hint": "Hỗ trợ, chatbot, phản hồi",
+      "questions": [
+        "Chatbot AI nào có thể trả lời câu hỏi của khách hàng?",
+        "Công cụ nào giúp tôi trả lời yêu cầu hỗ trợ nhanh hơn?",
+        "AI có thể giúp tôi xây dựng trang trợ giúp như thế nào?",
+        "Công cụ nào tóm tắt phản hồi của khách hàng?",
+        "AI có thể dịch câu trả lời cho khách nước ngoài như thế nào?",
+        "Phần mềm helpdesk có AI nào tốt nhất?"
+      ]
+    },
+    "healthcare": {
+      "label": "Y tế & sức khỏe",
+      "persona": "người làm ngành y",
+      "hint": "Y khoa, thể chất, sức khỏe tinh thần",
+      "questions": [
+        "Công cụ AI nào giúp sinh viên y học tập?",
+        "Công cụ nào giúp tôi theo dõi sức khỏe và tập luyện?",
+        "Ứng dụng AI nào hỗ trợ sức khỏe tinh thần?",
+        "Công cụ nào giải thích nghiên cứu y khoa dễ hiểu?",
+        "AI có thể giúp tôi lên thực đơn lành mạnh như thế nào?",
+        "Công cụ nào giúp bác sĩ, điều dưỡng ghi chép?"
+      ]
+    },
+    "office": {
+      "label": "Nhân viên văn phòng",
+      "persona": "nhân viên văn phòng",
+      "hint": "Email, tài liệu, cuộc họp",
+      "questions": [
+        "Công cụ AI nào giúp tôi viết email nhanh hơn?",
+        "Công cụ nào ghi biên bản cuộc họp giúp tôi?",
+        "Công cụ nào dịch tài liệu chính xác?",
+        "Công cụ nào giúp tôi quản lý lịch làm việc?",
+        "AI có thể giúp tôi tóm tắt tài liệu dài như thế nào?",
+        "Công cụ nào tốt nhất để làm slide nhanh?"
+      ]
+    }
   }
 }
