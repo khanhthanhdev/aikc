@@ -1,9 +1,9 @@
 import "server-only";
 
 import type { Prisma } from "@prisma/client";
-import { endOfDay, startOfDay } from "date-fns";
 import { unstable_noStore as noStore } from "next/cache";
 import { prisma } from "~/services/prisma";
+import { endOfAdminDay, startOfAdminDay } from "~/utils/admin-dates";
 import type { GetAdsSchema } from "./validations";
 
 export async function getAds(input: GetAdsSchema) {
@@ -21,8 +21,8 @@ export async function getAds(input: GetAdsSchema) {
       "asc" | "desc" | undefined,
     ];
 
-    const fromDate = from ? startOfDay(new Date(from)) : undefined;
-    const toDate = to ? endOfDay(new Date(to)) : undefined;
+    const fromDate = from ? startOfAdminDay(from) : undefined;
+    const toDate = to ? endOfAdminDay(to) : undefined;
 
     const where: Prisma.AdWhereInput = {
       name: name ? { contains: name, mode: "insensitive" } : undefined,
