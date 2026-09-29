@@ -31,6 +31,11 @@ enum TranslationStatus {
   REVIEWED
 }
 
+enum UserRole {
+  ADMIN
+  USER
+}
+
 enum PricingTier {
   FREE
   FREEMIUM
@@ -89,10 +94,13 @@ model Tool {
   updatedAt      DateTime  @updatedAt
   createdAt      DateTime  @default(now())
   relatedTools   String[]  @default([])
+  /// Audience roles the tool suits, best fit first (keys of config/roles.ts)
+  roles          String[]  @default([])
+  /// Sample chat questions per role: { [role]: { en: string[], vi: string[] } }
+  roleQuestions  Json?
 
   // Relations
   categories  Category[]
-  collections Collection[]
   tags        Tag[]
   reports     Report[]
 
@@ -142,25 +150,6 @@ model Category {
   @@index([nameVi])
 }
 
-model Collection {
-  id          String   @id @default(cuid())
-  name        String   @db.Citext
-  nameVi      String?  @db.Citext
-  slug        String   @unique
-  description String?
-  descriptionVi String?
-  translationStatusVi TranslationStatus @default(MISSING)
-  translationUpdatedAtVi DateTime?
-  updatedAt   DateTime @updatedAt
-  createdAt   DateTime @default(now())
-
-  // Relations
-  tools Tool[]
-
-  // Indexes
-  @@index([name])
-  @@index([nameVi])
-}
 
 model Tag {
   id        String   @id @default(cuid())
@@ -178,4 +167,74 @@ model Tag {
   // Indexes
   @@index([name])
   @@index([nameVi])
+}
+
+/// One row per accepted AI request. Written from a deferred `after()` hook so
+/// logging never adds latency to the streamed answer, and never fails the
+/// request when the database is unreachable.
+model AiQuery {
+  id        String   @id @default(cuid())
+  /// Which endpoint served the request: "chat" or "rag".
+  endpoint  String
+  question  String
+  locale    String?
+  /// Slug of the tool page the question was asked from, when there was one.
+  toolSlug  String?
+  /// True when the semantic cache answered without calling the model.
+  cacheHit  Boolean  @default(false)
+  /// Salted hash of the client IP. Never the raw address, so the table can be
+  /// used to count distinct askers without storing anything identifying.
+  visitorId String?
+  /// Time from receiving the question until the answer finished (or failed).
+  latencyMs Int?
+  /// How the turn ended. Rows written before answers were logged are OK.
+  status       AiQueryStatus @default(OK)
+  /// The answer as the model produced it (or the cache returned it), including
+  /// any ---SUGGESTIONS--- block. Partial when the turn was ABORTED.
+  answer       String?
+  /// Provider error message when status is ERROR.
+  error        String?
+  /// Model that actually answered. Null for cache hits.
+  model        String?
+  inputTokens  Int?
+  outputTokens Int?
+  createdAt DateTime @default(now())
+
+  // Indexes
+  @@index([createdAt])
+  @@index([endpoint, createdAt])
+  @@index([visitorId])
+  @@index([status, createdAt])
+}
+
+enum AiQueryStatus {
+  /// The answer finished normally.
+  OK
+  /// The model call failed, e.g. quota exhausted or provider outage.
+  ERROR
+  /// The visitor closed the chat or navigated away mid-answer.
+  ABORTED
+}
+
+/// A person who can sign in. Today only ADMIN rows grant anything: they are
+/// the admin panel allowlist, managed from /admin/users. USER is reserved for
+/// a future public sign-in and grants no admin access.
+model User {
+  id          String    @id @default(cuid())
+  email       String    @unique @db.Citext
+  name        String?
+  image       String?
+  role        UserRole  @default(ADMIN)
+  /// Set when an admin blocks this account. A blocked row wins over
+  /// ALLOWED_EMAILS, so an env-listed email can still be locked out.
+  disabledAt  DateTime?
+  lastLoginAt DateTime?
+  /// Email of the admin who added this account; null for self-registration
+  /// through ALLOWED_EMAILS.
+  invitedBy   String?
+  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime  @default(now())
+
+  // Indexes
+  @@index([role])
 }
