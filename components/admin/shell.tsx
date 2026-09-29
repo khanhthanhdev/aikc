@@ -4,11 +4,12 @@ import {
   GemIcon,
   GlobeIcon,
   LayoutDashboardIcon,
-  LibraryIcon,
   LogOutIcon,
   MegaphoneIcon,
+  MessagesSquareIcon,
   ShapesIcon,
   TagIcon,
+  UsersIcon,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import * as React from "react";
@@ -103,16 +104,20 @@ export function Shell({
                 prefix: <ShapesIcon />,
               },
               {
-                title: "Collections",
-                href: "/admin/collections",
-                label: stats[2].toString(),
-                prefix: <LibraryIcon />,
-              },
-              {
                 title: "Tags",
                 href: "/admin/tags",
-                label: stats[3].toString(),
+                label: stats[2].toString(),
                 prefix: <TagIcon />,
+              },
+              {
+                title: "AI Logs",
+                href: "/admin/ai-usage",
+                prefix: <MessagesSquareIcon />,
+              },
+              {
+                title: "Users",
+                href: "/admin/users",
+                prefix: <UsersIcon />,
               },
             ]}
           />

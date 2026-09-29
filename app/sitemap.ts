@@ -2,7 +2,6 @@ import type { MetadataRoute } from "next";
 import { cacheLife, cacheTag } from "next/cache";
 import { routing } from "~/i18n/routing";
 import { findCategorySlugs } from "~/server/categories/queries";
-import { findCollectionSlugs } from "~/server/collections/queries";
 import { findTagSlugs } from "~/server/tags/queries";
 import { findToolSlugs } from "~/server/tools/queries";
 import { buildLocalizedUrl } from "~/utils/seo";
@@ -11,18 +10,17 @@ const getSitemapData = async () => {
   "use cache";
 
   cacheLife("hours");
-  cacheTag("tools", "categories", "collections", "tags");
+  cacheTag("tools", "categories", "tags");
 
   return await Promise.all([
     findToolSlugs({}),
     findCategorySlugs({}),
-    findCollectionSlugs({}),
     findTagSlugs({}),
   ]);
 };
 
 export default async function Sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [tools, categories, collections, tags] = await getSitemapData();
+  const [tools, categories, tags] = await getSitemapData();
 
   const staticPages: Array<{
     href: string;
@@ -34,7 +32,6 @@ export default async function Sitemap(): Promise<MetadataRoute.Sitemap> {
     { href: "/about", changeFrequency: "monthly", priority: 0.5 },
     { href: "/submit", changeFrequency: "monthly", priority: 0.8 },
     { href: "/categories", changeFrequency: "daily", priority: 0.5 },
-    { href: "/collections", changeFrequency: "daily", priority: 0.5 },
     { href: "/tags", changeFrequency: "daily", priority: 0.5 },
   ];
 
@@ -65,16 +62,6 @@ export default async function Sitemap(): Promise<MetadataRoute.Sitemap> {
       entries.push({
         url: buildLocalizedUrl(locale, `/categories/${category.slug}`),
         lastModified: category.updatedAt ?? category.createdAt ?? undefined,
-        changeFrequency: "weekly",
-        priority: 0.8,
-      });
-    }
-
-    // Collections
-    for (const collection of collections) {
-      entries.push({
-        url: buildLocalizedUrl(locale, `/collections/${collection.slug}`),
-        lastModified: collection.updatedAt ?? collection.createdAt ?? undefined,
         changeFrequency: "weekly",
         priority: 0.8,
       });

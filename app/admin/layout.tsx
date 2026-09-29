@@ -17,7 +17,6 @@ const getStats = unstable_cache(
     Promise.all([
       prisma.tool.count(),
       prisma.category.count(),
-      prisma.collection.count(),
       prisma.tag.count(),
     ]),
   ["admin-stats"],

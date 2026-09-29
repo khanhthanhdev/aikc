@@ -113,18 +113,6 @@ export async function getCategories() {
   }
 }
 
-export async function getCollections() {
-  noStore();
-  try {
-    return await prisma.collection.findMany({
-      select: { id: true, name: true },
-      orderBy: { name: "asc" },
-    });
-  } catch (_err) {
-    return [];
-  }
-}
-
 export async function getTags() {
   noStore();
   try {
@@ -158,7 +146,6 @@ export async function getToolBySlug(slug: string) {
       where: { slug },
       include: {
         categories: true,
-        collections: true,
         tags: true,
       },
     });

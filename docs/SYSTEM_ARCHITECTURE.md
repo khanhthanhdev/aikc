@@ -64,17 +64,14 @@ stukit/
 │   │   ├── [locale]/         # i18n routes
 │   │   │   ├── tools/[slug]/ # Tool detail pages
 │   │   │   ├── categories/   # Category listings
-│   │   │   ├── collections/  # Collection listings
 │   │   │   └── submit/       # Submission form
 │   └── admin/                # Admin dashboard
 │       ├── tools/            # Tool management
-│       ├── categories/       # Category management
-│       └── collections/      # Collection management
+│       └── categories/       # Category management
 │
 ├── server/                   # Business Logic Layer
 │   ├── tools/                # Tool operations
 │   ├── categories/           # Category operations
-│   ├── collections/          # Collection operations
 │   ├── tags/                 # Tag operations
 │   └── schemas.ts            # Shared Zod schemas
 │
@@ -415,10 +412,9 @@ Tool
 ├── publishedAt: DateTime?
 ├── relatedTools: String[]       # Array of tool slugs
 ├── categories: Category[]       # Many-to-many
-├── collections: Collection[]    # Many-to-many
 └── tags: Tag[]                  # Many-to-many
 
-Category, Collection, Tag
+Category, Tag
 ├── id: String @id
 ├── name: String @unique
 ├── nameVi: String?

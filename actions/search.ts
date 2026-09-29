@@ -156,7 +156,6 @@ const publicCircuitBreaker = new CircuitBreaker(
  */
 interface SearchModeMetadata {
   categories: SearchMode;
-  collections: SearchMode; // Always keyword (no Qdrant vectors)
   tags: SearchMode; // Always keyword (no Qdrant vectors)
   tools: SearchMode;
 }
@@ -164,7 +163,6 @@ interface SearchModeMetadata {
 export interface SearchResults {
   categories: Awaited<ReturnType<typeof prisma.category.findMany>>;
   categoryMatches: CategoryVectorMatch[];
-  collections: Awaited<ReturnType<typeof prisma.collection.findMany>>;
   elapsedMs: number;
   matches: ToolVectorMatch[];
   requestedMode: SearchMode;
@@ -523,19 +521,9 @@ const performSearch = async (
 
   const start = performance.now();
 
-  const [toolsResult, categoriesResult, collections, tags] = await Promise.all([
+  const [toolsResult, categoriesResult, tags] = await Promise.all([
     runner.searchToolsByMode(q, mode),
     runner.searchCategoriesByMode(q, mode),
-    prisma.collection.findMany({
-      where: {
-        OR: [
-          { name: { contains: q, mode: "insensitive" } },
-          { nameVi: { contains: q, mode: "insensitive" } },
-        ],
-      },
-      orderBy: { name: "asc" },
-      take: SEARCH_LIMIT,
-    }),
     prisma.tag.findMany({
       where: {
         OR: [
@@ -552,14 +540,12 @@ const performSearch = async (
   const searchModes: SearchModeMetadata = {
     tools: toolsResult.usedMode,
     categories: categoriesResult.usedMode,
-    collections: "keyword",
     tags: "keyword",
   };
 
   const results = {
     tools: toolsResult.tools,
     categories: categoriesResult.categories,
-    collections,
     tags,
     matches: toolsResult.matches,
     categoryMatches: categoriesResult.matches,
@@ -649,14 +635,12 @@ export const progressiveSearchPaletteItems = async ({
         data: {
           tools: [],
           categories: [],
-          collections: [],
           tags: [],
           matches: [],
           categoryMatches: [],
           searchModes: {
             tools: "keyword",
             categories: "keyword",
-            collections: "keyword",
             tags: "keyword",
           },
           requestedMode: mode,
@@ -712,17 +696,6 @@ export const progressiveSearchPaletteItems = async ({
     const keywordResults = await keywordSearchPromise;
     const keywordElapsedTime = Math.round(performance.now() - startTime);
 
-    const collectionsPromise = prisma.collection.findMany({
-      where: {
-        OR: [
-          { name: { contains: trimmedQuery, mode: "insensitive" } },
-          { nameVi: { contains: trimmedQuery, mode: "insensitive" } },
-        ],
-      },
-      orderBy: { name: "asc" },
-      take: SEARCH_LIMIT,
-    });
-
     const tagsPromise = prisma.tag.findMany({
       where: {
         OR: [
@@ -735,22 +708,17 @@ export const progressiveSearchPaletteItems = async ({
       take: SEARCH_LIMIT,
     });
 
-    const [collections, tags] = await Promise.all([
-      collectionsPromise,
-      tagsPromise,
-    ]);
+    const tags = await tagsPromise;
 
     const initialResults: ProgressiveSearchResults = {
       tools: keywordResults.toolsResult.tools,
       categories: keywordResults.categoriesResult.categories,
-      collections,
       tags,
       matches: keywordResults.toolsResult.matches,
       categoryMatches: keywordResults.categoriesResult.matches,
       searchModes: {
         tools: "keyword",
         categories: "keyword",
-        collections: "keyword",
         tags: "keyword",
       },
       requestedMode: mode,
@@ -812,7 +780,6 @@ export const progressiveSearchPaletteItems = async ({
     const finalResults: SearchResults = {
       tools: mergedTools,
       categories: mergedCategories,
-      collections: initialResults.collections,
       tags: initialResults.tags,
       matches: semanticResults.toolsResult?.matches || [],
       categoryMatches: semanticResults.categoriesResult?.matches || [],
@@ -823,7 +790,6 @@ export const progressiveSearchPaletteItems = async ({
         categories:
           semanticResults.categoriesResult?.usedMode ||
           keywordResults.categoriesResult.usedMode,
-        collections: "keyword",
         tags: "keyword",
       },
       requestedMode: mode,

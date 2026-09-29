@@ -97,9 +97,6 @@ export const Footer = ({
           <H6 as="strong">{t("browse")}</H6>
 
           <NavigationLink href="/categories">{t("categories")}</NavigationLink>
-          <NavigationLink href="/collections">
-            {t("collections")}
-          </NavigationLink>
           <NavigationLink href="/tags">{t("tags")}</NavigationLink>
         </Stack>
       </div>

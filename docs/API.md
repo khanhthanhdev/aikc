@@ -28,9 +28,6 @@
 - **Categories** (`app/admin/categories/_lib/actions.ts`)
   - `createCategory`, `updateCategory`, `updateCategories`, `deleteCategories`
   - Schema: `categorySchema`.
-- **Collections** (`app/admin/collections/_lib/actions.ts`)
-  - `createCollection`, `updateCollection`, `updateCollections`, `deleteCollections`
-  - Schema: `collectionSchema`.
 - **Tags** (`app/admin/tags/_lib/actions.ts`)
   - `createTag`, `updateTag`, `updateTags`, `deleteTags`
   - Schema: `tagSchema`.
@@ -38,7 +35,7 @@
 
 ## Query Helpers (server-only)
 - **Public site**: `server/tools/queries.ts` exposes `searchTools`, `findTools`, `findToolSlugs`, `findUniqueTool`, `findFirstTool`, `countTools`, `countUpcomingTools`. Default filters: published items only; includes `toolManyPayload` or `toolOnePayload` relations.
-- **Taxonomies**: `server/{categories,collections,tags}/queries.ts` provide list + slug lookups with published tool gating. Payload files include `_count` of published tools.
+- **Taxonomies**: `server/{categories,tags}/queries.ts` provide list + slug lookups with published tool gating. Payload files include `_count` of published tools.
 - **Admin tables**: `app/admin/*/_lib/queries.ts` give paginated lists with sorting/date filters and basic select payloads.
 
 ## Events & Background Jobs (Inngest)
@@ -52,10 +49,10 @@
 - Emitters: `actions/submit.ts` (submitted), `app/admin/tools/_lib/actions.ts` (scheduled/deleted), and `functions/tool-submitted.ts` (waits for expedite/feature events).
 
 ## Data Shapes (Prisma)
-- Tool fields: see `prisma/schema.prisma` (`name`, `slug`, `tagline`, `description`, `content`, `websiteUrl`, `affiliateUrl`, `faviconUrl`, `screenshotUrl`, `pricing`, `socials: Json`, `isFeatured`, `xHandle`, `submitterName`, `submitterEmail`, `publishedAt`, timestamps) with many-to-many relations to Category/Collection/Tag.
+- Tool fields: see `prisma/schema.prisma` (`name`, `slug`, `tagline`, `description`, `content`, `websiteUrl`, `affiliateUrl`, `faviconUrl`, `screenshotUrl`, `pricing`, `socials: Json`, `isFeatured`, `xHandle`, `submitterName`, `submitterEmail`, `publishedAt`, timestamps) with many-to-many relations to Category/Tag.
 - Payload helpers:
-  - `server/tools/payloads.ts`: `toolOnePayload` includes categories/collections/tags; `toolManyPayload` includes collections.
-  - `server/{categories,collections,tags}/payloads.ts`: `_count` of published tools for badges.
+  - `server/tools/payloads.ts`: `toolOnePayload` includes categories/tags; `toolManyPayload` includes categories.
+  - `server/{categories,tags}/payloads.ts`: `_count` of published tools for badges.
 
 ## Prisma Schema for EN/VI Content
 
@@ -95,15 +92,6 @@ model Category {
   nameVi                  String?
   label                   String?
   labelVi                 String?
-  description             String?
-  descriptionVi           String?
-  translationStatusVi     TranslationStatus @default(MISSING)
-  translationUpdatedAtVi  DateTime?
-}
-
-model Collection {
-  name                    String
-  nameVi                  String?
   description             String?
   descriptionVi           String?
   translationStatusVi     TranslationStatus @default(MISSING)
@@ -156,8 +144,8 @@ const tools = await prisma.tool.findMany({
 - VI: Với `locale = "vi"`, điều kiện keyword ưu tiên field tiếng Việt (`nameVi`, `taglineVi`, `descriptionVi`, `contentVi`) và fallback sang field tiếng Anh.
 - EN: For `locale = "en"`, queries search English fields only.
 - VI: Với `locale = "en"`, query chỉ tìm trên field tiếng Anh.
-- EN: Taxonomy queries (`Category`, `Collection`, `Tag`) also support bilingual matching (`nameVi` + `name`, and `slug` for tags).
-- VI: Query taxonomy (`Category`, `Collection`, `Tag`) cũng hỗ trợ match song ngữ (`nameVi` + `name`, và `slug` cho tags).
+- EN: Taxonomy queries (`Category`, `Tag`) also support bilingual matching (`nameVi` + `name`, and `slug` for tags).
+- VI: Query taxonomy (`Category`, `Tag`) cũng hỗ trợ match song ngữ (`nameVi` + `name`, và `slug` cho tags).
 
 ```ts
 const keywordWhere =
@@ -197,8 +185,8 @@ const keywordWhere =
 ### 7) Transactions for List + Count / Transaction cho danh sách + tổng số
 - EN: Admin listing queries use `prisma.$transaction([findMany, count])` to keep page data and total count consistent.
 - VI: Query danh sách admin dùng `prisma.$transaction([findMany, count])` để đảm bảo dữ liệu trang và tổng số nhất quán.
-- EN: Used in tools/categories/collections/tags/ads admin query modules.
-- VI: Được dùng ở module query admin tools/categories/collections/tags/ads.
+- EN: Used in tools/categories/tags/ads admin query modules.
+- VI: Được dùng ở module query admin tools/categories/tags/ads.
 
 ```ts
 const [items, total] = await prisma.$transaction([
@@ -260,12 +248,10 @@ await prisma.tool.groupBy({
 - `server/tools/queries.ts`
 - `server/tools/payloads.ts`
 - `server/categories/queries.ts`
-- `server/collections/queries.ts`
 - `server/tags/queries.ts`
 - `server/web/ads/queries.ts`
 - `app/admin/tools/_lib/queries.ts`
 - `app/admin/categories/_lib/queries.ts`
-- `app/admin/collections/_lib/queries.ts`
 - `app/admin/tags/_lib/queries.ts`
 - `app/admin/ads/_lib/queries.ts`
 - `app/admin/tools/_lib/actions.ts`
