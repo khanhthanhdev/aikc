@@ -6,13 +6,16 @@ import { PlusIcon, TrashIcon } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import type React from "react";
-import { useFieldArray, useForm } from "react-hook-form";
+import { useFieldArray, useForm, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { useServerAction } from "zsa-react";
-import { createTool, updateTool } from "~/app/admin/tools/_lib/actions";
+import {
+  createTool,
+  suggestToolRolesForForm,
+  updateTool,
+} from "~/app/admin/tools/_lib/actions";
 import type {
   getCategories,
-  getCollections,
   getTags,
   getToolBySlug,
 } from "~/app/admin/tools/_lib/queries";
@@ -34,13 +37,20 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/common/form";
+import {
+  isUserRole,
+  QUESTIONS_PER_ROLE,
+  SUGGESTED_QUESTIONS,
+  type UserRole,
+  userRoles,
+} from "~/config/roles";
 import { siteConfig } from "~/config/site";
+import { parseRoleQuestions } from "~/lib/role-questions";
 import { cx } from "~/utils/cva";
 import { nullsToUndefined } from "~/utils/helpers";
 
 type ToolFormProps = React.HTMLAttributes<HTMLFormElement> & {
   tool?: Awaited<ReturnType<typeof getToolBySlug>>;
-  collections: Awaited<ReturnType<typeof getCollections>>;
   categories: Awaited<ReturnType<typeof getCategories>>;
   tags: Awaited<ReturnType<typeof getTags>>;
 };
@@ -54,7 +64,6 @@ export function ToolForm({
   children,
   className,
   tool,
-  collections,
   categories,
   tags,
   ...props
@@ -64,9 +73,10 @@ export function ToolForm({
     defaultValues: {
       ...nullsToUndefined(tool),
       categories: tool?.categories?.map(({ id }) => id),
-      collections: tool?.collections?.map(({ id }) => id),
       socials: getDefaultSocials(tool?.socials),
       tags: tool?.tags?.map(({ id }) => id),
+      roles: tool?.roles.filter(isUserRole),
+      roleQuestions: parseRoleQuestions(tool?.roleQuestions),
     },
   });
 
@@ -81,6 +91,7 @@ export function ToolForm({
     useServerAction(createTool, {
       onSuccess: ({ data }) => {
         toast.success("Tool successfully created");
+        notifyFilledRoles(data.filledRoles);
         redirect(`/admin/tools/${data.slug}`);
       },
 
@@ -94,6 +105,11 @@ export function ToolForm({
     useServerAction(updateTool, {
       onSuccess: ({ data }) => {
         toast.success("Tool successfully updated");
+        notifyFilledRoles(data.filledRoles);
+        // The form stays mounted: show the questions written on save
+        if (data.roleQuestions) {
+          form.setValue("roleQuestions", data.roleQuestions);
+        }
         redirect(`/admin/tools/${data.slug}`);
       },
 
@@ -594,18 +610,27 @@ export function ToolForm({
 
         <FormField
           control={form.control}
-          name="collections"
+          name="roles"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Collections</FormLabel>
+              <FormLabel>Audience roles</FormLabel>
               <RelationSelector
                 onChange={field.onChange}
-                relations={collections}
+                relations={userRoles.map((role) => ({
+                  id: role,
+                  name: formatRole(role),
+                }))}
                 selectedIds={field.value ?? []}
               />
+              <FormDescription className="text-muted-foreground text-xs">
+                Who the tool suits, best fit first. Drives the home page picks
+                and the role filter.
+              </FormDescription>
             </FormItem>
           )}
         />
+
+        <RoleQuestionsFields toolId={tool?.id} />
 
         <FormField
           control={form.control}
@@ -635,3 +660,119 @@ export function ToolForm({
     </Form>
   );
 }
+
+/**
+ * Sample chat questions for each selected role, one per line. Visitors with
+ * that role see them in the chat on the tool page.
+ */
+const RoleQuestionsFields = ({ toolId }: { toolId?: string }) => {
+  const form = useFormContext<ToolSchema>();
+  const roles = form.watch("roles") ?? [];
+
+  const { execute: suggestRoles, isPending } = useServerAction(
+    suggestToolRolesForForm,
+    {
+      onSuccess: ({ data }) => {
+        if (!data.roles.length) {
+          toast.info("AI found no fitting role for this tool");
+          return;
+        }
+
+        form.setValue("roles", data.roles, { shouldDirty: true });
+        form.setValue("roleQuestions", data.roleQuestions, {
+          shouldDirty: true,
+        });
+        toast.success("Roles and questions generated. Review, then save.");
+      },
+      onError: ({ err }) => {
+        toast.error(err.message);
+      },
+    }
+  );
+
+  return (
+    <div className="col-span-full flex flex-col gap-3">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <p className="font-medium text-sm">Sample questions by role</p>
+          <p className="text-muted-foreground text-xs">
+            One question per line, up to {QUESTIONS_PER_ROLE} per language. The
+            chat on the tool page shows {SUGGESTED_QUESTIONS} of them at random
+            to visitors with that role. Roles left empty get questions written
+            by AI on save.
+          </p>
+        </div>
+
+        <Button
+          className="h-7 shrink-0 text-xs"
+          disabled={!toolId || isPending}
+          isPending={isPending}
+          onClick={() => toolId && suggestRoles({ id: toolId })}
+          size="sm"
+          type="button"
+          variant="outline"
+        >
+          Generate with AI
+        </Button>
+      </div>
+
+      {!roles.length && (
+        <p className="text-muted-foreground text-xs">
+          Pick audience roles first, or let AI suggest them.
+        </p>
+      )}
+
+      {roles.map((role) => (
+        <div
+          className="grid grid-cols-1 gap-3 rounded-md border p-3 sm:grid-cols-2"
+          key={role}
+        >
+          <p className="col-span-full font-medium text-sm">
+            {formatRole(role)}
+          </p>
+
+          {LANGUAGES.map(({ key, label }) => (
+            <FormField
+              control={form.control}
+              key={key}
+              name={`roleQuestions.${role}.${key}`}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{label}</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      onChange={(e) =>
+                        field.onChange(e.target.value.split("\n"))
+                      }
+                      rows={QUESTIONS_PER_ROLE}
+                      value={(field.value ?? []).join("\n")}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const notifyFilledRoles = (roles?: UserRole[]) => {
+  if (roles?.length) {
+    toast.info(
+      `AI wrote sample questions for: ${roles.map(formatRole).join(", ")}`
+    );
+  }
+};
+
+const LANGUAGES = [
+  { key: "en", label: "English" },
+  { key: "vi", label: "Vietnamese (Tiếng Việt)" },
+] as const;
+
+/** `data-analyst` → `Data analyst` */
+const formatRole = (role: UserRole) => {
+  const words = role.replaceAll("-", " ");
+  return words.charAt(0).toUpperCase() + words.slice(1);
+};

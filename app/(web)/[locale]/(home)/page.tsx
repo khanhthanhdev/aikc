@@ -9,6 +9,7 @@ import { Intro, IntroDescription, IntroTitle } from "~/components/web/ui/intro";
 import { Ping } from "~/components/web/ui/ping";
 import { parseMetadata } from "~/utils/metadata";
 import { buildAlternates, buildLocalizedUrl } from "~/utils/seo";
+import { RoleTools } from "./role-tools";
 import { ToolsListing } from "./tools-listing";
 
 interface PageProps {
@@ -54,6 +55,11 @@ export default async function Home({ params, searchParams }: PageProps) {
           <CountBadge />
         </Suspense>
       </Intro>
+
+      {/* Reads the role cookie, so it streams in after the static shell */}
+      <Suspense fallback={null}>
+        <RoleTools locale={locale} />
+      </Suspense>
 
       <Suspense fallback={<ToolListSkeleton />}>
         <ToolsListing searchParams={searchParams} />

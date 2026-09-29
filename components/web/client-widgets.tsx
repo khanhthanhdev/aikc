@@ -8,6 +8,13 @@ const AIChatWidget = dynamic(
     ssr: false,
   }
 );
+const RoleDialog = dynamic(
+  () =>
+    import("~/components/web/roles/role-dialog").then((mod) => mod.RoleDialog),
+  {
+    ssr: false,
+  }
+);
 const CommandPalette = dynamic(
   () =>
     import("~/components/web/command-palette").then(
@@ -23,6 +30,7 @@ export function ClientWidgets() {
     <>
       <AIChatWidget />
       <CommandPalette />
+      <RoleDialog />
     </>
   );
 }

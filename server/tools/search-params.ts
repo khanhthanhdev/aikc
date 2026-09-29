@@ -12,12 +12,12 @@ export const searchParams = {
   q: parseAsString,
   category: parseAsString.withDefault(""),
   pricing: parseAsString.withDefault(""),
+  role: parseAsString.withDefault(""),
   page: parseAsInteger.withDefault(1),
   sort: parseAsString.withDefault("publishedAt.desc"),
   perPage: parseAsInteger.withDefault(14),
   mode: parseAsString.withDefault("semantic"),
   tag: parseAsArrayOf(parseAsString).withDefault([]),
-  collection: parseAsArrayOf(parseAsString).withDefault([]),
 };
 
 export const searchParamsCache = createSearchParamsCache(searchParams);

@@ -1,4 +1,6 @@
 import * as z from "zod";
+import { userRoles } from "~/config/roles";
+import { roleQuestionsSchema } from "~/lib/role-questions";
 
 export const searchParamsSchema = z.object({
   page: z.coerce.number().default(1),
@@ -104,8 +106,9 @@ export const toolSchema = z.object({
     .optional(),
   publishedAt: z.date().optional(),
   categories: z.array(z.string()).optional(),
-  collections: z.array(z.string()).optional(),
   tags: z.array(z.string()).optional(),
+  roles: z.array(z.enum(userRoles)).optional(),
+  roleQuestions: roleQuestionsSchema.optional(),
 });
 
 export type ToolSchema = z.infer<typeof toolSchema>;

@@ -7,6 +7,7 @@ import { useEffect, useState, useTransition } from "react";
 import { Stack } from "~/components/common/stack";
 import { Input } from "~/components/web/ui/input";
 import { Select } from "~/components/web/ui/select";
+import { userRoles } from "~/config/roles";
 import { useDebounce } from "~/hooks/use-debounce";
 import type { CategoryMany } from "~/server/categories/payloads";
 import { searchParams } from "~/server/tools/search-params";
@@ -21,6 +22,7 @@ export const ToolListFilters = ({
   placeholder,
 }: ToolListFiltersProps) => {
   const t = useTranslations("Filters");
+  const tRoles = useTranslations("Roles");
   const locale = useLocale();
   const [isLoading, startTransition] = useTransition();
   const [filters, setFilters] = useQueryStates(searchParams, {
@@ -56,6 +58,7 @@ export const ToolListFilters = ({
   const pricingOptions = [
     { value: "free", label: t("pricingFree") },
     { value: "freemium", label: t("pricingFreemium") },
+    { value: "open-source", label: t("pricingOpenSource") },
     { value: "paid", label: t("pricingPaid") },
   ];
 
@@ -110,6 +113,22 @@ export const ToolListFilters = ({
         {pricingOptions.map((option) => (
           <option key={option.value} value={option.value}>
             {option.label}
+          </option>
+        ))}
+      </Select>
+
+      <Select
+        aria-label={tRoles("filterByRole")}
+        className="min-w-40 max-sm:flex-1"
+        onChange={(e) => updateFilters({ role: e.target.value })}
+        size="lg"
+        value={filters.role}
+      >
+        <option value="">{tRoles("allRoles")}</option>
+
+        {userRoles.map((role) => (
+          <option key={role} value={role}>
+            {tRoles(`${role}.label`)}
           </option>
         ))}
       </Select>
