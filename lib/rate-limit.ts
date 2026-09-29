@@ -212,7 +212,9 @@ export function isSameOrigin(
  */
 export function rateLimitResponse(
   result: RateLimitResult,
-  message?: string
+  message?: string,
+  /** Extra JSON fields for clients that react per limit (overrides `scope`). */
+  body?: Record<string, unknown>
 ): Response {
   const retryAfter = Math.max(
     1,
@@ -222,6 +224,7 @@ export function rateLimitResponse(
     JSON.stringify({
       error: message ?? "Too many requests. Please slow down.",
       scope: result.scope,
+      ...body,
     }),
     {
       status: 429,

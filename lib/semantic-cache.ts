@@ -20,6 +20,8 @@ export interface SemanticCachePayload {
   context?: ToolVectorMatch[];
   createdAt: string;
   normalizedQuestion: string;
+  /** Audience role the answer was tailored to; absent for untailored answers. */
+  role?: string | null;
   searchResults?: Record<string, unknown>; // Avoid circular dependency with actions/search.ts
   toolResults?: SemanticCacheToolResult[];
   toolSlug?: string | null;
@@ -50,13 +52,55 @@ const extractMainContent = (answer: string | undefined): string =>
 
 interface FindCachedAnswerOptions {
   minScore?: number;
+  /** Only answers tailored to this role match; without one, only untailored answers do. */
+  role?: string;
+  /** Only answers for this tool page match; without one, only global answers do. */
   toolSlug?: string;
 }
+
+/** Answers are kept for a week so edits to a tool (pricing, description) reach the chat. */
+export const CHAT_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 7;
+/** Bump to ignore every chat answer cached before a behaviour change. */
+export const CHAT_CACHE_VERSION = 2;
+// Several near neighbours are fetched so an expired top hit cannot hide a fresh one
+const CHAT_CACHE_CANDIDATES = 5;
+
+export const isChatCacheEntryFresh = (
+  payload: Pick<SemanticCachePayload, "cacheVersion" | "createdAt">,
+  now = Date.now()
+): boolean => {
+  if (payload.cacheVersion !== CHAT_CACHE_VERSION) {
+    return false;
+  }
+  const createdAt = new Date(payload.createdAt).getTime();
+  return Number.isFinite(createdAt) && now - createdAt <= CHAT_CACHE_TTL_MS;
+};
+
+/**
+ * Exact-match conditions for a chat cache lookup. Role and tool page are
+ * matched exactly rather than left to the similarity score: questions that
+ * differ only in them ("How much does it cost?") embed almost identically.
+ */
+export const buildChatCacheFilter = ({
+  role,
+  toolSlug,
+}: Pick<FindCachedAnswerOptions, "role" | "toolSlug">) => ({
+  must: [
+    { key: "cacheVersion", match: { value: CHAT_CACHE_VERSION } },
+    role
+      ? { key: "role", match: { value: role } }
+      : { is_empty: { key: "role" } },
+    toolSlug
+      ? { key: "toolSlug", match: { value: toolSlug } }
+      : { is_empty: { key: "toolSlug" } },
+  ],
+});
 
 export const findCachedAnswer = async (
   question: string,
   {
     minScore = QDRANT_SEMANTIC_CACHE_SCORE_THRESHOLD,
+    role,
     toolSlug,
   }: FindCachedAnswerOptions = {}
 ): Promise<SemanticCacheEntry | null> => {
@@ -71,68 +115,48 @@ export const findCachedAnswer = async (
     outputDimensionality: QDRANT_DENSE_VECTOR_SIZE,
   });
 
-  const baseSearch = async (withToolFilter: boolean) =>
-    qdrantClient.search(QDRANT_SEMANTIC_CACHE_COLLECTION, {
-      vector,
-      limit: 1,
-      with_payload: true,
-      score_threshold: minScore,
-      filter:
-        withToolFilter && toolSlug
-          ? {
-              must: [
-                {
-                  key: "toolSlug",
-                  match: { value: toolSlug },
-                },
-              ],
-            }
-          : undefined,
-    });
-
-  let results = await baseSearch(true);
-
-  // If scoped lookup failed, try a global lookup so we don't drop older cache entries
-  if (!results.length && toolSlug) {
-    results = await baseSearch(false);
-    if (results.length) {
-      log.info("Cache fallback hit without tool filter", {
-        question: normalizedQuestion,
-        toolSlug,
-      });
-    }
-  }
-
-  if (!results.length) {
-    return null;
-  }
-
-  const result = results[0];
-  const payload = result.payload as SemanticCachePayload | undefined;
-  const mainContent = extractMainContent(payload?.answer);
-  const hasToolResults = (payload?.toolResults?.length ?? 0) > 0;
-
-  // If the cached answer is effectively empty (e.g., only suggestions), treat as a miss
-  if (!(payload && (mainContent || hasToolResults))) {
-    return null;
-  }
-
-  log.info(`Cache hit (score=${result.score?.toFixed(3) ?? "n/a"})`, {
-    question: normalizedQuestion,
-    toolSlug: payload.toolSlug ?? toolSlug ?? null,
+  const results = await qdrantClient.search(QDRANT_SEMANTIC_CACHE_COLLECTION, {
+    vector,
+    limit: CHAT_CACHE_CANDIDATES,
+    with_payload: true,
+    score_threshold: minScore,
+    filter: buildChatCacheFilter({ role, toolSlug }),
   });
 
-  return {
-    id: String(result.id ?? ""),
-    score: result.score ?? 0,
-    payload,
-  };
+  const now = Date.now();
+  for (const result of results) {
+    const payload = result.payload as SemanticCachePayload | undefined;
+    if (!(payload && isChatCacheEntryFresh(payload, now))) {
+      continue;
+    }
+
+    // An answer that is effectively empty (e.g. only suggestions) is a miss
+    const mainContent = extractMainContent(payload.answer);
+    const hasToolResults = (payload.toolResults?.length ?? 0) > 0;
+    if (!(mainContent || hasToolResults)) {
+      continue;
+    }
+
+    log.info(`Cache hit (score=${result.score?.toFixed(3) ?? "n/a"})`, {
+      question: normalizedQuestion,
+      toolSlug: payload.toolSlug ?? null,
+    });
+
+    return {
+      id: String(result.id ?? ""),
+      score: result.score ?? 0,
+      payload,
+    };
+  }
+
+  return null;
 };
 
 export const storeCachedAnswer = async (params: {
   question: string;
   answer: string;
   context: ToolVectorMatch[];
+  role?: string | null;
   toolSlug?: string | null;
   toolResults?: SemanticCacheToolResult[];
 }): Promise<void> => {
@@ -161,8 +185,10 @@ export const storeCachedAnswer = async (params: {
           payload: {
             normalizedQuestion,
             answer: trimmedAnswer,
+            cacheVersion: CHAT_CACHE_VERSION,
             context: params.context,
             createdAt: new Date().toISOString(),
+            role: params.role ?? null,
             toolSlug: params.toolSlug ?? null,
             toolResults: params.toolResults ?? [],
           } satisfies SemanticCachePayload,
