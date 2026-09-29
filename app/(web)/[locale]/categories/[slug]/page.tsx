@@ -26,6 +26,7 @@ import {
 } from "~/server/categories/queries";
 import { parseMetadata } from "~/utils/metadata";
 import { buildAlternates, buildLocalizedUrl } from "~/utils/seo";
+import { isValidSlug } from "~/utils/slug";
 
 interface PageProps {
   params: Promise<{ slug: string; locale: string }>;
@@ -87,13 +88,18 @@ const getMetadata = cache(
 
 export const generateMetadata = async ({
   params,
-}: PageProps): Promise<Metadata | undefined> => {
+}: PageProps): Promise<Metadata> => {
   const { slug, locale } = await params;
+  if (!isValidSlug(slug)) {
+    notFound();
+  }
   const category = await getCategory(slug);
   const url = `/categories/${slug}`;
 
+  // Metadata resolves before the streamed page starts, so crawlers get a real
+  // 404 here even though loading.tsx makes browsers see a 200
   if (!category) {
-    return;
+    notFound();
   }
 
   return parseMetadata(
@@ -109,6 +115,9 @@ export default async function CategoryPage({
   searchParams,
 }: PageProps) {
   const { slug, locale } = await params;
+  if (!isValidSlug(slug)) {
+    notFound();
+  }
   const category = await getCategory(slug);
 
   if (!category) {
