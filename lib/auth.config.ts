@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import { env } from "~/env";
-import { isAllowedEmail } from "~/utils/auth";
+import { hasAdminAccess, recordAdminLogin } from "~/lib/admin-access";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true,
@@ -14,12 +14,27 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
 
   callbacks: {
-    signIn({ profile }) {
-      return isAllowedEmail(profile?.email);
+    async signIn({ profile }) {
+      const email = profile?.email;
+
+      if (!(email && (await hasAdminAccess(email)))) {
+        return false;
+      }
+
+      await recordAdminLogin({
+        email,
+        name: profile?.name,
+        image: typeof profile?.picture === "string" ? profile.picture : null,
+      });
+
+      return true;
     },
   },
 
   pages: {
     signIn: "/login",
+    // A refused sign-in lands on /login?error=AccessDenied instead of the
+    // bare Auth.js error page.
+    error: "/login",
   },
 });
