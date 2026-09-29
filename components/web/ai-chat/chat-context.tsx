@@ -1,6 +1,6 @@
 "use client";
 
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import {
   createContext,
   type ReactNode,
@@ -9,9 +9,14 @@ import {
   useMemo,
   useState,
 } from "react";
+import { useRole } from "~/components/web/roles/role-context";
+import type { RoleQuestions } from "~/config/roles";
+import { pickQuestions } from "~/lib/role-questions";
 
 interface ToolInfo {
   name: string;
+  /** Sample questions written for this tool, per audience role. */
+  roleQuestions?: RoleQuestions;
   slug: string;
 }
 
@@ -84,26 +89,74 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [currentTool, setCurrentTool] = useState<ToolInfo | null>(null);
   const [, forceUpdate] = useState({});
+  // Picks which sample questions show; 0 until the chat is first opened, so
+  // the server and client render the same ones
+  const [questionSeed, setQuestionSeed] = useState(0);
+
+  const reshuffleQuestions = useCallback(() => {
+    setQuestionSeed(Math.floor(Math.random() * 2 ** 32) || 1);
+  }, []);
+
+  const openChange = useCallback(
+    (open: boolean) => {
+      if (open) {
+        reshuffleQuestions();
+      }
+      setIsOpen(open);
+    },
+    [reshuffleQuestions]
+  );
 
   const toggleChat = useCallback(() => {
-    setIsOpen((prev) => !prev);
-  }, []);
+    openChange(!isOpen);
+  }, [isOpen, openChange]);
 
   const startNewChat = useCallback(() => {
+    reshuffleQuestions();
     // Force re-render to reset chat messages
     forceUpdate({});
-  }, []);
+  }, [reshuffleQuestions]);
 
+  const { role } = useRole();
+  const tRoles = useTranslations("Roles");
+
+  // Questions for the visitor's role when we have them, generic ones otherwise.
+  // Role questions come from a larger pool, so each opening shows a new mix.
   const suggestedQuestions = useMemo(() => {
-    return currentTool
-      ? getToolQuestionsForLocale(currentTool, locale)
-      : getQuestionsForLocale(locale);
-  }, [currentTool, locale]);
+    const language = locale.split("-")[0] === "vi" ? "vi" : "en";
+
+    if (!role) {
+      return currentTool
+        ? getToolQuestionsForLocale(currentTool, locale)
+        : getQuestionsForLocale(locale);
+    }
+
+    if (!currentTool) {
+      return pickQuestions(
+        tRoles.raw(`${role}.questions`) as string[],
+        questionSeed
+      );
+    }
+
+    const written = currentTool.roleQuestions?.[role]?.[language];
+    if (written?.length) {
+      return pickQuestions(written, questionSeed);
+    }
+
+    const [, ...generic] = getToolQuestionsForLocale(currentTool, locale);
+    return [
+      tRoles("toolQuestion", {
+        name: currentTool.name,
+        persona: tRoles(`${role}.persona`),
+      }),
+      ...generic,
+    ];
+  }, [currentTool, locale, questionSeed, role, tRoles]);
 
   const value = useMemo(
     () => ({
       isOpen,
-      setIsOpen,
+      setIsOpen: openChange,
       toggleChat,
       currentTool,
       setCurrentTool,
@@ -111,7 +164,15 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       startNewChat,
       locale,
     }),
-    [isOpen, toggleChat, currentTool, suggestedQuestions, startNewChat, locale]
+    [
+      isOpen,
+      openChange,
+      toggleChat,
+      currentTool,
+      suggestedQuestions,
+      startNewChat,
+      locale,
+    ]
   );
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

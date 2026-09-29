@@ -1,6 +1,5 @@
 import { tool } from "ai";
 import { z } from "zod";
-import { isDev } from "~/env";
 
 export interface YoutubeVideo {
   channelName?: string;
@@ -9,6 +8,11 @@ export interface YoutubeVideo {
   url: string;
   videoId: string;
 }
+
+/** A slow YouTube page must not hold the whole answer hostage. */
+const YOUTUBE_SEARCH_TIMEOUT_MS = 4000;
+const MAX_VIDEOS = 3;
+const YOUTUBE_VIDEO_ID = /^[A-Za-z0-9_-]{11}$/;
 
 const searchYoutubeSchema = z.object({
   query: z
@@ -24,13 +28,14 @@ const searchYoutubeSchema = z.object({
  */
 export const searchYoutubeVideos = tool({
   description:
-    "Search YouTube for tutorial, comparison, or guide videos and display them to the user. Provide a search query describing the video topic.",
+    "Search YouTube for tutorial or how-to videos and display them to the user. Only use it when the user asks how to use a tool, for a tutorial or guide, or for videos — never for pricing, comparisons or tool recommendations. Provide an English search query describing the video topic.",
   inputSchema: searchYoutubeSchema,
   execute: async ({ query }) => {
     try {
       // Use YouTube's internal API (no API key needed, but rate limited)
       const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
       const response = await fetch(searchUrl, {
+        signal: AbortSignal.timeout(YOUTUBE_SEARCH_TIMEOUT_MS),
         headers: {
           "User-Agent":
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
@@ -63,10 +68,11 @@ export const searchYoutubeVideos = tool({
 
       const videos: YoutubeVideo[] = [];
       for (const item of contents) {
-        if (videos.length >= 3) {
+        if (videos.length >= MAX_VIDEOS) {
           break;
         }
 
+        // Only plain videos: shorts, channels, playlists and ads use other renderers
         const videoRenderer = item.videoRenderer;
         if (!videoRenderer) {
           continue;
@@ -76,7 +82,11 @@ export const searchYoutubeVideos = tool({
         const title = videoRenderer.title?.runs?.[0]?.text;
         const channelName = videoRenderer.ownerText?.runs?.[0]?.text;
 
-        if (videoId && title) {
+        if (
+          typeof videoId === "string" &&
+          YOUTUBE_VIDEO_ID.test(videoId) &&
+          title
+        ) {
           videos.push({
             videoId,
             url: `https://www.youtube.com/watch?v=${videoId}`,
@@ -89,9 +99,11 @@ export const searchYoutubeVideos = tool({
 
       return videos;
     } catch (error) {
-      if (isDev) {
-        console.error("YouTube search error:", error);
-      }
+      // Includes the timeout; the answer text still goes out without videos
+      console.warn(
+        "[chat] YouTube search failed:",
+        error instanceof Error ? error.message : error
+      );
       return [];
     }
   },
