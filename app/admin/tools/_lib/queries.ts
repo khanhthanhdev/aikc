@@ -1,9 +1,9 @@
 import "server-only";
 
 import type { Prisma } from "@prisma/client";
-import { endOfDay, startOfDay } from "date-fns";
 import { unstable_noStore as noStore } from "next/cache";
 import { prisma } from "~/services/prisma";
+import { endOfAdminDay, startOfAdminDay } from "~/utils/admin-dates";
 import type { GetToolsSchema } from "./validations";
 
 export async function getTools(input: GetToolsSchema) {
@@ -26,8 +26,8 @@ export async function getTools(input: GetToolsSchema) {
     ];
 
     // Convert the date strings to date objects
-    const fromDate = from ? startOfDay(new Date(from)) : undefined;
-    const toDate = to ? endOfDay(new Date(to)) : undefined;
+    const fromDate = from ? startOfAdminDay(from) : undefined;
+    const toDate = to ? endOfAdminDay(to) : undefined;
 
     const where: Prisma.ToolWhereInput = {
       // Filter by name
