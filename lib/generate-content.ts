@@ -13,7 +13,6 @@ import {
   googleFlashModel,
   googleNoThinkingProviderOptions,
 } from "~/services/google";
-import { prisma } from "~/services/prisma";
 
 const log = logger.ai;
 
@@ -29,7 +28,6 @@ export const generateContent = async (tool: Tool | Jsonify<Tool>) => {
   });
 
   const model = googleFlashLiteModel;
-  const _categories = await prisma.category.findMany();
 
   try {
     log.debug(`Scraping website: ${tool.websiteUrl}`);
@@ -69,11 +67,6 @@ export const generateContent = async (tool: Tool | Jsonify<Tool>) => {
         .describe(
           "The pricing model of the tool. Examples: 'Free', 'Open Source', 'Freemium', 'Paid', 'From $12/mo'. Keep it short."
         ),
-      // categories: z
-      //   .array(z.string())
-      //   .max(2)
-      //   .transform(a => a.map(name => categories.find(c => c.name === name)).filter(isTruthy))
-      //   .describe("A list of categories for the tool."),
       tags: z
         .array(z.string())
         .max(10)
@@ -90,19 +83,12 @@ export const generateContent = async (tool: Tool | Jsonify<Tool>) => {
         Your task is to generate high-quality, engaging content to display on a directory website.
         You do not use any catchphrases like "Empower", "Streamline" etc.
       `,
-      //   You also assign the project to specified categories and collections.
-      //   DO NOT force it to be in a category or collection if it does not belong to any.
-      //   DO NOT assign to any categories or collections that do not exist.
-      // `,
       prompt: `
         Provide me details for the following data:
         title: ${scrapedData.metadata?.title}
         description: ${scrapedData.metadata?.description}
         content: ${scrapedData.markdown}
       `,
-      //   Here is the list of categories to assign to the tool:
-      //   ${categories.map(({ name }) => name).join("\n")}
-      // `,
       temperature: 0.3,
       experimental_telemetry: { isEnabled: true },
       providerOptions: googleNoThinkingProviderOptions,
