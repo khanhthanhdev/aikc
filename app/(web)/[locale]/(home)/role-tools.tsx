@@ -10,7 +10,8 @@ import { Button } from "~/components/web/ui/button";
 import { Grid } from "~/components/web/ui/grid";
 import { isUserRole, ROLE_COOKIE, type UserRole } from "~/config/roles";
 import { Link } from "~/i18n/navigation";
-import { findTools } from "~/server/tools/queries";
+import { toolCardPayload } from "~/server/tools/payloads";
+import { prisma } from "~/services/prisma";
 
 const PICKS = 6;
 
@@ -24,10 +25,12 @@ const getRoleTools = async (role: UserRole) => {
   cacheLife("max");
   cacheTag("tools");
 
-  const tools = await findTools({
-    where: { roles: { has: role } },
+  // Card fields plus roles, which the ranking below needs
+  const tools = await prisma.tool.findMany({
+    where: { publishedAt: { lte: new Date() }, roles: { has: role } },
     orderBy: [{ isFeatured: "desc" }, { publishedAt: "desc" }],
     take: PICKS * 5,
+    select: { ...toolCardPayload(), roles: true },
   });
 
   return tools

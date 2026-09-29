@@ -29,8 +29,8 @@ import {
   type ToolVectorMatch,
 } from "~/lib/vector-store";
 import {
-  type ToolMany,
-  toolManyPayload,
+  type ToolCardData,
+  toolCardPayload,
   toolOnePayload,
 } from "~/server/tools/payloads";
 import { searchParamsCache } from "~/server/tools/search-params";
@@ -47,8 +47,8 @@ const allowedSortColumns: ReadonlyArray<
   keyof Prisma.ToolOrderByWithRelationInput
 > = ["name", "publishedAt", "createdAt", "updatedAt"];
 
-type ToolSearchResult = SearchResult<ToolMany, ToolVectorMatch>;
-type AlternativeSearchResult = SearchResult<ToolMany, AlternativeVectorMatch>;
+type ToolSearchResult = SearchResult<ToolCardData, ToolVectorMatch>;
+type AlternativeSearchResult = SearchResult<ToolCardData, AlternativeVectorMatch>;
 type ParsedToolSearchParams = Awaited<
   ReturnType<typeof searchParamsCache.parse>
 >;
@@ -298,7 +298,7 @@ const keywordSearch = async (
       ...args,
       orderBy: { [sortBy]: sortOrder },
       where: { publishedAt: { lte: new Date() }, ...whereQuery, ...where },
-      select: toolManyPayload(),
+      select: toolCardPayload(),
       take,
       skip,
     }),
@@ -328,7 +328,7 @@ const keywordSearch = async (
 
 // Strategy implementations consumed by the search orchestrator (keyword + semantic modes)
 class ToolKeywordSearchStrategy
-  implements SearchStrategy<ToolMany, ToolVectorMatch, ToolSearchContext>
+  implements SearchStrategy<ToolCardData, ToolVectorMatch, ToolSearchContext>
 {
   canHandle(mode: SearchMode) {
     return mode === "keyword";
@@ -352,7 +352,7 @@ class ToolKeywordSearchStrategy
 }
 
 class ToolSemanticSearchStrategy
-  implements SearchStrategy<ToolMany, ToolVectorMatch, ToolSearchContext>
+  implements SearchStrategy<ToolCardData, ToolVectorMatch, ToolSearchContext>
 {
   canHandle(mode: SearchMode) {
     return mode === "semantic";
@@ -467,7 +467,7 @@ class ToolSemanticSearchStrategy
           ...whereQuery,
           ...where,
         },
-        select: toolManyPayload(),
+        select: toolCardPayload(),
         take: perPage * 2, // Fetch more to allow merging
       });
       keywordMs = Date.now() - keywordStart;
@@ -511,7 +511,7 @@ class ToolSemanticSearchStrategy
               ...hydrateWhere,
               ...where,
             },
-            select: toolManyPayload(),
+            select: toolCardPayload(),
           })
         : [];
     hydrateMs = Date.now() - hydrateStartedAt;
@@ -645,7 +645,7 @@ const keywordStrategy = new ToolKeywordSearchStrategy();
 const semanticStrategy = new ToolSemanticSearchStrategy();
 
 const toolSearchOrchestrator = new SearchOrchestrator<
-  ToolMany,
+  ToolCardData,
   ToolVectorMatch,
   ToolSearchContext
 >({
@@ -712,9 +712,13 @@ export const searchTools = async (
   searchParams: SearchParams,
   args: Prisma.ToolFindManyArgs = {}
 ): Promise<ToolSearchResult> =>
-  runWithEmbeddingCache(() =>
-    runToolSearch(searchParamsCache.parse(searchParams), args)
-  );
+  searchToolsFromParsedParams(searchParamsCache.parse(searchParams), args);
+
+export const searchToolsFromParsedParams = async (
+  parsedParams: ParsedToolSearchParams,
+  args: Prisma.ToolFindManyArgs = {}
+): Promise<ToolSearchResult> =>
+  runWithEmbeddingCache(() => runToolSearch(parsedParams, args));
 
 /** @deprecated Use searchTools with mode="semantic" */
 export const searchToolsHybrid = (
@@ -751,7 +755,7 @@ export const findTools = cache(
     return prisma.tool.findMany({
       ...args,
       where: { publishedAt: { lte: new Date() }, ...where },
-      select: toolManyPayload(),
+      select: toolCardPayload(),
     });
   }
 );
@@ -818,7 +822,7 @@ export const findFirstTool = cache(
     return prisma.tool.findFirst({
       ...args,
       where: { publishedAt: { lte: new Date() }, ...where },
-      select: select ?? toolManyPayload(),
+      select: select ?? toolCardPayload(),
     });
   }
 );
@@ -842,7 +846,7 @@ export const searchAlternatives = async (
     if (!trimmedQuery) {
       const tools = await prisma.tool.findMany({
         where: { publishedAt: { lte: new Date() } },
-        select: toolManyPayload(),
+        select: toolCardPayload(),
         take: limit,
         skip: offset,
         orderBy: { name: "asc" },
@@ -929,7 +933,7 @@ export const searchAlternatives = async (
             { description: { contains: trimmedQuery, mode: "insensitive" } },
           ],
         },
-        select: toolManyPayload(),
+        select: toolCardPayload(),
         take: limit,
         skip: offset,
         orderBy: { name: "asc" },
@@ -979,7 +983,7 @@ export const searchAlternatives = async (
         id: { in: toolIds },
         publishedAt: { lte: new Date() },
       },
-      select: toolManyPayload(),
+      select: toolCardPayload(),
     });
     const hydrateMs = Date.now() - hydrateStart;
 

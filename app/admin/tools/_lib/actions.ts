@@ -87,7 +87,7 @@ export const createTool = authedProcedure
     const questions = await fillRoleQuestionsOnSave(tool);
 
     revalidatePath("/admin/tools");
-    revalidatePublicToolCaches();
+    revalidatePublicToolCaches("tools");
 
     // Sync to Qdrant vector store
     await upsertHybridToolVector(tool);
@@ -138,7 +138,7 @@ export const updateTool = authedProcedure
 
       revalidatePath("/admin/tools");
       revalidatePath(`/admin/tools/${tool.slug}`);
-      revalidatePublicToolCaches();
+      revalidatePublicToolCaches("tools");
 
       // Sync to Qdrant vector store
       await upsertHybridToolVector(tool);
@@ -208,7 +208,7 @@ export const updateTools = authedProcedure
     log.info(`Vector synced for ${updatedTools.length} tools`);
 
     revalidatePath("/admin/tools");
-    revalidatePublicToolCaches();
+    revalidatePublicToolCaches("tools");
 
     if (data.publishedAt) {
       log.info(`Sending publish events for ${updatedTools.length} tool(s)`, {
@@ -245,7 +245,7 @@ export const deleteTools = authedProcedure
     });
 
     revalidatePath("/admin/tools");
-    revalidatePublicToolCaches();
+    revalidatePublicToolCaches("tools");
 
     // Send an event to the Inngest pipeline
     log.info(`Sending tool.deleted events for ${tools.length} tool(s)`, {
@@ -276,7 +276,7 @@ export const scheduleTools = authedProcedure
     });
 
     revalidatePath("/admin/tools");
-    revalidatePublicToolCaches();
+    revalidatePublicToolCaches("tools");
 
     // Send an event to the Inngest pipeline
     log.info(`Sending publish events for ${tools.length} tool(s)`, {
@@ -332,7 +332,7 @@ export const translateToolToVietnamese = authedProcedure
 
     revalidatePath("/admin/tools");
     revalidatePath(`/admin/tools/${tool.slug}`);
-    revalidatePublicToolCaches();
+    revalidatePublicToolCaches("tools");
 
     return updatedTool;
   });
@@ -367,7 +367,7 @@ export const batchTranslateToVietnamese = authedProcedure
     );
 
     revalidatePath("/admin/tools");
-    revalidatePublicToolCaches();
+    revalidatePublicToolCaches("tools");
 
     return true;
   });
@@ -419,7 +419,7 @@ export const translateToolFieldToVietnamese = authedProcedure
 
     revalidatePath("/admin/tools");
     revalidatePath(`/admin/tools/${tool.slug}`);
-    revalidatePublicToolCaches();
+    revalidatePublicToolCaches("tools");
 
     return { field: viField, value: viValue };
   });
@@ -591,7 +591,7 @@ export const processTools = authedProcedure
     }
 
     revalidatePath("/admin/tools");
-    revalidatePublicToolCaches();
+    revalidatePublicToolCaches("tools");
     log.info("Process tools completed");
     return true;
   });

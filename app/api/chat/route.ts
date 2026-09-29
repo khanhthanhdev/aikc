@@ -26,6 +26,11 @@ import {
   isCacheableConversation,
 } from "~/lib/chat-turn";
 import {
+  internalServerErrorResponse,
+  invalidRequestResponse,
+  originNotAllowedResponse,
+} from "~/lib/api-error";
+import {
   getClientIp,
   isSameOrigin,
   type RateLimitResult,
@@ -176,7 +181,7 @@ const ROLE_CONTEXT = {
 
 type ChatLimitScope = "minute" | "day" | "session";
 
-// Read by the chat UI through `code` + `scope`; the text is for API callers
+// The chat UI reads `error.details.scope`; the text is for API callers
 const RATE_LIMIT_MESSAGES: Record<ChatLimitScope, string> = {
   minute: "Too many requests. Please slow down and try again in a minute.",
   day: "Daily chat limit reached for your network. Please try again tomorrow.",
@@ -195,13 +200,6 @@ function getMessageText(message: UIMessage): string {
 function getLastUserMessageText(messages: UIMessage[]): string {
   const lastUserMessage = messages.findLast((m) => m.role === "user");
   return lastUserMessage ? getMessageText(lastUserMessage) : "";
-}
-
-function jsonResponse(body: Record<string, unknown>, status: number) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
 }
 
 /** One id per browser, so one visitor cannot use up a shared campus IP's quota. */
@@ -381,10 +379,7 @@ export async function POST(req: Request) {
     // Reject cross-origin POSTs — this endpoint should only be hit by our
     // own client, never embedded by third-party sites.
     if (!isSameOrigin(req)) {
-      return jsonResponse(
-        { error: "Cross-origin requests are not allowed", code: "forbidden" },
-        403
-      );
+      return originNotAllowedResponse();
     }
 
     const sessionId = await getChatSessionId();
@@ -393,7 +388,7 @@ export async function POST(req: Request) {
       return rateLimitResponse(
         limited.result,
         RATE_LIMIT_MESSAGES[limited.scope],
-        { code: "rate_limited", scope: limited.scope }
+        { scope: limited.scope }
       );
     }
 
@@ -402,10 +397,7 @@ export async function POST(req: Request) {
       await req.json().catch(() => null)
     );
     if (!parsed.success) {
-      return jsonResponse(
-        { error: "Invalid chat request", code: "bad_request" },
-        400
-      );
+      return invalidRequestResponse(parsed.error.issues);
     }
     const {
       messages,
@@ -563,10 +555,11 @@ export async function POST(req: Request) {
 
     return result.toUIMessageStreamResponse();
   } catch (error) {
+    if (error instanceof SyntaxError) {
+      return invalidRequestResponse();
+    }
+
     console.error("[chat] API error:", error);
-    return jsonResponse(
-      { error: "Internal server error", code: "internal_error" },
-      500
-    );
+    return internalServerErrorResponse();
   }
 }

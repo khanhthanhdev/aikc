@@ -3,7 +3,7 @@ import { generateObject } from "ai";
 import { z } from "zod";
 import { logger } from "~/lib/logger";
 import {
-  googleFlashLiteModel,
+  acquireBatchModel,
   googleNoThinkingProviderOptions,
 } from "~/services/google";
 import { prisma } from "~/services/prisma";
@@ -51,7 +51,7 @@ export const suggestToolCategories = async (
   }
 
   const { object } = await generateObject({
-    model: googleFlashLiteModel,
+    model: await acquireBatchModel(),
     schema: z.object({
       categories: z
         .array(z.enum([first, ...rest]))

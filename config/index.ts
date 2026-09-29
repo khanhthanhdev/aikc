@@ -1,7 +1,6 @@
 import { adsConfig } from "~/config/ads";
 import { dataTableConfig } from "~/config/data-table";
 import { linksConfig } from "~/config/links";
-import { mediaConfig } from "~/config/media";
 import { siteConfig } from "~/config/site";
 
 /**
@@ -10,7 +9,6 @@ import { siteConfig } from "~/config/site";
  */
 export const config = {
   site: siteConfig,
-  media: mediaConfig,
   links: linksConfig,
   dataTable: dataTableConfig,
   ads: adsConfig,

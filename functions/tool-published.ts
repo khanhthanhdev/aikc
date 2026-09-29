@@ -41,7 +41,7 @@ export const toolPublished = inngest.createFunction(
       });
 
       await step.run("revalidate-public-tool-caches", () => {
-        revalidatePublicToolCaches();
+        revalidatePublicToolCaches("tools");
       });
 
       if (!tool) {

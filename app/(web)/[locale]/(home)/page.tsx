@@ -7,6 +7,7 @@ import { ToolListSkeleton } from "~/components/web/tool-list-skeleton";
 import { Badge } from "~/components/web/ui/badge";
 import { Intro, IntroDescription, IntroTitle } from "~/components/web/ui/intro";
 import { Ping } from "~/components/web/ui/ping";
+import { getAgentHomepageSummary } from "~/lib/homepage-agent-content";
 import { parseMetadata } from "~/utils/metadata";
 import { buildAlternates, buildLocalizedUrl } from "~/utils/seo";
 import { RoleTools } from "./role-tools";
@@ -60,6 +61,9 @@ export default async function Home({ params, searchParams }: PageProps) {
       <Suspense fallback={null}>
         <RoleTools locale={locale} />
       </Suspense>
+      <section className="sr-only" aria-label="About AI Knowledge Cloud">
+        <p>{getAgentHomepageSummary(locale)}</p>
+      </section>
 
       <Suspense fallback={<ToolListSkeleton />}>
         <ToolsListing searchParams={searchParams} />

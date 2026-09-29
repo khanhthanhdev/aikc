@@ -13,7 +13,7 @@ import {
 import { logger } from "~/lib/logger";
 import { cleanQuestions, parseRoleQuestions } from "~/lib/role-questions";
 import {
-  googleFlashLiteModel,
+  acquireBatchModel,
   googleNoThinkingProviderOptions,
 } from "~/services/google";
 import { prisma } from "~/services/prisma";
@@ -95,9 +95,9 @@ export const suggestToolRoles = async (
       - Order them by who the tool is built for: its makers' target users come first. Don't default to students because the directory belongs to a university; a tool made for teachers, companies or developers leads with that role.
     `;
 
-  const { object } = await withRetries(() =>
+  const { object } = await withRetries(async () =>
     generateObject({
-      model: googleFlashLiteModel,
+      model: await acquireBatchModel(),
       schema: z.object({
         roles: z
           .array(

@@ -4,79 +4,78 @@ import { Upload } from "@aws-sdk/lib-storage";
 import { stripURLSubpath } from "@curiousleaf/utils";
 import wretch from "wretch";
 import { env, isDev, isProd } from "~/env";
-import { s3Client } from "~/services/aws-s3";
+import { firecrawlClient } from "~/services/firecrawl";
+import { r2Client } from "~/services/r2";
 
 /**
- * Uploads a file to S3 and returns the S3 location.
+ * Uploads a file to R2 and returns its public URL.
  * @param file - The file to upload.
- * @param key - The S3 key to upload the file to.
- * @returns The S3 location of the uploaded file.
+ * @param key - The R2 object key.
+ * @returns The public URL of the uploaded file.
  */
 // Cache uploaded assets for 1 year on the CDN/browser. Files are content-addressed
 // (favicon/logo paths change when re-uploaded), so immutable long-lived caching is safe.
-const S3_CACHE_CONTROL = "public, max-age=31536000, immutable";
+const R2_CACHE_CONTROL = "public, max-age=31536000, immutable";
 
-export const uploadToS3Storage = async (
+const getR2PublicUrl = (key: string): string =>
+  new URL(
+    key.split("/").map(encodeURIComponent).join("/"),
+    `${env.R2_PUBLIC_URL.replace(/\/+$/, "")}/`
+  ).toString();
+
+export const uploadToR2 = async (
   file: Buffer,
   key: string,
   contentType?: string
-) => {
+): Promise<string> => {
   const upload = new Upload({
-    client: s3Client,
+    client: r2Client,
     params: {
-      Bucket: env.S3_BUCKET,
+      Bucket: env.R2_BUCKET,
       Key: key,
       Body: file,
       ContentType: contentType,
-      CacheControl: S3_CACHE_CONTROL,
-      StorageClass: "STANDARD",
+      CacheControl: R2_CACHE_CONTROL,
+
     },
     queueSize: 4,
     partSize: 1024 * 1024 * 5,
     leavePartsOnError: false,
   });
 
-  const result = await upload.done();
-
-  if (!result.Location) {
-    throw new Error("Failed to upload");
-  }
-
-  return result.Location.replace(
-    `s3.${env.S3_REGION}.amazonaws.com/${env.S3_BUCKET}`,
-    `${env.S3_BUCKET}.s3.${env.S3_REGION}.amazonaws.com`
-  );
+  await upload.done();
+  return getR2PublicUrl(key);
 };
 
 /**
- * Removes a directory from S3.
+ * Removes a directory from R2.
  * @param directory - The directory to remove.
  * @throws Error if called in non-production environment (safety check)
  */
-export const removeS3Directory = async (directory: string) => {
+export const removeR2Directory = async (directory: string) => {
   if (!isProd) {
     console.warn(
-      "[removeS3Directory] Skipping deletion in non-production environment"
+      "[removeR2Directory] Skipping deletion in non-production environment"
     );
     return;
   }
 
   const listCommand = new ListObjectsV2Command({
-    Bucket: env.S3_BUCKET,
+    Bucket: env.R2_BUCKET,
     Prefix: `${directory}/`,
   });
 
   let continuationToken: string | undefined;
 
   do {
-    const listResponse = await s3Client.send(listCommand);
+    const listResponse = await r2Client.send(listCommand);
     for (const object of listResponse.Contents || []) {
       if (object.Key) {
         const deleteCommand = new DeleteObjectCommand({
-          Bucket: env.S3_BUCKET,
+          Bucket: env.R2_BUCKET,
           Key: object.Key,
         });
-        await s3Client.send(deleteCommand);
+        await r2Client.send(deleteCommand);
       }
     }
     continuationToken = listResponse.NextContinuationToken;
@@ -85,14 +84,14 @@ export const removeS3Directory = async (directory: string) => {
 };
 
 /**
- * Uploads a favicon to S3 and returns the S3 location.
+ * Uploads a favicon to R2 and returns its public URL.
  * @param url - The URL of the website to fetch the favicon from.
- * @param s3Key - The S3 key to upload the favicon to.
- * @returns The S3 location of the uploaded favicon.
+ * @param storageKey - The R2 object key to upload the favicon to.
+ * @returns The public URL of the uploaded favicon.
  */
 export const uploadFavicon = async (
   url: string,
-  s3Key: string
+  storageKey: string
 ): Promise<string> => {
   const cleanedUrl = encodeURIComponent(stripURLSubpath(url) ?? "");
   const faviconUrl = `https://www.google.com/s2/favicons?sz=128&domain_url=${cleanedUrl}`;
@@ -105,17 +104,11 @@ export const uploadFavicon = async (
       })
       .arrayBuffer();
 
-    // Convert response to Buffer
-    const buffer = Buffer.from(arrayBuffer);
-
-    // Upload to S3
-    const s3Location = await uploadToS3Storage(
-      buffer,
-      `${s3Key}.png`,
+    return await uploadToR2(
+      Buffer.from(arrayBuffer),
+      `${storageKey}.png`,
       "image/png"
     );
-
-    return s3Location;
   } catch (error) {
     if (isDev) {
       console.error("Error fetching or uploading favicon:", error);
@@ -125,60 +118,54 @@ export const uploadFavicon = async (
 };
 
 /**
- * Uploads a screenshot to S3 and returns the S3 location.
- * @param url - The URL of the website to fetch the screenshot from.
- * @param s3Key - The S3 key to upload the screenshot to.
- * @returns The S3 location of the uploaded screenshot.
+ * Captures a website screenshot using Firecrawl.
+ * @param url - The URL of the website to capture.
+ * @returns The image Buffer.
+ */
+export const captureScreenshot = async (url: string): Promise<Buffer> => {
+  const scrapeResponse = await firecrawlClient.scrapeUrl(url, {
+    formats: ["screenshot"],
+  });
+
+  if (!scrapeResponse.success || !scrapeResponse.screenshot) {
+    throw new Error(
+      `Failed to capture screenshot with Firecrawl: ${scrapeResponse.error ?? "No screenshot returned"}`
+    );
+  }
+
+  const res = await fetch(scrapeResponse.screenshot);
+  if (!res.ok) {
+    throw new Error(
+      `Failed to download screenshot from Firecrawl (${res.status})`
+    );
+  }
+
+  const arrayBuffer = await res.arrayBuffer();
+  return Buffer.from(arrayBuffer);
+};
+
+/**
+ * Uploads a screenshot to R2 and returns its public URL.
+ * @param url - The URL of the website to capture.
+ * @param storageKey - The R2 object key to upload the screenshot to.
+ * @returns The public URL of the uploaded screenshot.
  */
 export const uploadScreenshot = async (
   url: string,
-  s3Key: string
+  storageKey: string
 ): Promise<string> => {
-  const queryParams = new URLSearchParams({
-    url,
-    access_key: env.SCREENSHOTONE_ACCESS_KEY,
-    response_type: "json",
-
-    // Cache
-    cache: "true",
-    cache_ttl: "2592000",
-
-    // Emulations
-    dark_mode: "true",
-    reduced_motion: "true",
-
-    // Blockers
-    delay: "3",
-    block_ads: "true",
-    block_chats: "true",
-    block_trackers: "true",
-    block_cookie_banners: "true",
-
-    // Image and viewport options
-    format: "webp",
-    viewport_width: "1280",
-    viewport_height: "720",
-
-    // Storage options
-    store: "true",
-    storage_path: s3Key,
-    storage_bucket: env.S3_BUCKET,
-    storage_access_key_id: env.S3_ACCESS_KEY,
-    storage_secret_access_key: env.S3_SECRET_ACCESS_KEY,
-    storage_return_location: "true",
-  });
-
   try {
-    const endpointUrl = `https://api.screenshotone.com/take?${queryParams.toString()}`;
-    const { store } = await wretch(endpointUrl)
-      .get()
-      .json<{ store: { location: string } }>();
+    const location = await uploadToR2(
+      await captureScreenshot(url),
+      `${storageKey}.png`,
+      "image/png"
+    );
 
     // Append version timestamp for cache busting
-    return `${store.location}?v=${Date.now()}`;
+    return `${location}?v=${Date.now()}`;
   } catch (error) {
     if (isDev) {
-      console.error("Error fetching screenshot:", error);
+      console.error("Error capturing or uploading screenshot:", error);
     }
     throw error;
   }
