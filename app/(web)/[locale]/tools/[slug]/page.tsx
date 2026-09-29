@@ -16,6 +16,7 @@ import { AdCard } from "~/components/web/ads/ad-card";
 import { ToolContextSetter } from "~/components/web/ai-chat/tool-context-setter";
 import { ReportToolDialog } from "~/components/web/dialogs/report-tool-dialog";
 import { Nav } from "~/components/web/nav";
+import { RoleIcon } from "~/components/web/roles/role-icon";
 import { ToolStickyHeader } from "~/components/web/tool-sticky-header";
 import { Badge } from "~/components/web/ui/badge";
 import {
@@ -31,11 +32,13 @@ import { Gallery } from "~/components/web/ui/gallery";
 import { IntroDescription } from "~/components/web/ui/intro";
 import { Tag } from "~/components/web/ui/tag";
 import { Wrapper } from "~/components/web/ui/wrapper";
+import { isUserRole } from "~/config/roles";
 import { Link } from "~/i18n/navigation";
 import {
   buildBreadcrumbSchema,
   buildSoftwareApplicationSchema,
 } from "~/lib/json-ld";
+import { parseRoleQuestions } from "~/lib/role-questions";
 import {
   findFirstTool,
   findToolSlugs,
@@ -43,6 +46,7 @@ import {
 } from "~/server/tools/queries";
 import { parseMetadata } from "~/utils/metadata";
 import { buildAlternates, buildLocalizedUrl } from "~/utils/seo";
+import { isValidSlug } from "~/utils/slug";
 
 interface PageProps {
   params: Promise<{ slug: string; locale: string }>;
@@ -88,13 +92,18 @@ export const generateStaticParams = async () => {
 
 export const generateMetadata = async ({
   params,
-}: PageProps): Promise<Metadata | undefined> => {
+}: PageProps): Promise<Metadata> => {
   const { slug, locale } = await params;
+  if (!isValidSlug(slug)) {
+    notFound();
+  }
   const tool = await getTool(slug);
   const url = `/tools/${slug}`;
 
+  // Metadata resolves before the streamed page starts, so crawlers get a real
+  // 404 here even though loading.tsx makes browsers see a 200
   if (!tool) {
-    return;
+    notFound();
   }
 
   const isVietnamese = locale === "vi";
@@ -119,8 +128,15 @@ export const generateMetadata = async ({
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: page composition intentionally combines localized metadata, SEO, and conditional sections in one route entrypoint
 export default async function ToolPage({ params }: PageProps) {
   const { slug, locale } = await params;
+  if (!isValidSlug(slug)) {
+    notFound();
+  }
   const toolPromise = getTool(slug);
   const translationsPromise = getTranslations({ locale, namespace: "Tools" });
+  const roleTranslationsPromise = getTranslations({
+    locale,
+    namespace: "Roles",
+  });
   const tool = await toolPromise;
 
   if (!tool) {
@@ -142,12 +158,12 @@ export default async function ToolPage({ params }: PageProps) {
     ? (tool.pricingVi ?? tool.pricing)
     : tool.pricing;
   const t = await translationsPromise;
+  const tRoles = await roleTranslationsPromise;
+  const roles = tool.roles.filter(isUserRole);
   const getCategoryName = (category: (typeof tool.categories)[number]) =>
     isVietnamese
       ? (category.labelVi ?? category.label ?? category.nameVi ?? category.name)
       : (category.label ?? category.name);
-  const getCollectionName = (collection: (typeof tool.collections)[number]) =>
-    isVietnamese ? (collection.nameVi ?? collection.name) : collection.name;
   const getTagName = (tag: (typeof tool.tags)[number]) =>
     isVietnamese ? (tag.nameVi ?? tag.name) : tag.name;
   const primaryCategoryName = tool.categories[0]
@@ -185,7 +201,11 @@ export default async function ToolPage({ params }: PageProps) {
       />
 
       <ToolStickyHeader tool={tool} toolName={name} toolTagline={tagline} />
-      <ToolContextSetter name={name} slug={tool.slug} />
+      <ToolContextSetter
+        name={name}
+        roleQuestions={parseRoleQuestions(tool.roleQuestions, roles)}
+        slug={tool.slug}
+      />
 
       <Wrapper className="py-4" size="lg">
         <Breadcrumb>
@@ -254,14 +274,6 @@ export default async function ToolPage({ params }: PageProps) {
                   </Badge>
                 )}
 
-                {tool.collections.map((collection) => (
-                  <Badge asChild key={collection.id} variant="outline">
-                    <Link href={`/collections/${collection.slug}`}>
-                      {getCollectionName(collection)}
-                    </Link>
-                  </Badge>
-                ))}
-
                 {pricing && (
                   <Badge
                     prefix={<DollarSignIcon className="text-green-500" />}
@@ -313,6 +325,26 @@ export default async function ToolPage({ params }: PageProps) {
                         <span className="text-foreground/50">
                           ({category._count.tools})
                         </span>
+                      </Link>
+                    </Tag>
+                  ))}
+                </Stack>
+              </Stack>
+            )}
+
+            {!!roles.length && (
+              <Stack direction="column">
+                <H6 as="h3">{tRoles("suitedFor")}</H6>
+
+                <Stack>
+                  {roles.map((role) => (
+                    <Tag
+                      asChild
+                      key={role}
+                      prefix={<RoleIcon className="mr-0.5" role={role} />}
+                    >
+                      <Link href={`/?role=${role}`}>
+                        {tRoles(`${role}.label`)}
                       </Link>
                     </Tag>
                   ))}
