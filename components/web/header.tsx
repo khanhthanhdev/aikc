@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  CalendarIcon,
-  ClockIcon,
-  ScaleIcon,
-  SparkleIcon,
-  TagIcon,
-  TicketIcon,
-} from "lucide-react";
+import { CalendarIcon, SparkleIcon, TagIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { type HTMLAttributes, Suspense, useEffect, useState } from "react";
 import { Logo } from "~/components/common/logo";
@@ -20,7 +13,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "~/components/web/ui/dropdown-menu";
 import {
@@ -136,15 +128,9 @@ export const Header = ({
 
             <DropdownMenuContent align="start" className="min-w-[220px]">
               <DropdownMenuItem asChild>
-                <NavigationLink href="/?sort=publishedAt.desc">
+                <NavigationLink href="/tools?sort=publishedAt.desc">
                   <CalendarIcon className="mr-2 size-4 text-muted-foreground" />{" "}
                   {t("latest")}
-                </NavigationLink>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <NavigationLink href="/categories">
-                  <TagIcon className="mr-2 size-4 text-muted-foreground" />{" "}
-                  {t("categories")}
                 </NavigationLink>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
@@ -153,34 +139,10 @@ export const Header = ({
                   {t("tags")}
                 </NavigationLink>
               </DropdownMenuItem>
-
-              <DropdownMenuSeparator />
-
-              <DropdownMenuItem asChild>
-                <NavigationLink href="/?pricing=free">
-                  <TicketIcon className="mr-2 size-4 text-muted-foreground" />{" "}
-                  {t("freeTools")}
-                </NavigationLink>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <NavigationLink href="/?pricing=freemium">
-                  <ScaleIcon className="mr-2 size-4 text-muted-foreground" />{" "}
-                  {t("freemiumTools")}
-                </NavigationLink>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <NavigationLink href="/?pricing=paid">
-                  <ClockIcon className="mr-2 size-4 text-muted-foreground" />{" "}
-                  {t("paidTools")}
-                </NavigationLink>
-              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
           <NavigationLink href="/categories">{t("categories")}</NavigationLink>
-          <NavigationLink href="/collections">
-            {t("collections")}
-          </NavigationLink>
           <NavigationLink href="/about">{t("aboutUs")}</NavigationLink>
         </nav>
 
@@ -205,11 +167,17 @@ export const Header = ({
           isNavOpen ? "opacity-100" : "pointer-events-none opacity-0"
         )}
       >
-        <NavigationLink className="text-base" href="/?sort=publishedAt.desc">
+        <NavigationLink
+          className="text-base"
+          href="/tools?sort=publishedAt.desc"
+        >
           {t("latest")}
         </NavigationLink>
-        <NavigationLink className="text-base" href="/collections">
-          {t("collections")}
+        <NavigationLink className="text-base" href="/categories">
+          {t("categories")}
+        </NavigationLink>
+        <NavigationLink className="text-base" href="/tags">
+          {t("tags")}
         </NavigationLink>
         <NavigationLink className="text-base" href="/submit">
           {t("submit")}
