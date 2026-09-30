@@ -210,8 +210,7 @@
   "Pagination": {
     "prev": "Trước",
     "next": "Sau",
-    "pageOf": "Trang {page} / {total}",
-    "pageLabel": "Trang:"
+    "pageOf": "Trang {page} / {total}"
   },
   "LocaleSwitcher": {
     "label": "Ngôn ngữ",

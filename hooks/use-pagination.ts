@@ -19,8 +19,8 @@ export const usePagination = ({
   const paginationRange = useMemo(() => {
     const totalPageCount = Math.ceil(totalCount / pageSize);
 
-    // Pages count is determined as siblingCount + firstPage + lastPage + currentPage + 2*DOTS
-    const totalPageNumbers = siblingCount + 5;
+    // The most items ever shown: first, last, current, its siblings and 2*DOTS
+    const totalPageNumbers = 2 * siblingCount + 5;
 
     // If the current page is bigger than the total page numbers, we don't show anything
     if (currentPage > totalPageCount) {
@@ -46,11 +46,11 @@ export const usePagination = ({
     );
 
     /*
-      We do not show dots just when there is just one page number to be inserted between
-      the extremes of sibling and the page limits i.e 1 and totalPageCount.
-      Hence we are using leftSiblingIndex > 2 and rightSiblingIndex < totalPageCount - 2
+      Dots only stand in for two or more pages: a single hidden page takes the
+      same room as the dots, so it is shown instead. Hence leftSiblingIndex > 3
+      (pages 2..leftSiblingIndex-1) and rightSiblingIndex < totalPageCount - 2
     */
-    const shouldShowLeftDots = leftSiblingIndex > 2;
+    const shouldShowLeftDots = leftSiblingIndex > 3;
     const shouldShowRightDots = rightSiblingIndex < totalPageCount - 2;
 
     const firstPageIndex = 1;
@@ -86,7 +86,8 @@ export const usePagination = ({
       return [firstPageIndex, DOTS, ...middleRange, DOTS, lastPageIndex];
     }
 
-    return [];
+    // No dots either side: every page fits
+    return range(1, totalPageCount);
   }, [totalCount, pageSize, siblingCount, currentPage]);
 
   return paginationRange;
