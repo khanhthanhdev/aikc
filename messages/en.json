@@ -210,8 +210,7 @@
   "Pagination": {
     "prev": "Prev",
     "next": "Next",
-    "pageOf": "Page {page} of {total}",
-    "pageLabel": "Page:"
+    "pageOf": "Page {page} of {total}"
   },
   "LocaleSwitcher": {
     "label": "Language",
