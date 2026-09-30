@@ -2,7 +2,6 @@ import {
   createGoogleGenerativeAI,
   type GoogleLanguageModelOptions,
 } from "@ai-sdk/google";
-import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { generateObject, generateText } from "ai";
 import { env } from "~/env";
 
@@ -18,24 +17,10 @@ export const GEMMA_31B_MODEL_ID =
 export const gemma26bModel = google(GEMMA_26B_MODEL_ID);
 export const gemma31bModel = google(GEMMA_31B_MODEL_ID);
 
-// When OPENROUTER_API_KEY is set (local work), the app's models go through
-// OpenRouter; otherwise Gemma 4 through the Gemini API. The Gemma pool below
-// always uses Gemini.
-const openrouter = env.OPENROUTER_API_KEY
-  ? createOpenRouter({ apiKey: env.OPENROUTER_API_KEY })
-  : null;
+export const googleFlashLiteModel = gemma26bModel;
+export const googleFlashModel = gemma31bModel;
+export const googleFlashModelId = GEMMA_31B_MODEL_ID;
 
-export const googleFlashLiteModel = openrouter
-  ? openrouter.chat(env.OPENROUTER_FLASH_LITE_MODEL)
-  : gemma26bModel;
-export const googleFlashModel = openrouter
-  ? openrouter.chat(env.OPENROUTER_FLASH_MODEL)
-  : gemma31bModel;
-export const googleFlashModelId = openrouter
-  ? `openrouter:${env.OPENROUTER_FLASH_MODEL}`
-  : GEMMA_31B_MODEL_ID;
-
-// Only applied by the Google provider; ignored when using OpenRouter.
 export const googleNoThinkingProviderOptions = {
   google: {
     thinkingConfig: {
@@ -147,12 +132,11 @@ class GemmaRateLimiterPool {
 export const gemmaPool = new GemmaRateLimiterPool();
 
 /**
- * A model for one batch call: the OpenRouter model when configured, otherwise
- * the next free Gemma slot, so jobs over many tools stay under the Gemini
- * rate limits.
+ * A model for one batch call: the next free Gemma slot, so jobs over many
+ * tools stay under the Gemini rate limits.
  */
 export const acquireBatchModel = async (): Promise<LanguageModel> =>
-  openrouter ? googleFlashLiteModel : (await gemmaPool.acquire()).model;
+  (await gemmaPool.acquire()).model;
 
 /**
  * Executes generateText with automatic Gemma 4 model rotation and rate limiting.
@@ -163,9 +147,6 @@ export async function generateTextWithGemma(
 ): Promise<ReturnType<typeof generateText>> {
   if (options.model) {
     return generateText(options);
-  }
-  if (openrouter) {
-    return generateText({ ...options, model: googleFlashLiteModel });
   }
 
   const firstSlot = await gemmaPool.acquire();
@@ -204,9 +185,6 @@ export async function generateObjectWithGemma<T = any>(
 ): Promise<any> {
   if (options.model) {
     return generateObject(options);
-  }
-  if (openrouter) {
-    return generateObject({ ...options, model: googleFlashLiteModel });
   }
 
   const firstSlot = await gemmaPool.acquire();

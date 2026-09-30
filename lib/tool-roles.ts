@@ -31,9 +31,9 @@ type RoleTool = Pick<
 > & { categories?: { name: string }[] };
 
 /**
- * The provider now and then cuts a reply off mid-way (OpenRouter reports
- * `finish_reason: "error"`), which the SDK does not retry. Such a call costs
- * nothing, so try again a couple of times before giving up.
+ * The provider now and then cuts a reply off mid-way, which the SDK does not
+ * retry. Such a call costs nothing, so try again a couple of times before
+ * giving up.
  */
 const GENERATE_ATTEMPTS = 3;
 
@@ -144,8 +144,7 @@ export const suggestToolRoles = async (
       `,
       temperature: 0.4,
       // A full answer (3 roles × 6 questions × 2 languages) is ~1,500 tokens;
-      // the cap keeps a runaway reply cheap and stops OpenRouter from
-      // reserving credits for the model's 65k maximum
+      // the cap keeps a runaway reply cheap
       maxOutputTokens: 4000,
       experimental_telemetry: { isEnabled: true },
       providerOptions: googleNoThinkingProviderOptions,

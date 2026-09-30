@@ -47,11 +47,6 @@ export const env = createEnv({
     GEMINI_API_KEY: z.string().min(1),
     GOOGLE_FLASH_LITE_MODEL: z.string().default("gemma-4-26b-a4b-it"),
     GOOGLE_FLASH_MODEL: z.string().default("gemma-4-31b-it"),
-    OPENROUTER_API_KEY: z.string().optional(),
-    OPENROUTER_FLASH_LITE_MODEL: z
-      .string()
-      .default("google/gemini-2.5-flash-lite"),
-    OPENROUTER_FLASH_MODEL: z.string().default("google/gemini-2.5-flash-lite"),
     INFINITY_EMBEDDING_URL: z.string().url().default("http://localhost:7997"),
     INFINITY_EMBEDDING_MODEL: z
       .string()
