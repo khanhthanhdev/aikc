@@ -1,5 +1,7 @@
 import { config } from "~/config"
 import Link from "next/link"
+import Image from "next/image"
+import award from "./vca-2026-award.webp"
 
 ## {config.site.name} là gì?
 
@@ -12,6 +14,20 @@ Từ lập trình, sáng tạo nội dung, tạo ảnh, viết và chỉnh sửa
 ## Sứ mệnh của chúng tôi
 
 Chúng tôi cam kết giúp mọi người tiếp cận các công cụ AI chất lượng, bất kể nền tảng hay mức độ kinh nghiệm. Bằng cách tuyển chọn và đánh giá những công cụ tốt nhất, chúng tôi giúp người học và người đi làm đưa ra quyết định đúng đắn và tối ưu năng suất.
+
+## Giải thưởng
+
+<div className="not-prose my-6 grid items-center gap-6 sm:grid-cols-[14rem_1fr]">
+  <a href={award.src} target="_blank" rel="noopener" className="block overflow-hidden rounded-lg border shadow-sm transition-opacity hover:opacity-90 max-sm:mx-auto max-sm:w-56">
+    <Image src={award} className="h-auto w-full" alt="Giấy chứng nhận VCA 2026: Ứng dụng AI đột phá trong sáng tạo nội dung, trao tặng Thư viện Trường Đại học VinUni" sizes="(min-width: 640px) 14rem, 100vw" placeholder="blur" />
+  </a>
+  <div className="flex flex-col gap-2">
+    <p className="font-semibold text-lg">Ứng dụng AI đột phá trong sáng tạo nội dung</p>
+    <p className="text-muted-foreground text-sm">Giải thưởng Sáng tạo Nội dung số Việt Nam 2026 (VCA 2026)</p>
+    <p className="text-sm">Hệ sinh thái {config.site.name} của **Thư viện Trường Đại học VinUni** được vinh danh tại giải thưởng do Hội Truyền thông Số Việt Nam (VDCA) và Liên minh Sáng tạo Nội dung số (DCCA) tổ chức.</p>
+    <p className="text-muted-foreground text-xs">Quyết định số 14/QĐ-HTTS, ngày 15/8/2026</p>
+  </div>
+</div>
 
 ## Đội ngũ
 

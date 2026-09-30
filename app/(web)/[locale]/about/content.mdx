@@ -1,5 +1,7 @@
 import { config } from "~/config"
 import Link from "next/link"
+import Image from "next/image"
+import award from "./vca-2026-award.webp"
 
 ## What is {config.site.name}?
 
@@ -12,6 +14,20 @@ From coding and programming, to content creation, image generation, writing and 
 ## Our Mission
 
 We're dedicated to making quality AI tools accessible to everyone, regardless of background or experience level. By curating and reviewing the best tools available, we help learners and professionals make informed decisions and maximize their productivity.
+
+## Awards
+
+<div className="not-prose my-6 grid items-center gap-6 sm:grid-cols-[14rem_1fr]">
+  <a href={award.src} target="_blank" rel="noopener" className="block overflow-hidden rounded-lg border shadow-sm transition-opacity hover:opacity-90 max-sm:mx-auto max-sm:w-56">
+    <Image src={award} className="h-auto w-full" alt="VCA 2026 certificate: Breakthrough Use of AI in Content Creation, presented to the VinUniversity Library" sizes="(min-width: 640px) 14rem, 100vw" placeholder="blur" />
+  </a>
+  <div className="flex flex-col gap-2">
+    <p className="font-semibold text-lg">Breakthrough Use of AI in Content Creation</p>
+    <p className="text-muted-foreground text-sm">Vietnam Digital Content Creation Awards 2026 (VCA 2026)</p>
+    <p className="text-sm">The {config.site.name} Ecosystem of the **VinUniversity Library** was recognized at the awards organized by the Vietnam Digital Communications Association (VDCA) and the Digital Content Creation Alliance (DCCA).</p>
+    <p className="text-muted-foreground text-xs">Decision No. 14/QĐ-HTTS, 15 August 2026</p>
+  </div>
+</div>
 
 ## Team
 
