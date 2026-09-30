@@ -28,7 +28,24 @@
     "title": "Find the Perfect Work & Study Tools for You",
     "description": "Discover the best tools for VinUniversity library and knowledge cloud. The best tool for your study & work to help you build faster and more efficiently.",
     "countNewToolsAdded": "{count} new {unit} added",
-    "countToolsCollected": "{count}+ tools collected"
+    "countToolsCollected": "{count}+ tools collected",
+    "searchLabel": "Search tools",
+    "searchPlaceholder": "What do you need a tool for? e.g. {example}",
+    "searchButton": "Search",
+    "searchClear": "Clear search",
+    "askAi": "Ask AI",
+    "searchCategory": "Category",
+    "searchAllFor": "See all results for “{query}”",
+    "searchTry": "Try:",
+    "searchRecent": "Recent searches",
+    "searchClearHistory": "Clear search history",
+    "searchDefaults": [
+      "lecture notes",
+      "presentation slides",
+      "find research papers",
+      "coding assistant",
+      "meeting summaries"
+    ]
   },
   "Developer": {
     "title": "AI Knowledge Cloud Developer Resources",
@@ -143,7 +160,9 @@
     "categoriesSection": "Categories:",
     "tagsSection": "Tags:",
     "similarToolsTitle": "Work & Study Tools Similar to {name}:",
-    "similarToolsLoading": "Similar Work & Study Tools:"
+    "similarToolsLoading": "Similar Work & Study Tools:",
+    "resultsFor": "{count, plural, one {# result} other {# results}} for “{query}”",
+    "clearSearch": "Clear search"
   },
   "Categories": {
     "title": "Categories",
@@ -362,6 +381,13 @@
         "How can AI help me make flashcards from my notes?",
         "Which tools help me learn a new language?",
         "What's a good tool to plan my study schedule?"
+      ],
+      "searches": [
+        "lecture notes",
+        "exam flashcards",
+        "essay feedback",
+        "summarize PDFs",
+        "language learning"
       ]
     },
     "lecturer": {
@@ -375,6 +401,13 @@
         "Which tools keep students engaged during class?",
         "How can AI help me write lesson plans?",
         "Which tools turn my lecture into practice exercises?"
+      ],
+      "searches": [
+        "lesson planning",
+        "presentation slides",
+        "quiz generator",
+        "auto grading",
+        "classroom engagement"
       ]
     },
     "researcher": {
@@ -388,6 +421,13 @@
         "Which tools help me write a literature review?",
         "How can AI help me analyze research data?",
         "What's the best tool to read and annotate PDFs?"
+      ],
+      "searches": [
+        "find research papers",
+        "citation manager",
+        "read papers faster",
+        "academic writing",
+        "research data analysis"
       ]
     },
     "developer": {
@@ -401,6 +441,13 @@
         "Which tools help me write documentation?",
         "How can AI review my pull requests?",
         "What tools help me build a web app faster?"
+      ],
+      "searches": [
+        "coding assistant",
+        "debugging",
+        "code review",
+        "API documentation",
+        "no-code app builder"
       ]
     },
     "data-analyst": {
@@ -414,6 +461,13 @@
         "Which tools build dashboards from my data?",
         "How can AI help me clean messy datasets?",
         "What's the best tool for statistical analysis?"
+      ],
+      "searches": [
+        "Excel formulas",
+        "SQL queries",
+        "data visualization",
+        "dashboards",
+        "statistical analysis"
       ]
     },
     "designer": {
@@ -427,6 +481,13 @@
         "Which tools help me make a quick prototype?",
         "How can AI help me edit photos?",
         "What's the best tool to design presentations?"
+      ],
+      "searches": [
+        "AI image generation",
+        "UI/UX design",
+        "logo design",
+        "photo editing",
+        "social media graphics"
       ]
     },
     "content-creator": {
@@ -440,6 +501,13 @@
         "Which tools help me plan a content calendar?",
         "How can AI improve my SEO?",
         "What's the best tool to edit podcasts?"
+      ],
+      "searches": [
+        "social media posts",
+        "video editing",
+        "AI voiceover",
+        "SEO writing",
+        "podcast production"
       ]
     },
     "business": {
@@ -453,6 +521,13 @@
         "Which tools help me analyze company finances?",
         "How can AI help me write a business plan?",
         "What tools help my team work together?"
+      ],
+      "searches": [
+        "CRM",
+        "business planning",
+        "financial reports",
+        "project management",
+        "workflow automation"
       ]
     },
     "customer-support": {
@@ -466,6 +541,13 @@
         "Which tools summarize customer feedback?",
         "How can AI translate replies for foreign customers?",
         "What's the best helpdesk tool with AI?"
+      ],
+      "searches": [
+        "customer service chatbot",
+        "email auto-replies",
+        "helpdesk software",
+        "knowledge base",
+        "customer feedback analysis"
       ]
     },
     "healthcare": {
@@ -479,6 +561,13 @@
         "Which tools explain medical research simply?",
         "How can AI help me plan healthy meals?",
         "What tools help nurses and doctors take notes?"
+      ],
+      "searches": [
+        "medical reference",
+        "anatomy study",
+        "mental health",
+        "fitness tracking",
+        "clinical notes"
       ]
     },
     "office": {
@@ -492,6 +581,13 @@
         "Which tools help me manage my calendar?",
         "How can AI help me summarize long documents?",
         "What's the best tool to make slides quickly?"
+      ],
+      "searches": [
+        "email writing",
+        "meeting summaries",
+        "document translation",
+        "scheduling",
+        "document drafting"
       ]
     }
   }

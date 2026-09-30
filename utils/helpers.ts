@@ -121,3 +121,17 @@ export function nullsToUndefined<T>(obj: T): NullsToUndefined<T> {
   }
   return obj as NullsToUndefined<T>;
 }
+
+/**
+ * Every element with this id, in document order. Next keeps hidden copies of
+ * recently visited pages mounted, so an id can repeat across page trees.
+ */
+export const getElementsById = (id: string) =>
+  [...document.querySelectorAll(`[id="${CSS.escape(id)}"]`)];
+
+/**
+ * The element with this id that is actually rendered, skipping the hidden
+ * copies of other pages that `document.getElementById` may return first.
+ */
+export const getShownElementById = (id: string) =>
+  getElementsById(id).find((element) => element.getClientRects().length > 0);

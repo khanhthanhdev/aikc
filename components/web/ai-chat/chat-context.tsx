@@ -21,9 +21,14 @@ interface ToolInfo {
 }
 
 interface ChatContextValue {
+  /** Open the chat and send this question, as if the visitor typed it. */
+  askQuestion: (question: string) => void;
+  /** Taken by the chat dialog once it can send; see `askQuestion`. */
+  clearPendingQuestion: () => void;
   currentTool: ToolInfo | null;
   isOpen: boolean;
   locale: string;
+  pendingQuestion: string | null;
   setCurrentTool: (tool: ToolInfo | null) => void;
   setIsOpen: (open: boolean) => void;
   startNewChat: () => void;
@@ -111,6 +116,21 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     openChange(!isOpen);
   }, [isOpen, openChange]);
 
+  // The dialog is loaded lazily, so the question waits here until it sends it
+  const [pendingQuestion, setPendingQuestion] = useState<string | null>(null);
+
+  const askQuestion = useCallback(
+    (question: string) => {
+      setPendingQuestion(question);
+      openChange(true);
+    },
+    [openChange]
+  );
+
+  const clearPendingQuestion = useCallback(() => {
+    setPendingQuestion(null);
+  }, []);
+
   const startNewChat = useCallback(() => {
     reshuffleQuestions();
     // Force re-render to reset chat messages
@@ -155,6 +175,9 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo(
     () => ({
+      askQuestion,
+      clearPendingQuestion,
+      pendingQuestion,
       isOpen,
       setIsOpen: openChange,
       toggleChat,
@@ -165,6 +188,9 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       locale,
     }),
     [
+      askQuestion,
+      clearPendingQuestion,
+      pendingQuestion,
       isOpen,
       openChange,
       toggleChat,
