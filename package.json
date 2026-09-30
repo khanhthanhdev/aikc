@@ -48,7 +48,6 @@
     "@mdx-js/react": "^3.1.0",
     "@mendable/firecrawl-js": "^1.7.2",
     "@next/mdx": "16.2.5",
-    "@openrouter/ai-sdk-provider": "2.10.0",
     "@prisma/client": "6",
     "@qdrant/js-client-rest": "^1.16.1",
     "@radix-ui/react-checkbox": "^1.1.2",

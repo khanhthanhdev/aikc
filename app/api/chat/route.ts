@@ -505,8 +505,7 @@ export async function POST(req: Request) {
       providerOptions: googleNoThinkingProviderOptions,
       tools: chatTools,
       temperature: 0.3,
-      // Answers are short; without a cap OpenRouter reserves credit for the
-      // model's full 65k-token maximum on every request
+      // Answers are short; the cap keeps a runaway reply cheap
       maxOutputTokens: 2000,
       // Text + video search, then the suggestions; a third step is slack
       stopWhen: stepCountIs(3),
