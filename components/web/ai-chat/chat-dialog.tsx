@@ -128,8 +128,14 @@ export function ChatDialog() {
   const t = useTranslations("Chat");
   const locale = useLocale(); // Get current locale
   const tRoles = useTranslations("Roles");
-  const { isOpen, setIsOpen, currentTool, suggestedQuestions } =
-    useChatContext();
+  const {
+    isOpen,
+    setIsOpen,
+    currentTool,
+    suggestedQuestions,
+    pendingQuestion,
+    clearPendingQuestion,
+  } = useChatContext();
   const { role, setDialogOpen: setRoleDialogOpen } = useRole();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const messagesContentRef = useRef<HTMLDivElement>(null);
@@ -224,6 +230,16 @@ export function ChatDialog() {
       }
     }
   }, [messages, status]);
+
+  // A question asked from outside the chat, e.g. the homepage search box
+  useEffect(() => {
+    if (!pendingQuestion || isLoading) {
+      return;
+    }
+    clearPendingQuestion();
+    sendMessage({ text: pendingQuestion });
+    setFollowUpQuestions([]);
+  }, [pendingQuestion, isLoading, clearPendingQuestion, sendMessage]);
 
   const handleStartNewChat = useCallback(() => {
     stickToBottomRef.current = true;

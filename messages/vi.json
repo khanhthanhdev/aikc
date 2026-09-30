@@ -20,7 +20,7 @@
     "latest": "Mới nhất",
     "categories": "Danh mục",
     "tags": "Thẻ",
-    "submit": "Gửi",
+    "submit": "Submit",
     "aboutUs": "Về chúng tôi",
     "toggleNavigation": "Mở menu điều hướng"
   },
@@ -28,7 +28,24 @@
     "title": "Tìm Công Cụ Học Tập & Làm Việc Hoàn Hảo",
     "description": "Khám phá các công cụ tốt nhất cho thư viện và trung tâm kiến thức VinUniversity. Công cụ tốt nhất cho việc học và làm việc giúp bạn xây dựng nhanh hơn và hiệu quả hơn.",
     "countNewToolsAdded": "{count} công cụ mới được thêm",
-    "countToolsCollected": "Đã tổng hợp {count}+ công cụ"
+    "countToolsCollected": "Đã tổng hợp {count}+ công cụ",
+    "searchLabel": "Tìm công cụ",
+    "searchPlaceholder": "Bạn cần công cụ cho việc gì? VD: {example}",
+    "searchButton": "Tìm kiếm",
+    "searchClear": "Xoá nội dung tìm kiếm",
+    "askAi": "Hỏi AI",
+    "searchCategory": "Danh mục",
+    "searchAllFor": "Tìm tất cả kết quả cho “{query}”",
+    "searchTry": "Thử tìm:",
+    "searchRecent": "Tìm kiếm gần đây",
+    "searchClearHistory": "Xoá lịch sử tìm kiếm",
+    "searchDefaults": [
+      "ghi chép bài giảng",
+      "tạo slide thuyết trình",
+      "tìm bài báo khoa học",
+      "trợ lý viết code",
+      "tóm tắt cuộc họp"
+    ]
   },
   "Developer": {
     "title": "Tài nguyên cho nhà phát triển AI Knowledge Cloud",
@@ -71,7 +88,7 @@
     "viewSource": "Xem mã nguồn"
   },
   "Submit": {
-    "title": "Gửi Công cụ",
+    "title": "Submit a Tool",
     "description": "Được liệt kê trên {siteName} là một cách tuyệt vời để công cụ của bạn tiếp cận nhiều người hơn. Chúng tôi chỉ liệt kê các công cụ chất lượng cao và hữu ích cho công việc & học tập.",
     "formTitle": "Biểu mẫu gửi công cụ"
   },
@@ -88,7 +105,7 @@
     "websiteUrl": "URL website:",
     "websiteUrlPlaceholder": "https://acmeanalytics.com",
     "characterCount": "{count}/{max} ký tự",
-    "submit": "Gửi"
+    "submit": "Submit"
   },
   "SubmitStatus": {
     "successTitle": "Cảm ơn bạn đã gửi {name}!",
@@ -143,7 +160,9 @@
     "categoriesSection": "Danh mục:",
     "tagsSection": "Thẻ:",
     "similarToolsTitle": "Công cụ học tập & làm việc tương tự {name}:",
-    "similarToolsLoading": "Công cụ học tập & làm việc tương tự:"
+    "similarToolsLoading": "Công cụ học tập & làm việc tương tự:",
+    "resultsFor": "{count, plural, other {# kết quả}} cho “{query}”",
+    "clearSearch": "Xoá tìm kiếm"
   },
   "Categories": {
     "title": "Danh mục",
@@ -362,6 +381,13 @@
         "AI có thể giúp tôi tạo flashcard từ ghi chép như thế nào?",
         "Công cụ nào giúp tôi học ngoại ngữ?",
         "Công cụ nào giúp tôi lên lịch học tập?"
+      ],
+      "searches": [
+        "ghi chép bài giảng",
+        "làm flashcard ôn thi",
+        "sửa bài luận",
+        "tóm tắt tài liệu PDF",
+        "học ngoại ngữ"
       ]
     },
     "lecturer": {
@@ -375,6 +401,13 @@
         "Công cụ nào giúp sinh viên hứng thú hơn trong giờ học?",
         "AI có thể giúp tôi soạn giáo án như thế nào?",
         "Công cụ nào biến bài giảng thành bài tập luyện tập?"
+      ],
+      "searches": [
+        "soạn bài giảng",
+        "tạo slide thuyết trình",
+        "tạo câu hỏi trắc nghiệm",
+        "chấm bài tự động",
+        "tương tác lớp học"
       ]
     },
     "researcher": {
@@ -388,6 +421,13 @@
         "Công cụ nào giúp tôi viết tổng quan tài liệu?",
         "AI có thể giúp tôi phân tích dữ liệu nghiên cứu như thế nào?",
         "Công cụ nào tốt nhất để đọc và chú thích PDF?"
+      ],
+      "searches": [
+        "tìm bài báo khoa học",
+        "quản lý trích dẫn",
+        "đọc hiểu paper",
+        "viết học thuật",
+        "phân tích dữ liệu nghiên cứu"
       ]
     },
     "developer": {
@@ -401,6 +441,13 @@
         "Công cụ nào giúp tôi viết tài liệu kỹ thuật?",
         "AI có thể review pull request cho tôi như thế nào?",
         "Công cụ nào giúp tôi làm web app nhanh hơn?"
+      ],
+      "searches": [
+        "trợ lý viết code",
+        "debug lỗi",
+        "review code",
+        "viết tài liệu API",
+        "tạo ứng dụng không cần code"
       ]
     },
     "data-analyst": {
@@ -414,6 +461,13 @@
         "Công cụ nào tạo dashboard từ dữ liệu của tôi?",
         "AI có thể giúp tôi làm sạch dữ liệu như thế nào?",
         "Công cụ nào tốt nhất để phân tích thống kê?"
+      ],
+      "searches": [
+        "viết công thức Excel",
+        "truy vấn SQL",
+        "trực quan hoá dữ liệu",
+        "làm dashboard",
+        "phân tích thống kê"
       ]
     },
     "designer": {
@@ -427,6 +481,13 @@
         "Công cụ nào giúp tôi làm prototype nhanh?",
         "AI có thể giúp tôi chỉnh sửa ảnh như thế nào?",
         "Công cụ nào tốt nhất để thiết kế bài thuyết trình?"
+      ],
+      "searches": [
+        "tạo ảnh bằng AI",
+        "thiết kế UI/UX",
+        "thiết kế logo",
+        "chỉnh sửa ảnh",
+        "ảnh cho mạng xã hội"
       ]
     },
     "content-creator": {
@@ -440,6 +501,13 @@
         "Công cụ nào giúp tôi lên lịch nội dung?",
         "AI có thể giúp tôi cải thiện SEO như thế nào?",
         "Công cụ nào tốt nhất để dựng podcast?"
+      ],
+      "searches": [
+        "viết bài mạng xã hội",
+        "dựng video",
+        "giọng đọc AI",
+        "viết bài chuẩn SEO",
+        "làm podcast"
       ]
     },
     "business": {
@@ -453,6 +521,13 @@
         "Công cụ nào giúp tôi phân tích tài chính doanh nghiệp?",
         "AI có thể giúp tôi viết kế hoạch kinh doanh như thế nào?",
         "Công cụ nào giúp nhóm tôi làm việc cùng nhau?"
+      ],
+      "searches": [
+        "quản lý khách hàng CRM",
+        "lập kế hoạch kinh doanh",
+        "báo cáo tài chính",
+        "quản lý dự án",
+        "tự động hoá quy trình"
       ]
     },
     "customer-support": {
@@ -466,6 +541,13 @@
         "Công cụ nào tóm tắt phản hồi của khách hàng?",
         "AI có thể dịch câu trả lời cho khách nước ngoài như thế nào?",
         "Phần mềm helpdesk có AI nào tốt nhất?"
+      ],
+      "searches": [
+        "chatbot chăm sóc khách hàng",
+        "trả lời email tự động",
+        "phần mềm helpdesk",
+        "cơ sở tri thức",
+        "phân tích phản hồi khách hàng"
       ]
     },
     "healthcare": {
@@ -479,6 +561,13 @@
         "Công cụ nào giải thích nghiên cứu y khoa dễ hiểu?",
         "AI có thể giúp tôi lên thực đơn lành mạnh như thế nào?",
         "Công cụ nào giúp bác sĩ, điều dưỡng ghi chép?"
+      ],
+      "searches": [
+        "tra cứu y khoa",
+        "học giải phẫu",
+        "sức khoẻ tinh thần",
+        "theo dõi luyện tập",
+        "ghi chép lâm sàng"
       ]
     },
     "office": {
@@ -492,6 +581,13 @@
         "Công cụ nào giúp tôi quản lý lịch làm việc?",
         "AI có thể giúp tôi tóm tắt tài liệu dài như thế nào?",
         "Công cụ nào tốt nhất để làm slide nhanh?"
+      ],
+      "searches": [
+        "viết email",
+        "tóm tắt cuộc họp",
+        "dịch tài liệu",
+        "sắp xếp lịch làm việc",
+        "soạn thảo văn bản"
       ]
     }
   }

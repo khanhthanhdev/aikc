@@ -103,62 +103,66 @@ export const Header = ({
           </Suspense>
         </Stack>
 
-        <nav className="contents max-lg:hidden">
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              className={cx(navigationLinkVariants(), "gap-1")}
-            >
-              {t("browse")}{" "}
-              <svg
-                aria-hidden="true"
-                className="size-4 opacity-50 duration-200 group-data-[state=open]:rotate-180"
-                fill="none"
-                height="24"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-                width="24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path d="m6 9 6 6 6-6" />
-              </svg>
-            </DropdownMenuTrigger>
-
-            <DropdownMenuContent align="start" className="min-w-[220px]">
-              <DropdownMenuItem asChild>
-                <NavigationLink href="/tools?sort=publishedAt.desc">
-                  <CalendarIcon className="mr-2 size-4 text-muted-foreground" />{" "}
-                  {t("latest")}
-                </NavigationLink>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <NavigationLink href="/tags">
-                  <TagIcon className="mr-2 size-4 text-muted-foreground" />{" "}
-                  {t("tags")}
-                </NavigationLink>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <NavigationLink href="/categories">{t("categories")}</NavigationLink>
-          <NavigationLink href="/about">{t("aboutUs")}</NavigationLink>
-        </nav>
-
-        <Stack className="max-lg:hidden" size="sm">
-          <ThemeSwitcherCompact />
-
-          <LocaleSwitcher />
-
+        {/* Wide screens: search, links and actions share one even spacing */}
+        <div className="flex items-center gap-5 max-lg:hidden">
           <Suspense fallback={<div className="size-4" />}>
             <SearchForm />
           </Suspense>
 
+          <nav className="contents">
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                className={cx(navigationLinkVariants(), "gap-1")}
+              >
+                {t("browse")}{" "}
+                <svg
+                  aria-hidden="true"
+                  className="size-4 opacity-50 duration-200 group-data-[state=open]:rotate-180"
+                  fill="none"
+                  height="24"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent align="start" className="min-w-[220px]">
+                <DropdownMenuItem asChild>
+                  <NavigationLink href="/tools?sort=publishedAt.desc">
+                    <CalendarIcon className="mr-2 size-4 text-muted-foreground" />{" "}
+                    {t("latest")}
+                  </NavigationLink>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <NavigationLink href="/tags">
+                    <TagIcon className="mr-2 size-4 text-muted-foreground" />{" "}
+                    {t("tags")}
+                  </NavigationLink>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <NavigationLink href="/categories">{t("categories")}</NavigationLink>
+            <NavigationLink href="/about">{t("aboutUs")}</NavigationLink>
+          </nav>
+
+          {/* The icon sits inside a 36px hit area; offset it to match the gap */}
+          <div className="-mx-2 flex">
+            <ThemeSwitcherCompact />
+          </div>
+
+          <LocaleSwitcher />
+
           <Button asChild prefix={<SparkleIcon />} size="lg" variant="primary">
             <Link href="/submit">{t("submit")}</Link>
           </Button>
-        </Stack>
+        </div>
       </div>
 
       <nav

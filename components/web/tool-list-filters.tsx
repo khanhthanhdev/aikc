@@ -15,11 +15,14 @@ import { searchParams } from "~/server/tools/search-params";
 export interface ToolListFiltersProps {
   categories?: CategoryMany[];
   placeholder?: string;
+  /** Hide the search box, e.g. where the page has its own (the homepage). */
+  showSearch?: boolean;
 }
 
 export const ToolListFilters = ({
   categories,
   placeholder,
+  showSearch = true,
 }: ToolListFiltersProps) => {
   const t = useTranslations("Filters");
   const tRoles = useTranslations("Roles");
@@ -64,19 +67,27 @@ export const ToolListFilters = ({
 
   return (
     <Stack className="w-full">
-      <div className="relative min-w-0 grow">
-        <div className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 opacity-50">
-          {isLoading ? <LoaderIcon className="animate-spin" /> : <SearchIcon />}
-        </div>
+      {showSearch ? (
+        <div className="relative min-w-0 grow">
+          <div className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 opacity-50">
+            {isLoading ? (
+              <LoaderIcon className="animate-spin" />
+            ) : (
+              <SearchIcon />
+            )}
+          </div>
 
-        <Input
-          className="w-full truncate pl-10"
-          onChange={(e) => setInputValue(e.target.value)}
-          placeholder={placeholder || t("searchPlaceholder")}
-          size="lg"
-          value={inputValue}
-        />
-      </div>
+          <Input
+            className="w-full truncate pl-10"
+            onChange={(e) => setInputValue(e.target.value)}
+            placeholder={placeholder || t("searchPlaceholder")}
+            size="lg"
+            value={inputValue}
+          />
+        </div>
+      ) : (
+        <div className="grow max-sm:hidden" />
+      )}
 
       {categories && (
         <Select

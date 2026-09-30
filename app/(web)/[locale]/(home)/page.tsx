@@ -7,9 +7,11 @@ import { ToolListSkeleton } from "~/components/web/tool-list-skeleton";
 import { Badge } from "~/components/web/ui/badge";
 import { Intro, IntroDescription, IntroTitle } from "~/components/web/ui/intro";
 import { Ping } from "~/components/web/ui/ping";
+import { HOME_ELEMENT_IDS } from "~/config/home";
 import { getAgentHomepageSummary } from "~/lib/homepage-agent-content";
 import { parseMetadata } from "~/utils/metadata";
 import { buildAlternates, buildLocalizedUrl } from "~/utils/seo";
+import { HeroSearch } from "./hero-search";
 import { RoleTools } from "./role-tools";
 import { ToolsListing } from "./tools-listing";
 
@@ -42,6 +44,22 @@ export default async function Home({ params, searchParams }: PageProps) {
         <IntroTitle className="max-w-[47rem]">{t("title")}</IntroTitle>
         <IntroDescription>{t("description")}</IntroDescription>
 
+        <div
+          className="flex w-full justify-center"
+          id={HOME_ELEMENT_IDS.heroSearch}
+        >
+          {/* Reads the query from the URL; the fallback keeps its place */}
+          <Suspense
+            fallback={
+              <div className="h-[94px] w-full max-w-2xl">
+                <div className="h-[54px] rounded-full border border-foreground/15" />
+              </div>
+            }
+          >
+            <HeroSearch />
+          </Suspense>
+        </div>
+
         <Suspense
           fallback={
             <Badge
@@ -65,9 +83,11 @@ export default async function Home({ params, searchParams }: PageProps) {
         <p>{getAgentHomepageSummary(locale)}</p>
       </section>
 
-      <Suspense fallback={<ToolListSkeleton />}>
-        <ToolsListing searchParams={searchParams} />
-      </Suspense>
+      <section className="scroll-mt-24" id={HOME_ELEMENT_IDS.tools}>
+        <Suspense fallback={<ToolListSkeleton />}>
+          <ToolsListing searchParams={searchParams} showSearch={false} />
+        </Suspense>
+      </section>
     </>
   );
 }
