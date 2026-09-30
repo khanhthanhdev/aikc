@@ -61,16 +61,14 @@ export const HeroSearch = () => {
   const debounced = useDebounce(value.trim(), SUGGEST_DEBOUNCE_MS);
   const [recent, setRecent] = useState<string[]>([]);
   const [exampleIndex, setExampleIndex] = useState(0);
-  // The role is only known after hydration; the examples wait for it
-  const [isMounted, setIsMounted] = useState(false);
 
-  // Searches worth trying, for the visitor's role when we know it
+  // Searches worth trying: the defaults at first, then the visitor's role
+  // once hydration has read it
   const examples = (
     role ? tRoles.raw(`${role}.searches`) : t.raw("searchDefaults")
   ) as string[];
 
   useEffect(() => {
-    setIsMounted(true);
     setRecent(readRecent());
   }, []);
 
@@ -254,7 +252,7 @@ export const HeroSearch = () => {
             aria-expanded={showList}
             aria-label={t("searchLabel")}
             autoComplete="off"
-            className="h-10 min-w-0 flex-1 truncate bg-transparent text-base text-foreground outline-none placeholder:text-foreground/45"
+            className="h-10 min-w-0 flex-1 truncate bg-transparent text-base text-foreground outline-none placeholder:text-foreground/65"
             enterKeyHint="search"
             onBlur={close}
             onChange={(event) => {
@@ -321,7 +319,7 @@ export const HeroSearch = () => {
               <div key={item.key}>
                 {item.group && item.group !== items[index - 1]?.group && (
                   <p
-                    className="px-4 pt-2 pb-1 font-medium text-foreground/50 text-xs"
+                    className="px-4 pt-2 pb-1 font-medium text-foreground/65 text-xs"
                     role="presentation"
                   >
                     {item.group}
@@ -357,14 +355,14 @@ export const HeroSearch = () => {
                   <span className="min-w-0 flex-1 truncate">
                     <span className="font-medium">{item.label}</span>
                     {item.detail && (
-                      <span className="text-foreground/55">
+                      <span className="text-foreground/65">
                         {" "}
                         · {item.detail}
                       </span>
                     )}
                   </span>
                   {item.badge && (
-                    <span className="shrink-0 text-foreground/45 text-xs">
+                    <span className="shrink-0 text-foreground/65 text-xs">
                       {item.badge}
                     </span>
                   )}
@@ -375,7 +373,7 @@ export const HeroSearch = () => {
             <div className="mt-1 border-foreground/10 border-t px-4 pt-2 pb-1">
               {isEmpty ? (
                 <button
-                  className="text-foreground/55 text-xs hover:text-foreground"
+                  className="text-foreground/65 text-xs hover:text-foreground"
                   onClick={() => {
                     clearRecent();
                     setRecent([]);
@@ -403,14 +401,9 @@ export const HeroSearch = () => {
         )}
       </form>
 
-      {/* Ideas to start from; kept in place while the role loads, so nothing jumps */}
-      <div
-        className={cx(
-          "flex min-h-7 flex-wrap items-center justify-center gap-1.5 transition-opacity duration-300",
-          isMounted ? "opacity-100" : "opacity-0"
-        )}
-      >
-        <span className="text-foreground/50 text-sm">{t("searchTry")}</span>
+      {/* Ideas to start from, shown straight away so the space is never empty */}
+      <div className="flex min-h-7 flex-wrap items-center justify-center gap-1.5">
+        <span className="text-foreground/65 text-sm">{t("searchTry")}</span>
         {examples.map((example) => (
           <button
             className="rounded-full border border-foreground/15 px-3 py-1 text-foreground/75 text-xs transition-colors hover:border-foreground/30 hover:bg-foreground/5 hover:text-foreground sm:text-sm"

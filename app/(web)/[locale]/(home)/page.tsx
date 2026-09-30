@@ -39,8 +39,9 @@ export default async function Home({ params, searchParams }: PageProps) {
   const t = await getTranslations({ locale, namespace: "Home" });
 
   return (
-    <>
-      <Intro className="mb-[2.5vh] text-pretty">
+    // Tighter than the page's own gap, so the tools sit close under the search
+    <div className="flex flex-col gap-10 md:gap-12">
+      <Intro className="text-pretty">
         <IntroTitle className="max-w-[47rem]">{t("title")}</IntroTitle>
         <IntroDescription>{t("description")}</IntroDescription>
 
@@ -88,6 +89,6 @@ export default async function Home({ params, searchParams }: PageProps) {
           <ToolsListing searchParams={searchParams} showSearch={false} />
         </Suspense>
       </section>
-    </>
+    </div>
   );
 }

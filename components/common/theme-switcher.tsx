@@ -127,16 +127,9 @@ export function ThemeSwitcher() {
  * Compact theme switcher with dropdown menu
  */
 export function ThemeSwitcherCompact() {
-  const [mounted, setMounted] = useState(false);
-  const { theme, setTheme } = useTheme();
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return <div className="h-9 w-9 animate-pulse rounded-md bg-accent/50" />;
-  }
+  // The icon follows the `dark` class, so it renders right on the server and
+  // needs no placeholder while the theme loads
+  const { setTheme } = useTheme();
 
   return (
     <DropdownMenu>

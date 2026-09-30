@@ -20,7 +20,7 @@
     "latest": "Mới nhất",
     "categories": "Danh mục",
     "tags": "Thẻ",
-    "submit": "Submit",
+    "submit": "Gửi công cụ",
     "aboutUs": "Về chúng tôi",
     "toggleNavigation": "Mở menu điều hướng"
   },
@@ -81,6 +81,7 @@
     "aboutUs": "Về chúng tôi",
     "contact": "Liên hệ",
     "privacy": "Chính sách quyền riêng tư",
+    "tagline": "Tìm công cụ học tập & làm việc phù hợp với bạn",
     "madeBy": "Được tạo bởi Nhóm Thư viện VinUni",
     "affiliateDisclosure": "Website này có thể chứa các liên kết tiếp thị liên kết",
     "contactUs": "Liên hệ với chúng tôi",
@@ -88,7 +89,7 @@
     "viewSource": "Xem mã nguồn"
   },
   "Submit": {
-    "title": "Submit a Tool",
+    "title": "Gửi công cụ",
     "description": "Được liệt kê trên {siteName} là một cách tuyệt vời để công cụ của bạn tiếp cận nhiều người hơn. Chúng tôi chỉ liệt kê các công cụ chất lượng cao và hữu ích cho công việc & học tập.",
     "formTitle": "Biểu mẫu gửi công cụ"
   },
@@ -105,7 +106,7 @@
     "websiteUrl": "URL website:",
     "websiteUrlPlaceholder": "https://acmeanalytics.com",
     "characterCount": "{count}/{max} ký tự",
-    "submit": "Submit"
+    "submit": "Gửi"
   },
   "SubmitStatus": {
     "successTitle": "Cảm ơn bạn đã gửi {name}!",
