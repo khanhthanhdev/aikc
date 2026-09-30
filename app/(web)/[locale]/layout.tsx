@@ -7,6 +7,7 @@ import { JsonLd } from "~/components/common/json-ld";
 import { AdBanner } from "~/components/web/ads/ad-banner";
 import { ChatProvider } from "~/components/web/ai-chat/chat-context";
 import { ClientWidgets } from "~/components/web/client-widgets";
+import { DocumentLang } from "~/components/web/document-lang";
 import { Footer } from "~/components/web/footer";
 import { Header } from "~/components/web/header";
 import { RoleProvider } from "~/components/web/roles/role-context";
@@ -79,6 +80,7 @@ export default async function LocaleLayout({
         <ChatProvider>
           <CommandPaletteProvider>
             {/* JSON-LD Schemas for SEO */}
+            <DocumentLang locale={locale} />
             <JsonLd data={buildOrganizationSchema()} />
             <JsonLd data={buildWebSiteSchema()} />
 
