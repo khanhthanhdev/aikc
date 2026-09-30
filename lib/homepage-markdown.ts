@@ -10,13 +10,13 @@ const markdownBrowseSections = {
 
 - [Tools](/en/tools): Search the published work and study tool catalog.
 - [Categories](/en/categories): Browse tools by subject or use case.
-- [Collections](/en/collections): Explore curated tool collections.
+- [Tags](/en/tags): Browse tools by feature or topic.
 - [Developer resources](/en/developers): Read API, authentication, webhook, and MCP availability details.`,
   vi: `## Khám phá AI Knowledge Cloud
 
 - [Công cụ](/vi/tools): Tìm trong danh mục công cụ học tập và làm việc đã xuất bản.
 - [Danh mục](/vi/danh-muc): Duyệt công cụ theo môn học hoặc trường hợp sử dụng.
-- [Bộ sưu tập](/vi/bo-suu-tap): Khám phá các bộ sưu tập công cụ được tuyển chọn.
+- [Thẻ](/vi/the): Duyệt công cụ theo tính năng hoặc chủ đề.
 - [Tài nguyên cho nhà phát triển](/vi/nha-phat-trien): Đọc thông tin về API, xác thực, webhook và MCP.`,
 } as const;
 

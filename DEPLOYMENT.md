@@ -80,7 +80,6 @@ try {
 - `app/(web)/[locale]/tools/[slug]/page.tsx`
 - `app/(web)/[locale]/tools/[slug]/related-tools.tsx`
 - `app/(web)/[locale]/categories/[slug]/page.tsx`
-- `app/(web)/[locale]/collections/[slug]/page.tsx`
 - `app/(web)/[locale]/tags/[slug]/page.tsx`
 - `app/(web)/[locale]/submit/[slug]/page.tsx`
 

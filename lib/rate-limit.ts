@@ -214,7 +214,9 @@ export function isSameOrigin(
  */
 export function rateLimitResponse(
   result: RateLimitResult,
-  message?: string
+  message?: string,
+  /** Extra `details` fields for clients that react per limit (overrides `scope`). */
+  details?: Record<string, unknown>
 ): Response {
   const retryAfter = Math.max(
     1,
@@ -225,7 +227,7 @@ export function rateLimitResponse(
     code: "RATE_LIMITED",
     message: message ?? "Too many requests. Please slow down.",
     hint: `Wait ${retryAfter} seconds before retrying this request.`,
-    details: { scope: result.scope, retryAfter },
+    details: { scope: result.scope, retryAfter, ...details },
     headers: {
       "Retry-After": String(retryAfter),
       "X-RateLimit-Remaining": "0",

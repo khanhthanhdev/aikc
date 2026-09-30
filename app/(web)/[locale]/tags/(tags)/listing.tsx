@@ -43,7 +43,7 @@ export const TagsListing = async ({ searchParams }: TagsListingProps) => {
       {!tags.length && <EmptyList>{t("noTagsFound")}</EmptyList>}
 
       <Pagination
-        className="col-span-full mt-4"
+        className="col-span-full"
         pageSize={perPage}
         totalCount={totalCount}
       />

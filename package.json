@@ -26,6 +26,8 @@
     "benchmark:app": "bun run scripts/benchmark-app.ts",
     "profile:keyword-search": "bash ./scripts/profile-keyword-search.sh",
     "import:ai-tools": "bun run scripts/import-ai-study-tools.ts",
+    "categories:assign": "bun run scripts/assign-categories.ts",
+    "roles:assign": "bun run scripts/assign-roles.ts",
     "collect:ai-tools": "bun run scripts/collect-ai-tool-urls.ts",
     "firecrawl:mass-crawl": "bun run scripts/firecrawl-mass-crawl.ts",
     "related-tools:populate": "bun run scripts/populate-related-tools.ts",

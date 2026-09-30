@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { z } from "zod";
 import { isDev } from "~/env";
+import { recordAiQuery } from "~/lib/ai-usage";
 import {
   internalServerErrorResponse,
   invalidRequestResponse,
@@ -56,15 +57,15 @@ export async function POST(request: Request) {
     );
   }
 
+  const startedAt = Date.now();
+  // Known once the body is valid, so a failed model call can still be logged
+  let question: string | undefined;
+
   try {
     const body = await request.json();
-    const {
-      question,
-      limit: take,
-      category,
-      temperature,
-      advanced,
-    } = ragQuerySchema.parse(body);
+    const parsed = ragQuerySchema.parse(body);
+    const { limit: take, category, temperature, advanced } = parsed;
+    question = parsed.question;
 
     const result = advanced
       ? await answerToolQuestionAdvanced(question, {
@@ -78,8 +79,23 @@ export async function POST(request: Request) {
           temperature,
         });
 
-    const { cache, ...rest } = result;
+    // model and usage are for the log only, not part of the public response
+    const { cache, model, usage, ...rest } = result;
     const responseBody = cache ? { ...rest, cache, cached: true } : rest;
+    const latencyMs = Date.now() - startedAt;
+
+    after(() =>
+      recordAiQuery({
+        endpoint: "rag",
+        question: parsed.question,
+        cacheHit: Boolean(cache),
+        latencyMs,
+        answer: result.answer,
+        model,
+        usage,
+        headers: request.headers,
+      })
+    );
 
     return NextResponse.json(responseBody);
   } catch (error) {
@@ -89,6 +105,22 @@ export async function POST(request: Request) {
 
     if (error instanceof SyntaxError) {
       return invalidRequestResponse();
+    }
+
+    if (question) {
+      const failedQuestion = question;
+      const latencyMs = Date.now() - startedAt;
+
+      after(() =>
+        recordAiQuery({
+          endpoint: "rag",
+          question: failedQuestion,
+          latencyMs,
+          status: "ERROR",
+          error,
+          headers: request.headers,
+        })
+      );
     }
 
     if (isDev) {

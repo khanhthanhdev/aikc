@@ -92,6 +92,46 @@ const nextConfig: NextConfig = {
   skipTrailingSlashRedirect: true,
   pageExtensions: ["md", "mdx", "ts", "tsx"],
 
+  // The Collection taxonomy was merged into Category. Keep the old URLs
+  // (including the Vietnamese /bo-suu-tap alias) resolving for search engines
+  // and any link already published by the library. A collection merged into a
+  // same-name category with a different slug needs its own entry here; the
+  // merge script lists those as "needs_redirect".
+  async redirects() {
+    return [
+      {
+        source: "/:locale(en|vi)/collections/:slug",
+        destination: "/:locale/categories/:slug",
+        permanent: true,
+      },
+      {
+        source: "/:locale(en|vi)/collections",
+        destination: "/:locale/categories",
+        permanent: true,
+      },
+      {
+        source: "/vi/bo-suu-tap/:slug",
+        destination: "/vi/categories/:slug",
+        permanent: true,
+      },
+      {
+        source: "/vi/bo-suu-tap",
+        destination: "/vi/danh-muc",
+        permanent: true,
+      },
+      {
+        source: "/collections/:slug",
+        destination: "/en/categories/:slug",
+        permanent: true,
+      },
+      {
+        source: "/collections",
+        destination: "/en/categories",
+        permanent: true,
+      },
+    ];
+  },
+
   async headers() {
     return [
       {

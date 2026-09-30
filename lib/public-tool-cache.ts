@@ -4,7 +4,6 @@ import { revalidateTag } from "next/cache";
 
 const PUBLIC_TOOL_CACHE_TAGS = {
   categories: ["categories", "tools"],
-  collections: ["collections", "tools"],
   tags: ["tags", "tools"],
   tools: ["tools"],
 } as const;

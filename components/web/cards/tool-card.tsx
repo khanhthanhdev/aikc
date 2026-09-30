@@ -87,13 +87,6 @@ export const ToolCard = ({
                   {pricing}
                 </Badge>
               )}
-
-              {/* {showBadges &&
-            tool.collections.map(collection => (
-              <Badge key={collection.id} variant="outline">
-                {collection.name}
-              </Badge>
-            ))} */}
             </Stack>
           </div>
 

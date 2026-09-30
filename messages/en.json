@@ -3,7 +3,6 @@
     "browse": "Browse",
     "latest": "Latest",
     "categories": "Categories",
-    "collections": "Collections",
     "tags": "Tags",
     "free": "Free",
     "freemium": "Freemium",
@@ -20,11 +19,7 @@
     "browse": "Browse",
     "latest": "Latest",
     "categories": "Categories",
-    "collections": "Collections",
     "tags": "Tags",
-    "freeTools": "Free",
-    "freemiumTools": "Freemium",
-    "paidTools": "Paid",
     "submit": "Submit",
     "aboutUs": "About Us",
     "toggleNavigation": "Toggle navigation"
@@ -33,7 +28,24 @@
     "title": "Find the Perfect Work & Study Tools for You",
     "description": "Discover the best tools for VinUniversity library and knowledge cloud. The best tool for your study & work to help you build faster and more efficiently.",
     "countNewToolsAdded": "{count} new {unit} added",
-    "countToolsCollected": "{count}+ tools collected"
+    "countToolsCollected": "{count}+ tools collected",
+    "searchLabel": "Search tools",
+    "searchPlaceholder": "What do you need a tool for? e.g. {example}",
+    "searchButton": "Search",
+    "searchClear": "Clear search",
+    "askAi": "Ask AI",
+    "searchCategory": "Category",
+    "searchAllFor": "See all results for “{query}”",
+    "searchTry": "Try:",
+    "searchRecent": "Recent searches",
+    "searchClearHistory": "Clear search history",
+    "searchDefaults": [
+      "lecture notes",
+      "presentation slides",
+      "find research papers",
+      "coding assistant",
+      "meeting summaries"
+    ]
   },
   "Developer": {
     "title": "AI Knowledge Cloud Developer Resources",
@@ -64,12 +76,12 @@
     "quickLinks": "Quick Links",
     "browse": "Browse",
     "categories": "Categories",
-    "collections": "Collections",
     "tags": "Tags",
     "addListing": "Add a Free Listing",
     "aboutUs": "About Us",
     "contact": "Contact",
     "privacy": "Privacy Policy",
+    "tagline": "Find the Perfect Work & Study Tools for You",
     "madeBy": "Made by VinUni Library Team",
     "affiliateDisclosure": "This website may contain affiliate links",
     "contactUs": "Contact us",
@@ -149,17 +161,14 @@
     "categoriesSection": "Categories:",
     "tagsSection": "Tags:",
     "similarToolsTitle": "Work & Study Tools Similar to {name}:",
-    "similarToolsLoading": "Similar Work & Study Tools:"
+    "similarToolsLoading": "Similar Work & Study Tools:",
+    "resultsFor": "{count, plural, one {# result} other {# results}} for “{query}”",
+    "clearSearch": "Clear search"
   },
   "Categories": {
     "title": "Categories",
     "description": "Browse tools by category",
     "noCategoriesFound": "No categories found."
-  },
-  "Collections": {
-    "title": "Collections",
-    "description": "Curated collections of tools",
-    "noCollectionsFound": "No collections found."
   },
   "Tags": {
     "title": "Tags",
@@ -174,12 +183,6 @@
     "titleWithoutCount": "Best {name}",
     "description": "{description} A curated collection of the best {name} to help you build your next project faster.",
     "searchPlaceholder": "Search {name}..."
-  },
-  "CollectionDetail": {
-    "home": "Home",
-    "collections": "Collections",
-    "title": "{name} Work & Study Tools",
-    "searchPlaceholder": "Search {name} tools..."
   },
   "TagDetail": {
     "home": "Home",
@@ -201,13 +204,13 @@
     "sortNameDesc": "Name Z-A",
     "pricingFree": "Free",
     "pricingFreemium": "Freemium",
+    "pricingOpenSource": "Open Source",
     "pricingPaid": "Paid"
   },
   "Pagination": {
     "prev": "Prev",
     "next": "Next",
-    "pageOf": "Page {page} of {total}",
-    "pageLabel": "Page:"
+    "pageOf": "Page {page} of {total}"
   },
   "LocaleSwitcher": {
     "label": "Language",
@@ -271,14 +274,13 @@
     "searchFailed": "Search failed: {error}",
     "searchFailedFallback": "Search failed",
     "noResults": "No results found. Try a different query.",
-    "emptyPrompt": "Type to search across tools, categories, collections, and tags.",
+    "emptyPrompt": "Type to search across tools, categories, and tags.",
     "srTitle": "Search",
-    "srDescription": "Search for AI tools, categories, collections, and tags.",
+    "srDescription": "Search for AI tools, categories, and tags.",
     "close": "Close",
     "quickLinksHeading": "Quick Links",
     "toolsHeading": "Tools",
     "categoriesHeading": "Categories",
-    "collectionsHeading": "Collections",
     "tagsHeading": "Tags",
     "tagShortcut": "Tag",
     "appearanceHeading": "Appearance",
@@ -300,7 +302,10 @@
   },
   "Login": {
     "title": "Sign in to your account",
-    "continueWithGoogle": "Continue with Google"
+    "continueWithGoogle": "Continue with Google",
+    "accessDenied": "This account does not have admin access. Ask an existing admin to add you, or sign in with another account.",
+    "signedInAs": "Signed in as {email}",
+    "useAnotherAccount": "Use another account"
   },
   "Chat": {
     "title": "AI Chat",
@@ -323,6 +328,12 @@
     "helpDescription": "Ask me about Work & Study tools, recommendations, or alternatives",
     "videoLoadFailed": "Failed to load videos",
     "thinking": "Thinking...",
+    "retry": "Try again",
+    "errors": {
+      "rateLimitMinute": "You're asking a bit fast. Please wait a minute and try again.",
+      "rateLimitDay": "You've used all of today's questions. Please come back tomorrow.",
+      "generic": "Something went wrong. Please try again later."
+    },
     "suggestedQuestionsList": [
       "What Work & Study tools do you recommend?",
       "Help me find a tool for API testing",
@@ -344,5 +355,240 @@
     "loadingSemantic": "Searching with AI...",
     "initialResults": "Showing fast results",
     "searchComplete": "Search complete"
+  },
+  "Roles": {
+    "dialogTitle": "What do you do?",
+    "dialogDescription": "Pick your role and we'll suggest AI tools and questions that fit your work. You can change it any time.",
+    "skip": "Skip for now",
+    "change": "Change role",
+    "pickRole": "Choose your role",
+    "youAre": "You are: {role}",
+    "forYouTitle": "Recommended for you",
+    "forYouDescription": "AI tools picked for your role: {role}",
+    "viewAll": "View all",
+    "suitedFor": "Suited for",
+    "filterByRole": "Filter by role",
+    "allRoles": "All roles",
+    "toolQuestion": "As {persona}, how do I use {name}?",
+    "student": {
+      "label": "Student",
+      "persona": "a student",
+      "hint": "Studying, assignments, exams",
+      "questions": [
+        "Which AI tools help me take better lecture notes?",
+        "What's the best tool to prepare for exams?",
+        "Which tools help me write and check my essays?",
+        "How can AI help me make flashcards from my notes?",
+        "Which tools help me learn a new language?",
+        "What's a good tool to plan my study schedule?"
+      ],
+      "searches": [
+        "lecture notes",
+        "exam flashcards",
+        "essay feedback",
+        "summarize PDFs",
+        "language learning"
+      ]
+    },
+    "lecturer": {
+      "label": "Teacher / Lecturer",
+      "persona": "a teacher",
+      "hint": "Lessons, slides, quizzes, grading",
+      "questions": [
+        "Which AI tools help me prepare lesson slides quickly?",
+        "How can AI help me create quizzes for my class?",
+        "Which tools make grading assignments faster?",
+        "Which tools keep students engaged during class?",
+        "How can AI help me write lesson plans?",
+        "Which tools turn my lecture into practice exercises?"
+      ],
+      "searches": [
+        "lesson planning",
+        "presentation slides",
+        "quiz generator",
+        "auto grading",
+        "classroom engagement"
+      ]
+    },
+    "researcher": {
+      "label": "Researcher",
+      "persona": "a researcher",
+      "hint": "Papers, citations, academic writing",
+      "questions": [
+        "Which AI tools help me find relevant research papers?",
+        "What's the best tool to manage citations?",
+        "How can AI help me summarize long papers?",
+        "Which tools help me write a literature review?",
+        "How can AI help me analyze research data?",
+        "What's the best tool to read and annotate PDFs?"
+      ],
+      "searches": [
+        "find research papers",
+        "citation manager",
+        "read papers faster",
+        "academic writing",
+        "research data analysis"
+      ]
+    },
+    "developer": {
+      "label": "Developer",
+      "persona": "a developer",
+      "hint": "Coding, debugging, APIs",
+      "questions": [
+        "Which AI coding assistants are best for developers?",
+        "What tools help me debug code faster?",
+        "Help me find a tool for API testing",
+        "Which tools help me write documentation?",
+        "How can AI review my pull requests?",
+        "What tools help me build a web app faster?"
+      ],
+      "searches": [
+        "coding assistant",
+        "debugging",
+        "code review",
+        "API documentation",
+        "no-code app builder"
+      ]
+    },
+    "data-analyst": {
+      "label": "Data analyst",
+      "persona": "a data analyst",
+      "hint": "Spreadsheets, SQL, dashboards",
+      "questions": [
+        "Which AI tools help me analyze spreadsheet data?",
+        "What's the best tool to build charts from data?",
+        "How can AI help me write SQL queries?",
+        "Which tools build dashboards from my data?",
+        "How can AI help me clean messy datasets?",
+        "What's the best tool for statistical analysis?"
+      ],
+      "searches": [
+        "Excel formulas",
+        "SQL queries",
+        "data visualization",
+        "dashboards",
+        "statistical analysis"
+      ]
+    },
+    "designer": {
+      "label": "Designer",
+      "persona": "a designer",
+      "hint": "UI/UX, graphics, branding",
+      "questions": [
+        "Which AI tools help me design UI mockups?",
+        "What's the best AI image generator for designers?",
+        "Which tools help me create a brand identity?",
+        "Which tools help me make a quick prototype?",
+        "How can AI help me edit photos?",
+        "What's the best tool to design presentations?"
+      ],
+      "searches": [
+        "AI image generation",
+        "UI/UX design",
+        "logo design",
+        "photo editing",
+        "social media graphics"
+      ]
+    },
+    "content-creator": {
+      "label": "Content creator",
+      "persona": "a content creator",
+      "hint": "Posts, video, social media",
+      "questions": [
+        "Which AI tools help me edit videos faster?",
+        "What's the best tool to write social media posts?",
+        "Which tools turn text into voice-overs?",
+        "Which tools help me plan a content calendar?",
+        "How can AI improve my SEO?",
+        "What's the best tool to edit podcasts?"
+      ],
+      "searches": [
+        "social media posts",
+        "video editing",
+        "AI voiceover",
+        "SEO writing",
+        "podcast production"
+      ]
+    },
+    "business": {
+      "label": "Business & management",
+      "persona": "a manager",
+      "hint": "CRM, sales, planning, reports",
+      "questions": [
+        "Which AI tools help me manage customers and sales?",
+        "What tools help me write business reports?",
+        "How can AI help me plan projects for my team?",
+        "Which tools help me analyze company finances?",
+        "How can AI help me write a business plan?",
+        "What tools help my team work together?"
+      ],
+      "searches": [
+        "CRM",
+        "business planning",
+        "financial reports",
+        "project management",
+        "workflow automation"
+      ]
+    },
+    "customer-support": {
+      "label": "Customer support",
+      "persona": "a support agent",
+      "hint": "Helpdesk, chatbots, replies",
+      "questions": [
+        "Which AI chatbots can answer customer questions?",
+        "What tools help me reply to support tickets faster?",
+        "How can AI help me build a help center?",
+        "Which tools summarize customer feedback?",
+        "How can AI translate replies for foreign customers?",
+        "What's the best helpdesk tool with AI?"
+      ],
+      "searches": [
+        "customer service chatbot",
+        "email auto-replies",
+        "helpdesk software",
+        "knowledge base",
+        "customer feedback analysis"
+      ]
+    },
+    "healthcare": {
+      "label": "Healthcare & wellness",
+      "persona": "a healthcare worker",
+      "hint": "Medicine, fitness, mental health",
+      "questions": [
+        "Which AI tools help medical students study?",
+        "What tools help me track my health and fitness?",
+        "Which AI apps support mental wellbeing?",
+        "Which tools explain medical research simply?",
+        "How can AI help me plan healthy meals?",
+        "What tools help nurses and doctors take notes?"
+      ],
+      "searches": [
+        "medical reference",
+        "anatomy study",
+        "mental health",
+        "fitness tracking",
+        "clinical notes"
+      ]
+    },
+    "office": {
+      "label": "Office worker",
+      "persona": "an office worker",
+      "hint": "Email, documents, meetings",
+      "questions": [
+        "Which AI tools help me write emails faster?",
+        "What tools take notes in meetings for me?",
+        "Which tools translate documents accurately?",
+        "Which tools help me manage my calendar?",
+        "How can AI help me summarize long documents?",
+        "What's the best tool to make slides quickly?"
+      ],
+      "searches": [
+        "email writing",
+        "meeting summaries",
+        "document translation",
+        "scheduling",
+        "document drafting"
+      ]
+    }
   }
 }

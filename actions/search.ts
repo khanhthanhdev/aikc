@@ -156,7 +156,6 @@ const publicCircuitBreaker = new CircuitBreaker(
  */
 interface SearchModeMetadata {
   categories: SearchMode;
-  collections: SearchMode; // Always keyword (no Qdrant vectors)
   tags: SearchMode; // Always keyword (no Qdrant vectors)
   tools: SearchMode;
 }
@@ -164,7 +163,6 @@ interface SearchModeMetadata {
 export interface SearchResults {
   categories: Awaited<ReturnType<typeof prisma.category.findMany>>;
   categoryMatches: CategoryVectorMatch[];
-  collections: Awaited<ReturnType<typeof prisma.collection.findMany>>;
   elapsedMs: number;
   matches: ToolVectorMatch[];
   requestedMode: SearchMode;
@@ -523,19 +521,9 @@ const performSearch = async (
 
   const start = performance.now();
 
-  const [toolsResult, categoriesResult, collections, tags] = await Promise.all([
+  const [toolsResult, categoriesResult, tags] = await Promise.all([
     runner.searchToolsByMode(q, mode),
     runner.searchCategoriesByMode(q, mode),
-    prisma.collection.findMany({
-      where: {
-        OR: [
-          { name: { contains: q, mode: "insensitive" } },
-          { nameVi: { contains: q, mode: "insensitive" } },
-        ],
-      },
-      orderBy: { name: "asc" },
-      take: SEARCH_LIMIT,
-    }),
     prisma.tag.findMany({
       where: {
         OR: [
@@ -552,14 +540,12 @@ const performSearch = async (
   const searchModes: SearchModeMetadata = {
     tools: toolsResult.usedMode,
     categories: categoriesResult.usedMode,
-    collections: "keyword",
     tags: "keyword",
   };
 
   const results = {
     tools: toolsResult.tools,
     categories: categoriesResult.categories,
-    collections,
     tags,
     matches: toolsResult.matches,
     categoryMatches: categoriesResult.matches,
@@ -649,14 +635,12 @@ export const progressiveSearchPaletteItems = async ({
         data: {
           tools: [],
           categories: [],
-          collections: [],
           tags: [],
           matches: [],
           categoryMatches: [],
           searchModes: {
             tools: "keyword",
             categories: "keyword",
-            collections: "keyword",
             tags: "keyword",
           },
           requestedMode: mode,
@@ -712,17 +696,6 @@ export const progressiveSearchPaletteItems = async ({
     const keywordResults = await keywordSearchPromise;
     const keywordElapsedTime = Math.round(performance.now() - startTime);
 
-    const collectionsPromise = prisma.collection.findMany({
-      where: {
-        OR: [
-          { name: { contains: trimmedQuery, mode: "insensitive" } },
-          { nameVi: { contains: trimmedQuery, mode: "insensitive" } },
-        ],
-      },
-      orderBy: { name: "asc" },
-      take: SEARCH_LIMIT,
-    });
-
     const tagsPromise = prisma.tag.findMany({
       where: {
         OR: [
@@ -735,22 +708,17 @@ export const progressiveSearchPaletteItems = async ({
       take: SEARCH_LIMIT,
     });
 
-    const [collections, tags] = await Promise.all([
-      collectionsPromise,
-      tagsPromise,
-    ]);
+    const tags = await tagsPromise;
 
     const initialResults: ProgressiveSearchResults = {
       tools: keywordResults.toolsResult.tools,
       categories: keywordResults.categoriesResult.categories,
-      collections,
       tags,
       matches: keywordResults.toolsResult.matches,
       categoryMatches: keywordResults.categoriesResult.matches,
       searchModes: {
         tools: "keyword",
         categories: "keyword",
-        collections: "keyword",
         tags: "keyword",
       },
       requestedMode: mode,
@@ -812,7 +780,6 @@ export const progressiveSearchPaletteItems = async ({
     const finalResults: SearchResults = {
       tools: mergedTools,
       categories: mergedCategories,
-      collections: initialResults.collections,
       tags: initialResults.tags,
       matches: semanticResults.toolsResult?.matches || [],
       categoryMatches: semanticResults.categoriesResult?.matches || [],
@@ -823,7 +790,6 @@ export const progressiveSearchPaletteItems = async ({
         categories:
           semanticResults.categoriesResult?.usedMode ||
           keywordResults.categoriesResult.usedMode,
-        collections: "keyword",
         tags: "keyword",
       },
       requestedMode: mode,
@@ -863,3 +829,101 @@ export const progressiveSearchPaletteItems = async ({
 
   return generator();
 };
+
+export type SearchSuggestions = {
+  tools: {
+    slug: string;
+    name: string;
+    nameVi: string | null;
+    tagline: string | null;
+    taglineVi: string | null;
+    faviconUrl: string | null;
+  }[];
+  categories: {
+    slug: string;
+    name: string;
+    nameVi: string | null;
+    label: string | null;
+    labelVi: string | null;
+  }[];
+};
+
+/** How many tools the homepage search suggests as you type. */
+const SUGGEST_TOOL_LIMIT = 6;
+const SUGGEST_CATEGORY_LIMIT = 3;
+/** Name and tagline matches fetched before ranking; name matches come first. */
+const SUGGEST_CANDIDATES = 30;
+
+/**
+ * Quick suggestions for the homepage search box, fetched on every keystroke:
+ * a plain name/tagline match, so it is fast and needs no embedding. The full
+ * (semantic) search runs only when the visitor submits.
+ */
+export const suggestSearchItems = createServerAction()
+  .input(z.object({ q: z.string().trim().min(2).max(100) }))
+  .handler(async ({ input: { q } }): Promise<SearchSuggestions> => {
+    const match = { contains: q, mode: "insensitive" } as const;
+
+    const [tools, categories] = await Promise.all([
+      prisma.tool.findMany({
+        where: {
+          publishedAt: { lte: new Date() },
+          OR: [
+            { name: match },
+            { nameVi: match },
+            { tagline: match },
+            { taglineVi: match },
+          ],
+        },
+        select: {
+          slug: true,
+          name: true,
+          nameVi: true,
+          tagline: true,
+          taglineVi: true,
+          faviconUrl: true,
+        },
+        orderBy: { name: "asc" },
+        take: SUGGEST_CANDIDATES,
+      }),
+      prisma.category.findMany({
+        where: {
+          OR: [
+            { name: match },
+            { nameVi: match },
+            { label: match },
+            { labelVi: match },
+          ],
+        },
+        select: {
+          slug: true,
+          name: true,
+          nameVi: true,
+          label: true,
+          labelVi: true,
+        },
+        orderBy: { name: "asc" },
+        take: SUGGEST_CATEGORY_LIMIT,
+      }),
+    ]);
+
+    // Names starting with the query first, then names containing it, then
+    // tools that only match on their tagline
+    const needle = q.toLowerCase();
+    const rank = ({ name, nameVi }: { name: string; nameVi: string | null }) => {
+      const names = [name, nameVi ?? ""].map((value) => value.toLowerCase());
+      if (names.some((value) => value.startsWith(needle))) {
+        return 0;
+      }
+      return names.some((value) => value.includes(needle)) ? 1 : 2;
+    };
+
+    return {
+      tools: tools
+        .map((tool) => ({ tool, rank: rank(tool) }))
+        .sort((a, b) => a.rank - b.rank)
+        .slice(0, SUGGEST_TOOL_LIMIT)
+        .map(({ tool }) => tool),
+      categories,
+    };
+  });

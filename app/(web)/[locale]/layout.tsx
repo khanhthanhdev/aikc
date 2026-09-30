@@ -7,8 +7,10 @@ import { JsonLd } from "~/components/common/json-ld";
 import { AdBanner } from "~/components/web/ads/ad-banner";
 import { ChatProvider } from "~/components/web/ai-chat/chat-context";
 import { ClientWidgets } from "~/components/web/client-widgets";
+import { DocumentLang } from "~/components/web/document-lang";
 import { Footer } from "~/components/web/footer";
 import { Header } from "~/components/web/header";
+import { RoleProvider } from "~/components/web/roles/role-context";
 import { Container } from "~/components/web/ui/container";
 import { Stars } from "~/components/web/ui/stars";
 import { Toaster } from "~/components/web/ui/toaster";
@@ -74,40 +76,43 @@ export default async function LocaleLayout({
 
   return (
     <NextIntlClientProvider messages={messages}>
-      <ChatProvider>
-        <CommandPaletteProvider>
-          {/* JSON-LD Schemas for SEO */}
-          <JsonLd data={buildOrganizationSchema()} />
-          <JsonLd data={buildWebSiteSchema()} />
+      <RoleProvider>
+        <ChatProvider>
+          <CommandPaletteProvider>
+            {/* JSON-LD Schemas for SEO */}
+            <DocumentLang locale={locale} />
+            <JsonLd data={buildOrganizationSchema()} />
+            <JsonLd data={buildWebSiteSchema()} />
 
-          <div className="absolute inset-x-0 top-0 -z-10 mx-auto aspect-[2/1] max-w-screen-lg overflow-hidden">
-            <Stars className="absolute top-1/2 left-1/2 size-full -translate-x-1/2 -translate-y-1/2" />
-          </div>
+            <div className="absolute inset-x-0 top-0 -z-10 mx-auto aspect-[2/1] max-w-screen-lg overflow-hidden">
+              <Stars className="absolute top-1/2 left-1/2 size-full -translate-x-1/2 -translate-y-1/2" />
+            </div>
 
-          <Header>
-            <AdBanner />
-          </Header>
+            <Header>
+              <AdBanner />
+            </Header>
 
-          <Container
-            asChild
-            className="flex flex-1 flex-col gap-12 pt-12 pb-8 md:gap-16 md:pt-16 lg:gap-20 lg:pt-20"
-          >
-            <main>
-              {children}
+            <Container
+              asChild
+              className="flex flex-1 flex-col gap-12 pt-12 pb-8 md:gap-16 md:pt-16 lg:gap-20 lg:pt-20"
+            >
+              <main>
+                {children}
 
-              <Wrapper className="mt-auto">
-                <hr className="relative left-1/2 hidden w-screen -translate-x-1/2 first:block" />
+                <Wrapper className="mt-auto">
+                  <hr className="relative left-1/2 hidden w-screen -translate-x-1/2 first:block" />
 
-                <Footer />
-              </Wrapper>
-            </main>
-          </Container>
+                  <Footer />
+                </Wrapper>
+              </main>
+            </Container>
 
-          <Toaster />
+            <Toaster />
 
-          <ClientWidgets />
-        </CommandPaletteProvider>
-      </ChatProvider>
+            <ClientWidgets />
+          </CommandPaletteProvider>
+        </ChatProvider>
+      </RoleProvider>
     </NextIntlClientProvider>
   );
 }

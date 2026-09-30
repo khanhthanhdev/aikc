@@ -19,7 +19,7 @@ const trustPageContent: Record<TrustPageName, LocalizedTrustPageContent> = {
       {
         heading: "Directory inquiries",
         paragraphs: [
-          "Email hello@aikc.vn with the relevant page URL, the name of the tool or collection, and enough context for us to understand the request. If you are reporting an error, identify the information that appears incorrect and, where possible, link to a reliable source that supports the correction. If you are suggesting a new resource, explain its intended users, core capability, pricing model, and official website so the team can evaluate it consistently with the rest of the directory.",
+          "Email hello@aikc.vn with the relevant page URL, the name of the tool or category, and enough context for us to understand the request. If you are reporting an error, identify the information that appears incorrect and, where possible, link to a reliable source that supports the correction. If you are suggesting a new resource, explain its intended users, core capability, pricing model, and official website so the team can evaluate it consistently with the rest of the directory.",
         ],
       },
       {
@@ -39,7 +39,7 @@ const trustPageContent: Record<TrustPageName, LocalizedTrustPageContent> = {
       {
         heading: "Câu hỏi về thư mục",
         paragraphs: [
-          "Hãy gửi email đến hello@aikc.vn, kèm URL trang liên quan, tên công cụ hoặc bộ sưu tập và bối cảnh cần thiết để nhóm hiểu yêu cầu. Khi báo lỗi, vui lòng nêu rõ thông tin chưa đúng và, nếu có thể, cung cấp liên kết đến nguồn đáng tin cậy. Khi đề xuất tài nguyên mới, hãy mô tả người dùng dự kiến, khả năng chính, mô hình giá và website chính thức để nhóm có thể đánh giá nhất quán với các mục khác trong thư mục.",
+          "Hãy gửi email đến hello@aikc.vn, kèm URL trang liên quan, tên công cụ hoặc danh mục và bối cảnh cần thiết để nhóm hiểu yêu cầu. Khi báo lỗi, vui lòng nêu rõ thông tin chưa đúng và, nếu có thể, cung cấp liên kết đến nguồn đáng tin cậy. Khi đề xuất tài nguyên mới, hãy mô tả người dùng dự kiến, khả năng chính, mô hình giá và website chính thức để nhóm có thể đánh giá nhất quán với các mục khác trong thư mục.",
         ],
       },
       {

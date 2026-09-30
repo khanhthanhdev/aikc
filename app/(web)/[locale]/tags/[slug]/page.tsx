@@ -14,6 +14,7 @@ import type { TagOne } from "~/server/tags/payloads";
 import { findTagSlugs, findUniqueTag } from "~/server/tags/queries";
 import { parseMetadata } from "~/utils/metadata";
 import { buildAlternates, buildLocalizedUrl } from "~/utils/seo";
+import { isValidSlug } from "~/utils/slug";
 
 interface PageProps {
   params: Promise<{ slug: string; locale: string }>;
@@ -61,13 +62,18 @@ const getMetadata = cache(
 
 export const generateMetadata = async ({
   params,
-}: PageProps): Promise<Metadata | undefined> => {
+}: PageProps): Promise<Metadata> => {
   const { slug, locale } = await params;
+  if (!isValidSlug(slug)) {
+    notFound();
+  }
   const tag = await getTag(slug);
   const url = `/tags/${slug}`;
 
+  // Metadata resolves before the streamed page starts, so crawlers get a real
+  // 404 here even though loading.tsx makes browsers see a 200
   if (!tag) {
-    return;
+    notFound();
   }
 
   return parseMetadata(
@@ -80,6 +86,9 @@ export const generateMetadata = async ({
 
 export default async function TagPage({ params, searchParams }: PageProps) {
   const { slug, locale } = await params;
+  if (!isValidSlug(slug)) {
+    notFound();
+  }
   const tag = await getTag(slug);
 
   if (!tag) {

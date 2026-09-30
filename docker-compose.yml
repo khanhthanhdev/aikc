@@ -14,6 +14,7 @@ x-app-environment: &app-environment
   NEXT_PUBLIC_SITE_URL: "${COMPOSE_SITE_URL:-http://localhost}"
   NEXT_PUBLIC_SITE_EMAIL: "${COMPOSE_SITE_EMAIL:-hello@example.com}"
   AUTH_SECRET: "${AUTH_SECRET:-local-auth-secret}"
+  ALLOWED_EMAILS: "${ALLOWED_EMAILS:-}"
   AUTH_GOOGLE_ID: "${AUTH_GOOGLE_ID:-local-google-id}"
   AUTH_GOOGLE_SECRET: "${AUTH_GOOGLE_SECRET:-local-google-secret}"
   OPENAI_API_KEY: "${OPENAI_API_KEY:-local-openai-api-key}"
@@ -21,6 +22,9 @@ x-app-environment: &app-environment
   GEMINI_API_KEY: "${GEMINI_API_KEY:-local-gemini-api-key}"
   GOOGLE_FLASH_LITE_MODEL: "${GOOGLE_FLASH_LITE_MODEL:-gemma-4-26b-a4b-it}"
   GOOGLE_FLASH_MODEL: "${GOOGLE_FLASH_MODEL:-gemma-4-31b-it}"
+  CHAT_RATE_LIMIT_PER_MINUTE: "${CHAT_RATE_LIMIT_PER_MINUTE:-10}"
+  CHAT_RATE_LIMIT_PER_DAY: "${CHAT_RATE_LIMIT_PER_DAY:-300}"
+  CHAT_RATE_LIMIT_PER_SESSION_PER_DAY: "${CHAT_RATE_LIMIT_PER_SESSION_PER_DAY:-50}"
   FIRECRAWL_API_KEY: "${FIRECRAWL_API_KEY:-local-firecrawl-api-key}"
   RESEND_API_KEY: "${RESEND_API_KEY:-local-resend-api-key}"
   R2_BUCKET: "${R2_BUCKET:-aikc}"
@@ -46,7 +50,8 @@ services:
       POSTGRES_USER: "${POSTGRES_USER:-aikc}"
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-aikc}"
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      # Host-only: the database must never be reachable from the Internet
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
@@ -89,7 +94,7 @@ services:
       - --port
       - "7997"
     ports:
-      - "${INFINITY_PORT:-7997}:7997"
+      - "127.0.0.1:${INFINITY_PORT:-7997}:7997"
     volumes:
       - infinity_cache:/app/.cache
 

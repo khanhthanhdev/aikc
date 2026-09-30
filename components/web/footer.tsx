@@ -33,7 +33,7 @@ export const Footer = ({
             <Logo />
 
             <p className="max-w-60 text-pretty text-foreground/75">
-              {config.site.tagline}
+              {t("tagline")}
             </p>
           </Stack>
 
@@ -96,16 +96,13 @@ export const Footer = ({
           <H6 as="strong">{t("browse")}</H6>
 
           <NavigationLink href="/categories">{t("categories")}</NavigationLink>
-          <NavigationLink href="/collections">
-            {t("collections")}
-          </NavigationLink>
           <NavigationLink href="/tags">{t("tags")}</NavigationLink>
         </Stack>
       </div>
 
       <div className="flex w-full flex-row flex-wrap items-end justify-between gap-x-4 gap-y-2">
         <NavigationLink
-          className="text-xs"
+          className="text-sm"
           href={config.links.author}
           rel="noopener noreferrer nofollow"
           target="_blank"
@@ -113,7 +110,7 @@ export const Footer = ({
           {t("madeBy")}
         </NavigationLink>
 
-        <p className="text-foreground/65 text-xs">{t("affiliateDisclosure")}</p>
+        <p className="text-foreground/65 text-sm">{t("affiliateDisclosure")}</p>
       </div>
 
       {children}

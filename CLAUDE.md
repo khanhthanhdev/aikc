@@ -41,6 +41,8 @@ bun run icons            # Generate SVG sprite from assets/icons
 ```bash
 bun run import:ai-tools           # Import AI study tools data
 bun run related-tools:populate    # Populate related tools relationships
+bun run categories:assign         # AI-assign categories to uncategorized tools (--dry-run, --limit N)
+bun run roles:assign              # AI-assign audience roles + sample questions (--dry-run, --limit N, --force)
 ```
 
 ## Architecture
@@ -63,7 +65,7 @@ bun run related-tools:populate    # Populate related tools relationships
 
 #### App Routes (`app/`)
 - `app/(web)/` - Public-facing marketing and tool directory pages
-- `app/admin/` - Admin dashboard for managing tools, categories, collections
+- `app/admin/` - Admin dashboard for managing tools, categories, tags
 - `app/api/` - API route handlers:
   - `api/auth/` - NextAuth.js authentication
   - `api/chat/` - AI chat API with semantic caching
@@ -74,7 +76,6 @@ bun run related-tools:populate    # Populate related tools relationships
 Domain-specific server actions and data loaders organized by entity:
 - `server/tools/` - Tool CRUD operations
 - `server/categories/` - Category management
-- `server/collections/` - Collection management
 - `server/tags/` - Tag management
 - `server/web/` - Public web data fetching
 - `server/schemas.ts` - Shared Zod schemas
@@ -112,7 +113,7 @@ Reusable UI components built with Shadcn/Radix
 - `config/` - Application configuration
 
 #### Data & Assets
-- `prisma/schema.prisma` - Database schema (Tool, Category, Collection, Tag, Ad, Report models)
+- `prisma/schema.prisma` - Database schema (Tool, Category, Tag, Ad, Report models)
 - `data/` - Static data files
 - `assets/` - Static assets
 - `public/` - Public static files
@@ -121,7 +122,7 @@ Reusable UI components built with Shadcn/Radix
 
 #### Database Schema
 - Uses PostgreSQL extensions: `citext` (case-insensitive text), `pg_trgm` (trigram search)
-- Main models: Tool, Category, Collection, Tag (many-to-many relations)
+- Main models: Tool, Category, Tag (many-to-many relations)
 - Tools have `relatedTools` (string array of slugs)
 - Prisma Accelerate for connection pooling and caching
 

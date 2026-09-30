@@ -1,4 +1,4 @@
-import { generateText } from "ai";
+import { generateText, type LanguageModelUsage } from "ai";
 import { env } from "~/env";
 import { fusedRouteQuery, type QueryIntent } from "~/lib/fused-query-router";
 import { createLogger } from "~/lib/logger";
@@ -235,6 +235,9 @@ export interface RagAnswer {
   };
   context: ToolVectorMatch[];
   intent?: QueryIntent;
+  /** Set only when the model was called (not for cache hits or empty context). */
+  model?: string;
+  usage?: LanguageModelUsage;
 }
 
 /**
@@ -277,7 +280,7 @@ export const answerToolQuestion = async (
     })
     .join("\n\n---\n\n");
 
-  const { text } = await generateText({
+  const { text, response, totalUsage } = await generateText({
     model: googleFlashModel,
     temperature: options.temperature ?? 0.2,
     system: `You are a research assistant that answers questions about Work & Study tools.
@@ -294,6 +297,8 @@ If the context does not contain an answer, say you don't know.`,
   return {
     answer: text,
     context,
+    model: response.modelId,
+    usage: totalUsage,
   };
 };
 
@@ -382,7 +387,7 @@ Use the provided context snippets. Cite the tool slug inline whenever you refere
 If the context does not contain an answer, say you don't know.`;
   }
 
-  const { text } = await generateText({
+  const { text, response, totalUsage } = await generateText({
     model: googleFlashModel,
     temperature: options.temperature ?? 0.2,
     system: systemPrompt,
@@ -398,5 +403,7 @@ If the context does not contain an answer, say you don't know.`;
     answer: text,
     context,
     intent,
+    model: response.modelId,
+    usage: totalUsage,
   };
 };

@@ -23,6 +23,20 @@ export const env = createEnv({
       .default("development"),
     RAG_ENABLED: z.coerce.boolean().default(true),
     PUBLISH_SUBMITTER_EMAILS: z.coerce.boolean().default(true),
+    // Chat quotas, read at runtime so they change with a container restart
+    CHAT_RATE_LIMIT_PER_MINUTE: z.coerce
+      .number()
+      .int()
+      .positive()
+      .default(10),
+    // Per IP; a whole campus can share one address, so keep this generous
+    CHAT_RATE_LIMIT_PER_DAY: z.coerce.number().int().positive().default(300),
+    // Per browser (cookie), so one visitor cannot use up the shared IP quota
+    CHAT_RATE_LIMIT_PER_SESSION_PER_DAY: z.coerce
+      .number()
+      .int()
+      .positive()
+      .default(50),
     ALLOWED_EMAILS: z.string().optional(),
     NEXTAUTH_URL: z.string().url().min(1),
     AUTH_SECRET: z.string().min(1),

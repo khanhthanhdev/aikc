@@ -5,9 +5,12 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { DefaultChatTransport, type UIMessage } from "ai";
 import {
   BotIcon,
+  CircleAlertIcon,
   LoaderIcon,
   MessageSquarePlusIcon,
+  RotateCcwIcon,
   SendIcon,
+  UserRoundIcon,
   XIcon,
 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
@@ -19,6 +22,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useRole } from "~/components/web/roles/role-context";
 import { cx } from "~/utils/cva";
 import { useChatContext } from "./chat-context";
 import { ChatMarkdown } from "./chat-markdown";
@@ -84,6 +88,32 @@ function parseFollowUpQuestions(text: string): {
   return { content, suggestions };
 }
 
+// How far from the bottom still counts as "following along" the answer
+const STICK_TO_BOTTOM_THRESHOLD_PX = 80;
+
+type ChatErrorKind = "rateLimitMinute" | "rateLimitDay" | "generic";
+
+/**
+ * The transport throws with the response body as the message; /api/chat
+ * answers limits with the shared API error body (lib/api-error.ts):
+ * `{ error: { code: "RATE_LIMITED", details: { scope } } }`.
+ */
+function getChatErrorKind(error: Error): ChatErrorKind {
+  try {
+    const body = JSON.parse(error.message) as {
+      error?: { code?: unknown; details?: { scope?: unknown } };
+    };
+    if (body.error?.code === "RATE_LIMITED") {
+      return body.error.details?.scope === "minute"
+        ? "rateLimitMinute"
+        : "rateLimitDay";
+    }
+  } catch {
+    // Not a JSON error body: network failure, broken stream, ...
+  }
+  return "generic";
+}
+
 function getMessageText(message: UIMessage): string {
   const textParts: string[] = [];
   for (const part of message.parts) {
@@ -97,9 +127,20 @@ function getMessageText(message: UIMessage): string {
 export function ChatDialog() {
   const t = useTranslations("Chat");
   const locale = useLocale(); // Get current locale
-  const { isOpen, setIsOpen, currentTool, suggestedQuestions } =
-    useChatContext();
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const tRoles = useTranslations("Roles");
+  const {
+    isOpen,
+    setIsOpen,
+    currentTool,
+    suggestedQuestions,
+    pendingQuestion,
+    clearPendingQuestion,
+  } = useChatContext();
+  const { role, setDialogOpen: setRoleDialogOpen } = useRole();
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const messagesContentRef = useRef<HTMLDivElement>(null);
+  // Follow the answer as it streams, unless the reader has scrolled up
+  const stickToBottomRef = useRef(true);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [input, setInput] = useState("");
   const [followUpQuestions, setFollowUpQuestions] = useState<string[]>([]);
@@ -108,27 +149,70 @@ export function ChatDialog() {
   // Use a ref to track the current tool slug to avoid stale closures in the useChat callback
   const toolSlugRef = useRef(currentTool?.slug);
   toolSlugRef.current = currentTool?.slug;
+  const roleRef = useRef(role);
+  roleRef.current = role;
 
-  const { messages, sendMessage, status, setMessages } = useChat({
-    id: `chat-${chatKey}`,
-    transport: new DefaultChatTransport({
-      api: "/api/chat",
-      body: () => ({
-        toolSlug: toolSlugRef.current,
-        locale, // Pass locale to API
+  const { messages, sendMessage, status, setMessages, error, regenerate } =
+    useChat({
+      id: `chat-${chatKey}`,
+      transport: new DefaultChatTransport({
+        api: "/api/chat",
+        body: () => ({
+          toolSlug: toolSlugRef.current,
+          locale, // Pass locale to API
+          role: roleRef.current ?? undefined, // Tailors answers to the visitor
+        }),
       }),
-    }),
-  });
+    });
 
   const isLoading = status === "streaming" || status === "submitted";
+  const errorKind = error ? getChatErrorKind(error) : null;
+  const hasMessages = messages.length > 0;
 
   const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const container = scrollContainerRef.current;
+    if (container) {
+      container.scrollTop = container.scrollHeight;
+    }
   }, []);
 
+  const handleMessagesScroll = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (!container) {
+      return;
+    }
+    stickToBottomRef.current =
+      container.scrollHeight - container.scrollTop - container.clientHeight <
+      STICK_TO_BOTTOM_THRESHOLD_PX;
+  }, []);
+
+  // New messages, streamed text, the error box and follow-up questions
   useLayoutEffect(() => {
+    // Sending a question always brings the conversation back into view
+    if (messages.at(-1)?.role === "user") {
+      stickToBottomRef.current = true;
+    }
+    if (stickToBottomRef.current) {
+      scrollToBottom();
+    }
+  }, [messages, status, error, followUpQuestions, scrollToBottom]);
+
+  // Height changes that arrive without a message update, e.g. video thumbnails loading
+  useEffect(() => {
+    const content = messagesContentRef.current;
+    if (!(isOpen && hasMessages && content)) {
+      return;
+    }
+    stickToBottomRef.current = true;
     scrollToBottom();
-  }, [scrollToBottom]);
+    const observer = new ResizeObserver(() => {
+      if (stickToBottomRef.current) {
+        scrollToBottom();
+      }
+    });
+    observer.observe(content);
+    return () => observer.disconnect();
+  }, [isOpen, hasMessages, scrollToBottom]);
 
   useEffect(() => {
     if (isOpen) {
@@ -147,7 +231,18 @@ export function ChatDialog() {
     }
   }, [messages, status]);
 
+  // A question asked from outside the chat, e.g. the homepage search box
+  useEffect(() => {
+    if (!pendingQuestion || isLoading) {
+      return;
+    }
+    clearPendingQuestion();
+    sendMessage({ text: pendingQuestion });
+    setFollowUpQuestions([]);
+  }, [pendingQuestion, isLoading, clearPendingQuestion, sendMessage]);
+
   const handleStartNewChat = useCallback(() => {
+    stickToBottomRef.current = true;
     setMessages([]);
     setFollowUpQuestions([]);
     setInput("");
@@ -267,6 +362,8 @@ export function ChatDialog() {
           <div
             className="flex-1 overflow-y-auto px-5 pt-5 pb-4"
             data-lenis-prevent
+            onScroll={handleMessagesScroll}
+            ref={scrollContainerRef}
           >
             {displayMessages.length === 0 ? (
               <div className="mx-auto flex w-full max-w-md flex-col gap-7 pb-6">
@@ -284,6 +381,16 @@ export function ChatDialog() {
                     </span>
                     .
                   </p>
+                  <button
+                    className="inline-flex items-center gap-1.5 rounded-full border border-foreground/15 px-3 py-1 text-foreground/75 text-xs transition-colors hover:bg-foreground/5"
+                    onClick={() => setRoleDialogOpen(true)}
+                    type="button"
+                  >
+                    <UserRoundIcon className="size-3.5" />
+                    {role
+                      ? tRoles("youAre", { role: tRoles(`${role}.label`) })
+                      : tRoles("pickRole")}
+                  </button>
                 </div>
 
                 <div>
@@ -295,7 +402,10 @@ export function ChatDialog() {
                 </div>
               </div>
             ) : (
-              <div className="mx-auto flex w-full max-w-none flex-col gap-4 pb-4">
+              <div
+                className="mx-auto flex w-full max-w-none flex-col gap-4 pb-4"
+                ref={messagesContentRef}
+              >
                 {displayMessages.map((message) => (
                   <div
                     className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
@@ -376,7 +486,33 @@ export function ChatDialog() {
                   </div>
                 )}
 
+                {errorKind && (
+                  <div
+                    className="flex items-start gap-2 rounded-2xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm"
+                    role="alert"
+                  >
+                    <CircleAlertIcon className="mt-0.5 size-4 shrink-0 text-red-600 dark:text-red-400" />
+                    <div className="flex min-w-0 flex-1 flex-col items-start gap-2">
+                      <p className="text-foreground/85">
+                        {t(`errors.${errorKind}`)}
+                      </p>
+                      {/* Retrying cannot help once today's quota is used up */}
+                      {errorKind !== "rateLimitDay" && (
+                        <button
+                          className="inline-flex items-center gap-1.5 rounded-full border border-foreground/15 px-3 py-1 font-medium text-foreground/85 text-xs transition-colors hover:bg-foreground/5"
+                          onClick={() => regenerate()}
+                          type="button"
+                        >
+                          <RotateCcwIcon className="size-3.5" />
+                          {t("retry")}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {!isLoading &&
+                  !errorKind &&
                   currentSuggestions.length > 0 &&
                   messages.length > 0 && (
                     <div className="mt-4">
@@ -388,7 +524,6 @@ export function ChatDialog() {
                     </div>
                   )}
 
-                <div ref={messagesEndRef} />
               </div>
             )}
           </div>

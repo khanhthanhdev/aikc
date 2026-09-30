@@ -1,11 +1,13 @@
 // import { config } from "~/config/index.server";
 // import EmailToolScheduled from "~/emails/tool-scheduled";
 // import { sendEmails } from "~/lib/email";
+import { autoAssignToolCategories } from "~/lib/categorize-tool";
 import { generateContent } from "~/lib/generate-content";
 import { inngestLogger } from "~/lib/logger";
 import { uploadFavicon, uploadScreenshot } from "~/lib/media";
 import { revalidatePublicToolCaches } from "~/lib/public-tool-cache";
 import { getSocialsFromUrl } from "~/lib/socials";
+import { autoAssignToolRoles } from "~/lib/tool-roles";
 import {
   upsertAlternativeVector,
   upsertHybridToolVector,
@@ -14,6 +16,13 @@ import { inngest } from "~/services/inngest";
 import { prisma } from "~/services/prisma";
 
 const FUNCTION_ID = "tool.scheduled";
+
+/**
+ * Screenshots, favicons and socials are nice to have. Once a step has used up
+ * its retries, carry on without it, so the tool still gets its categories,
+ * roles, translation and search index. An admin can add the media later.
+ */
+const skipOptionalStep = () => null;
 
 export const toolScheduled = inngest.createFunction(
   {
@@ -68,7 +77,6 @@ export const toolScheduled = inngest.createFunction(
               where: { id: tool.id },
               data: {
                 ...content,
-                // categories: { set: categories.map(({ id }) => ({ id })) },
                 tags: {
                   connectOrCreate: normalizedTags.map((tagSlug) => ({
                     where: { slug: tagSlug },
@@ -130,7 +138,7 @@ export const toolScheduled = inngest.createFunction(
             );
             throw error;
           }
-        }),
+        }).catch(skipOptionalStep),
 
         step.run("upload-screenshot", async () => {
           const stepStartTime = performance.now();
@@ -165,7 +173,7 @@ export const toolScheduled = inngest.createFunction(
             );
             throw error;
           }
-        }),
+        }).catch(skipOptionalStep),
 
         step.run("get-socials", async () => {
           const stepStartTime = performance.now();
@@ -202,8 +210,60 @@ export const toolScheduled = inngest.createFunction(
             );
             throw error;
           }
-        }),
+        }).catch(skipOptionalStep),
       ]);
+
+      // File the tool under existing categories, unless an admin already did
+      await step.run("assign-categories", async () => {
+        const stepStartTime = performance.now();
+        inngestLogger.stepStarted("assign-categories", FUNCTION_ID, toolSlug);
+
+        try {
+          const result = await autoAssignToolCategories(tool.id);
+
+          const duration = performance.now() - stepStartTime;
+          inngestLogger.stepCompleted(
+            "assign-categories",
+            FUNCTION_ID,
+            toolSlug,
+            duration
+          );
+          return result;
+        } catch (error) {
+          inngestLogger.stepError(
+            "assign-categories",
+            FUNCTION_ID,
+            toolSlug,
+            error
+          );
+          // Don't throw - an admin can still pick categories by hand
+          return null;
+        }
+      });
+
+      // Match the tool to audience roles and write their sample questions,
+      // unless an admin already did
+      await step.run("assign-roles", async () => {
+        const stepStartTime = performance.now();
+        inngestLogger.stepStarted("assign-roles", FUNCTION_ID, toolSlug);
+
+        try {
+          const result = await autoAssignToolRoles(tool.id);
+
+          const duration = performance.now() - stepStartTime;
+          inngestLogger.stepCompleted(
+            "assign-roles",
+            FUNCTION_ID,
+            toolSlug,
+            duration
+          );
+          return result;
+        } catch (error) {
+          inngestLogger.stepError("assign-roles", FUNCTION_ID, toolSlug, error);
+          // Don't throw - the chat falls back to generic sample questions
+          return null;
+        }
+      });
 
       await step.run("sync-tool-vector", async () => {
         const stepStartTime = performance.now();

@@ -1,6 +1,5 @@
 import { Prisma } from "@prisma/client";
 import { categoryManyPayload } from "../categories/payloads";
-import { collectionManyPayload } from "../collections/payloads";
 import { tagManyPayload } from "../tags/payloads";
 
 const publicToolFields = {
@@ -34,6 +33,7 @@ const publicToolFields = {
   updatedAt: true,
   createdAt: true,
   relatedTools: true,
+  roles: true,
 } satisfies Prisma.ToolSelect;
 
 const toolCardFields = {
@@ -55,8 +55,8 @@ const toolCardFields = {
 export const toolOnePayload = () =>
   Prisma.validator<Prisma.ToolSelect>()({
     ...publicToolFields,
+    roleQuestions: true,
     categories: { include: categoryManyPayload() },
-    collections: { include: collectionManyPayload() },
     tags: { include: tagManyPayload() },
   });
 
@@ -64,7 +64,6 @@ export const toolManyPayload = () =>
   Prisma.validator<Prisma.ToolSelect>()({
     ...publicToolFields,
     categories: { include: categoryManyPayload() },
-    collections: { include: collectionManyPayload() },
   });
 
 export const toolCardPayload = () =>

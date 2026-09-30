@@ -1,6 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import createIntlMiddleware from "next-intl/middleware";
+import { hasAdminAccess } from "./lib/admin-access";
+import { findMissingDetailPageLocale } from "./lib/missing-detail-page";
 import {
   appendMarkdownVary,
   MARKDOWN_MEDIA_TYPE,
@@ -48,6 +50,9 @@ function rewriteLinkHeader(response: NextResponse): void {
     response.headers.set("Link", rewritten);
   }
 }
+
+// Matches no route, so Next renders the localized not-found page with a 404
+const MISSING_PAGE_PATH = "__not-found";
 
 const STATIC_FILES =
   /^\/(en|vi)\/(icon-192\.png|icon-512\.png|favicon\.ico|manifest\.json|openapi\.json)$/;
@@ -154,7 +159,20 @@ export default async function middleware(req: NextRequest) {
     if (!token) {
       return NextResponse.redirect(new URL("/login", nextUrl));
     }
+    // A valid token is not enough: the account may have been blocked or
+    // removed from /admin/users since it signed in.
+    if (!(await hasAdminAccess(token.email))) {
+      return NextResponse.redirect(new URL("/login?error=AccessDenied", nextUrl));
+    }
     return NextResponse.next();
+  }
+
+  // Unknown tool / category / tag: a real 404 status, not a streamed soft 404
+  const missingPageLocale = await findMissingDetailPageLocale(nextUrl.pathname);
+  if (missingPageLocale) {
+    return NextResponse.rewrite(
+      new URL(`/${missingPageLocale}/${MISSING_PAGE_PATH}`, nextUrl)
+    );
   }
 
   // Let next-intl handle all other routes without invoking auth middleware

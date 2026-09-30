@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import type { SearchParams } from "nuqs/server";
 import { cache } from "react";
+import { isUserRole } from "~/config/roles";
 import { getSearchConfig, type SearchConfig } from "~/config/search";
 import { runWithEmbeddingCache } from "~/lib/embedding-cache";
 import { createLogger } from "~/lib/logger";
@@ -87,6 +88,61 @@ const parseSort = (sort: string): SortConfig => {
   return { sortBy: sortBy as SortConfig["sortBy"], sortOrder: order };
 };
 
+type PricingText = { pricing: string[]; pricingVi: string[] };
+
+const OPEN_SOURCE_SPELLINGS = ["open source", "open-source", "opensource"];
+
+/** Phrases that put a tool in a pricing group, per pricing column. */
+const PRICING_PHRASES = {
+  free: { pricing: ["free"], pricingVi: ["free", "miễn phí"] },
+  freemium: { pricing: ["freemium"], pricingVi: ["freemium"] },
+  openSource: {
+    pricing: OPEN_SOURCE_SPELLINGS,
+    pricingVi: [...OPEN_SOURCE_SPELLINGS, "mã nguồn mở"],
+  },
+} satisfies Record<string, PricingText>;
+
+const mergePhrases = (...groups: PricingText[]): PricingText => ({
+  pricing: groups.flatMap((group) => group.pricing),
+  pricingVi: groups.flatMap((group) => group.pricingVi),
+});
+
+/** Either pricing column mentions one of the phrases. */
+const mentionsAny = ({ pricing, pricingVi }: PricingText) => [
+  ...pricing.map((phrase) => ({
+    pricing: { contains: phrase, mode: "insensitive" as const },
+  })),
+  ...pricingVi.map((phrase) => ({
+    pricingVi: { contains: phrase, mode: "insensitive" as const },
+  })),
+];
+
+/**
+ * Neither pricing column mentions any of the phrases.
+ *
+ * A bare `NOT { pricingVi: { contains } }` also drops rows where `pricingVi` is
+ * NULL (SQL `NOT (NULL LIKE ...)` is not true), which would hide every tool
+ * that has no Vietnamese pricing yet, so an empty column counts as a pass.
+ */
+const mentionsNone = ({ pricing, pricingVi }: PricingText) => [
+  ...pricing.map(
+    (phrase): Prisma.ToolWhereInput => ({
+      OR: [
+        { pricing: null },
+        { NOT: { pricing: { contains: phrase, mode: "insensitive" } } },
+      ],
+    })
+  ),
+  ...pricingVi.map(
+    (phrase): Prisma.ToolWhereInput => ({
+      OR: [
+        { pricingVi: null },
+        { NOT: { pricingVi: { contains: phrase, mode: "insensitive" } } },
+      ],
+    })
+  ),
+];
+
 const buildPricingWhere = (
   pricing: string | null | undefined
 ): Prisma.ToolWhereInput | undefined => {
@@ -99,18 +155,11 @@ const buildPricingWhere = (
     return {
       AND: [
         {
-          OR: [
-            { pricing: { contains: "free", mode: "insensitive" } },
-            { pricingVi: { contains: "free", mode: "insensitive" } },
-            { pricingVi: { contains: "miễn phí", mode: "insensitive" } },
-            { pricing: { contains: "open source", mode: "insensitive" } },
-            { pricingVi: { contains: "mã nguồn mở", mode: "insensitive" } },
-          ],
+          OR: mentionsAny(
+            mergePhrases(PRICING_PHRASES.free, PRICING_PHRASES.openSource)
+          ),
         },
-      ],
-      NOT: [
-        { pricing: { contains: "freemium", mode: "insensitive" } },
-        { pricingVi: { contains: "freemium", mode: "insensitive" } },
+        ...mentionsNone(PRICING_PHRASES.freemium),
       ],
     };
   }
@@ -118,14 +167,22 @@ const buildPricingWhere = (
   if (normalized === "freemium") {
     return {
       OR: [
-        { pricing: { contains: "freemium", mode: "insensitive" } },
-        { pricingVi: { contains: "freemium", mode: "insensitive" } },
+        ...mentionsAny(PRICING_PHRASES.freemium),
         { pricing: { contains: "free tier", mode: "insensitive" } },
         { pricing: { contains: "free plan", mode: "insensitive" } },
         { pricing: { contains: "free trial", mode: "insensitive" } },
         { pricing: { contains: "free + paid", mode: "insensitive" } },
         { pricing: { contains: "free / paid", mode: "insensitive" } },
         { pricing: { contains: "free and paid", mode: "insensitive" } },
+      ],
+    };
+  }
+
+  if (normalized === "open-source") {
+    return {
+      OR: [
+        { pricingTier: "OPEN_SOURCE" },
+        ...mentionsAny(PRICING_PHRASES.openSource),
       ],
     };
   }
@@ -139,21 +196,32 @@ const buildPricingWhere = (
         {
           OR: [{ pricing: { not: "" } }, { pricingVi: { not: "" } }],
         },
-      ],
-      NOT: [
-        { pricing: { contains: "free", mode: "insensitive" } },
-        { pricingVi: { contains: "free", mode: "insensitive" } },
-        { pricingVi: { contains: "miễn phí", mode: "insensitive" } },
-        { pricing: { contains: "freemium", mode: "insensitive" } },
-        { pricingVi: { contains: "freemium", mode: "insensitive" } },
-        { pricing: { contains: "open source", mode: "insensitive" } },
-        { pricingVi: { contains: "mã nguồn mở", mode: "insensitive" } },
+        // The admin-set tier wins over the text, e.g. "From $0" tagged FREE
+        {
+          OR: [
+            { pricingTier: null },
+            { pricingTier: { notIn: ["FREE", "FREEMIUM", "OPEN_SOURCE"] } },
+          ],
+        },
+        ...mentionsNone(
+          mergePhrases(
+            PRICING_PHRASES.free,
+            PRICING_PHRASES.freemium,
+            PRICING_PHRASES.openSource
+          )
+        ),
       ],
     };
   }
 
   return undefined;
 };
+
+/** Tools filed under an audience role; unknown roles filter nothing. */
+const buildRoleWhere = (
+  role: string | null | undefined
+): Prisma.ToolWhereInput | undefined =>
+  isUserRole(role) ? { roles: { has: role } } : undefined;
 
 const withTimeout = async <T>(
   promise: Promise<T>,
@@ -184,13 +252,14 @@ const keywordSearch = async (
   metadataOverrides: Partial<SearchResultMetadata> = {}
 ): Promise<ToolSearchResult> => {
   const { params, prismaArgs } = context;
-  const { q, category, pricing, page, sort, perPage } = params;
+  const { q, category, pricing, role, page, sort, perPage } = params;
   const { where, include: _include, select: _select, ...args } = prismaArgs;
   const skip = (page - 1) * perPage;
   const take = perPage;
   const { sortBy, sortOrder } = parseSort(sort);
 
   const pricingWhere = buildPricingWhere(pricing);
+  const roleWhere = buildRoleWhere(role);
   const filters: Prisma.ToolWhereInput[] = [];
 
   if (category) {
@@ -212,6 +281,10 @@ const keywordSearch = async (
 
   if (pricingWhere) {
     filters.push(pricingWhere);
+  }
+
+  if (roleWhere) {
+    filters.push(roleWhere);
   }
 
   const whereQuery: Prisma.ToolWhereInput = filters.length
@@ -290,7 +363,7 @@ class ToolSemanticSearchStrategy
     { context, metadata, mode }: SearchExecuteOptions<ToolSearchContext>
   ): Promise<ToolSearchResult> {
     const { params, prismaArgs, searchConfig } = context;
-    const { q, category, pricing, perPage, page } = params;
+    const { q, category, pricing, role, perPage, page } = params;
     const requestedMode = metadata?.requestedMode ?? mode;
     const startedAt = Date.now();
     const errors: SearchResultMetadata["errors"] = metadata?.errors
@@ -308,6 +381,7 @@ class ToolSemanticSearchStrategy
       ? { categories: { some: { slug: category } } }
       : undefined;
     const pricingWhere = buildPricingWhere(pricing);
+    const roleWhere = buildRoleWhere(role);
     const { where, include: _include, select: _select, ...args } = prismaArgs;
 
     // Run Qdrant and keyword searches in parallel
@@ -377,6 +451,10 @@ class ToolSemanticSearchStrategy
         filters.push(pricingWhere);
       }
 
+      if (roleWhere) {
+        filters.push(roleWhere);
+      }
+
       const whereQuery: Prisma.ToolWhereInput = filters.length
         ? { AND: filters }
         : {};
@@ -413,6 +491,10 @@ class ToolSemanticSearchStrategy
 
     if (pricingWhere) {
       hydrateFilters.push(pricingWhere);
+    }
+
+    if (roleWhere) {
+      hydrateFilters.push(roleWhere);
     }
 
     const hydrateWhere: Prisma.ToolWhereInput = hydrateFilters.length

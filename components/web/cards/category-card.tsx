@@ -7,10 +7,9 @@ import { H5 } from "~/components/common/heading";
 import { Card, CardDescription } from "~/components/web/ui/card";
 import { Link } from "~/i18n/navigation";
 import type { CategoryMany } from "~/server/categories/payloads";
-import type { CollectionMany } from "~/server/collections/payloads";
 
 type CategoryCardProps = ComponentProps<typeof Link> & {
-  category: CategoryMany | CollectionMany;
+  category: CategoryMany;
 };
 
 export const CategoryCard = ({ category, ...props }: CategoryCardProps) => {

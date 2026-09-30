@@ -132,6 +132,13 @@ class GemmaRateLimiterPool {
 export const gemmaPool = new GemmaRateLimiterPool();
 
 /**
+ * A model for one batch call: the next free Gemma slot, so jobs over many
+ * tools stay under the Gemini rate limits.
+ */
+export const acquireBatchModel = async (): Promise<LanguageModel> =>
+  (await gemmaPool.acquire()).model;
+
+/**
  * Executes generateText with automatic Gemma 4 model rotation and rate limiting.
  * Dispatches up to 20 RPM on 26b and 20 RPM on 31b (40 RPM aggregate).
  */

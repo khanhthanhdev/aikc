@@ -7,6 +7,7 @@ import { useEffect, useState, useTransition } from "react";
 import { Stack } from "~/components/common/stack";
 import { Input } from "~/components/web/ui/input";
 import { Select } from "~/components/web/ui/select";
+import { userRoles } from "~/config/roles";
 import { useDebounce } from "~/hooks/use-debounce";
 import type { CategoryMany } from "~/server/categories/payloads";
 import { searchParams } from "~/server/tools/search-params";
@@ -14,13 +15,17 @@ import { searchParams } from "~/server/tools/search-params";
 export interface ToolListFiltersProps {
   categories?: CategoryMany[];
   placeholder?: string;
+  /** Hide the search box, e.g. where the page has its own (the homepage). */
+  showSearch?: boolean;
 }
 
 export const ToolListFilters = ({
   categories,
   placeholder,
+  showSearch = true,
 }: ToolListFiltersProps) => {
   const t = useTranslations("Filters");
+  const tRoles = useTranslations("Roles");
   const locale = useLocale();
   const [isLoading, startTransition] = useTransition();
   const [filters, setFilters] = useQueryStates(searchParams, {
@@ -56,24 +61,33 @@ export const ToolListFilters = ({
   const pricingOptions = [
     { value: "free", label: t("pricingFree") },
     { value: "freemium", label: t("pricingFreemium") },
+    { value: "open-source", label: t("pricingOpenSource") },
     { value: "paid", label: t("pricingPaid") },
   ];
 
   return (
     <Stack className="w-full">
-      <div className="relative min-w-0 grow">
-        <div className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 opacity-50">
-          {isLoading ? <LoaderIcon className="animate-spin" /> : <SearchIcon />}
-        </div>
+      {showSearch ? (
+        <div className="relative min-w-0 grow">
+          <div className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 opacity-50">
+            {isLoading ? (
+              <LoaderIcon className="animate-spin" />
+            ) : (
+              <SearchIcon />
+            )}
+          </div>
 
-        <Input
-          className="w-full truncate pl-10"
-          onChange={(e) => setInputValue(e.target.value)}
-          placeholder={placeholder || t("searchPlaceholder")}
-          size="lg"
-          value={inputValue}
-        />
-      </div>
+          <Input
+            className="w-full truncate pl-10"
+            onChange={(e) => setInputValue(e.target.value)}
+            placeholder={placeholder || t("searchPlaceholder")}
+            size="lg"
+            value={inputValue}
+          />
+        </div>
+      ) : (
+        <div className="grow max-sm:hidden" />
+      )}
 
       {categories && (
         <Select
@@ -110,6 +124,22 @@ export const ToolListFilters = ({
         {pricingOptions.map((option) => (
           <option key={option.value} value={option.value}>
             {option.label}
+          </option>
+        ))}
+      </Select>
+
+      <Select
+        aria-label={tRoles("filterByRole")}
+        className="min-w-40 max-sm:flex-1"
+        onChange={(e) => updateFilters({ role: e.target.value })}
+        size="lg"
+        value={filters.role}
+      >
+        <option value="">{tRoles("allRoles")}</option>
+
+        {userRoles.map((role) => (
+          <option key={role} value={role}>
+            {tRoles(`${role}.label`)}
           </option>
         ))}
       </Select>

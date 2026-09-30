@@ -114,6 +114,17 @@ export const ensureSemanticCacheCollection = async () => {
           }
         );
       }
+
+      // Added after the collection first shipped, so existing ones need it too.
+      // Creating an index that already exists is a no-op.
+      await qdrantClient
+        .createPayloadIndex(QDRANT_SEMANTIC_CACHE_COLLECTION, {
+          field_name: "role",
+          field_schema: "keyword",
+        })
+        .catch((error) => {
+          console.warn("Could not create semantic cache role index:", error);
+        });
     })();
   }
 

@@ -31,13 +31,11 @@ export const routing = defineRouting({
     "/login": { vi: "/dang-nhap" },
     "/tools": { vi: "/tools" },
     "/categories": { vi: "/danh-muc" },
-    "/collections": { vi: "/bo-suu-tap" },
     "/tags": { vi: "/the" },
 
     // Dynamic routes
     "/tools/[slug]": { vi: "/tools/[slug]" },
     "/categories/[slug]": { vi: "/categories/[slug]" },
-    "/collections/[slug]": { vi: "/collections/[slug]" },
     "/tags/[slug]": { vi: "/tags/[slug]" },
     "/submit/[slug]": { vi: "/submit/[slug]" },
   },

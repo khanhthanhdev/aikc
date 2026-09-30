@@ -33,3 +33,10 @@ pnpm-debug.log*
 
 # macOS-specific files
 .DS_Store
+
+# IDE
+.idea/
+.vscode/
+
+# Database dumps (contain user emails - never commit)
+backups/

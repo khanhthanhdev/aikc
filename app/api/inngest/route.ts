@@ -1,4 +1,5 @@
 import { serve } from "inngest/next";
+import { aiUsageCleanup } from "~/functions/ai-usage-cleanup";
 import { linkChecker } from "~/functions/link-checker";
 import { toolDeleted } from "~/functions/tool-deleted";
 import { toolExpedited } from "~/functions/tool-expedited";
@@ -20,5 +21,6 @@ export const { GET, POST, PUT } = serve({
     toolExpedited,
     toolFeatured,
     linkChecker,
+    aiUsageCleanup,
   ],
 });

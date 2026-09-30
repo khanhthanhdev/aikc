@@ -17,7 +17,6 @@ const staticPages: Array<{
   { href: "/developers", changeFrequency: "monthly", priority: 0.5 },
   { href: "/submit", changeFrequency: "monthly", priority: 0.8 },
   { href: "/categories", changeFrequency: "daily", priority: 0.5 },
-  { href: "/collections", changeFrequency: "daily", priority: 0.5 },
   { href: "/tags", changeFrequency: "daily", priority: 0.5 },
 ];
 

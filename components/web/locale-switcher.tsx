@@ -3,12 +3,6 @@
 import { GlobeIcon } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "~/components/web/ui/dropdown-menu";
 import { navigationLinkVariants } from "~/components/web/ui/navigation-link";
 import { usePathname, useRouter } from "~/i18n/navigation";
 import { cx } from "~/utils/cva";
@@ -20,27 +14,19 @@ export function LocaleSwitcher() {
   const params = useParams();
   const router = useRouter();
 
-  const switchLocale = (newLocale: string) => {
-    router.replace({ pathname, params }, { locale: newLocale });
-  };
+  // Only two locales, so one click flips to the other
+  const nextLocale = locale === "vi" ? "en" : "vi";
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        aria-label={t("label")}
-        className={cx(navigationLinkVariants(), "gap-1")}
-      >
-        <GlobeIcon className="size-4" />
-        <span className="max-sm:hidden">{locale === "en" ? "EN" : "VI"}</span>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => switchLocale("en")}>
-          {t("en")}
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => switchLocale("vi")}>
-          {t("vi")}
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <button
+      aria-label={`${t("label")}: ${t(nextLocale)}`}
+      className={cx(navigationLinkVariants(), "gap-1")}
+      onClick={() => router.replace({ pathname, params }, { locale: nextLocale })}
+      title={t(nextLocale)}
+      type="button"
+    >
+      <GlobeIcon className="size-4" />
+      <span className="max-sm:hidden">{locale === "vi" ? "VN" : "EN"}</span>
+    </button>
   );
 }

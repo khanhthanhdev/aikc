@@ -33,6 +33,7 @@ export const searchParams = {
   q: boundedQueryParser,
   category: parseAsString.withDefault(""),
   pricing: parseAsString.withDefault(""),
+  role: parseAsString.withDefault(""),
   page: createBoundedIntegerParser(1, MAX_SEARCH_PAGE).withDefault(1),
   sort: parseAsString.withDefault("publishedAt.desc"),
   perPage: createBoundedIntegerParser(
@@ -41,7 +42,6 @@ export const searchParams = {
   ).withDefault(14),
   mode: parseAsString.withDefault("semantic"),
   tag: parseAsArrayOf(parseAsString).withDefault([]),
-  collection: parseAsArrayOf(parseAsString).withDefault([]),
 };
 
 export const searchParamsCache = createSearchParamsCache(searchParams);

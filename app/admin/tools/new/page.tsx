@@ -1,10 +1,6 @@
 import type { Metadata } from "next";
 import { ToolForm } from "~/app/admin/tools/_components/tool-form";
-import {
-  getCategories,
-  getCollections,
-  getTags,
-} from "~/app/admin/tools/_lib/queries";
+import { getCategories, getTags } from "~/app/admin/tools/_lib/queries";
 import { Wrapper } from "~/components/admin/ui/wrapper";
 import { H4 } from "~/components/common/heading";
 
@@ -13,17 +9,13 @@ export const metadata: Metadata = {
 };
 
 export default async function CreateToolPage() {
-  const [categories, collections, tags] = await Promise.all([
-    getCategories(),
-    getCollections(),
-    getTags(),
-  ]);
+  const [categories, tags] = await Promise.all([getCategories(), getTags()]);
 
   return (
     <Wrapper size="md">
       <H4 as="h1">Create tool</H4>
 
-      <ToolForm categories={categories} collections={collections} tags={tags} />
+      <ToolForm categories={categories} tags={tags} />
     </Wrapper>
   );
 }

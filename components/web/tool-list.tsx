@@ -1,6 +1,7 @@
 "use client";
 
 import type { Ad } from "@prisma/client";
+import { XIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useQueryStates } from "nuqs";
 import React from "react";
@@ -36,12 +37,30 @@ export const ToolList = ({
   ...props
 }: ToolListProps) => {
   const t = useTranslations("Tools");
-  const [{ q, perPage }] = useQueryStates(searchParams);
+  const [{ q, perPage }, setFilters] = useQueryStates(searchParams, {
+    shallow: false,
+  });
+  // Without its own search box, the list says what it is filtered by
+  const showQuery = !!q && props.showSearch === false;
 
   return (
     <>
       <div className="flex flex-col gap-6 lg:gap-8">
         {showFilters && <ToolListFilters categories={categories} {...props} />}
+
+        {showQuery && (
+          <p className="-mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-foreground/65 text-sm">
+            <span>{t("resultsFor", { query: q, count: totalCount })}</span>
+            <button
+              className="inline-flex items-center gap-1 font-medium text-foreground/80 underline-offset-4 hover:text-foreground hover:underline"
+              onClick={() => setFilters({ q: null, page: null })}
+              type="button"
+            >
+              <XIcon className="size-3.5" />
+              {t("clearSearch")}
+            </button>
+          </p>
+        )}
 
         <Grid>
           {tools.map((tool, index) => (
