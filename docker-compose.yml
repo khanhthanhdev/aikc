@@ -22,6 +22,7 @@ x-app-environment: &app-environment
   GEMINI_API_KEY: "${GEMINI_API_KEY:-local-gemini-api-key}"
   GOOGLE_FLASH_LITE_MODEL: "${GOOGLE_FLASH_LITE_MODEL:-gemma-4-26b-a4b-it}"
   GOOGLE_FLASH_MODEL: "${GOOGLE_FLASH_MODEL:-gemma-4-31b-it}"
+  GOOGLE_BATCH_MODEL: "${GOOGLE_BATCH_MODEL:-gemini-flash-lite-latest}"
   CHAT_RATE_LIMIT_PER_MINUTE: "${CHAT_RATE_LIMIT_PER_MINUTE:-10}"
   CHAT_RATE_LIMIT_PER_DAY: "${CHAT_RATE_LIMIT_PER_DAY:-300}"
   CHAT_RATE_LIMIT_PER_SESSION_PER_DAY: "${CHAT_RATE_LIMIT_PER_SESSION_PER_DAY:-50}"
@@ -40,6 +41,8 @@ x-app-environment: &app-environment
   INNGEST_SIGNING_KEY: "${INNGEST_SIGNING_KEY:-deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef}"
   INNGEST_DEV: "0"
   INNGEST_BASE_URL: "http://inngest:8288"
+  UMAMI_WEBSITE_ID: "${UMAMI_WEBSITE_ID:-}"
+  UMAMI_URL: "${UMAMI_URL:-http://umami:3000}"
 
 services:
   postgres:
@@ -198,6 +201,47 @@ services:
       PGRST_SERVER_PORT: "3000"
       PGRST_OPENAPI_SERVER_PROXY_URI: "${COMPOSE_POSTGREST_URL:-http://localhost/postgrest}"
 
+  # Creates the `umami` role and database in the shared postgres, idempotently,
+  # so existing volumes pick them up too (init scripts only run on a new one).
+  umami-db:
+    image: postgres:17-alpine
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGHOST: postgres
+      PGUSER: "${POSTGRES_USER:-aikc}"
+      PGPASSWORD: "${POSTGRES_PASSWORD:-aikc}"
+      PGDATABASE: "${POSTGRES_DB:-aikc}"
+      UMAMI_DB_PASSWORD: "${UMAMI_DB_PASSWORD:-umami-local}"
+    volumes:
+      - ./docker/postgres/scripts:/opt/postgres/scripts:ro
+    command: ["sh", "/opt/postgres/scripts/create-umami-db.sh"]
+    restart: "no"
+
+  # Web analytics. The site loads the tracker through /_proxy/umami (see
+  # next.config.ts); the dashboard is served on its own host by Caddy.
+  umami:
+    image: ghcr.io/umami-software/umami:3.4.0
+    restart: unless-stopped
+    init: true
+    depends_on:
+      umami-db:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: "postgresql://umami:${UMAMI_DB_PASSWORD:-umami-local}@postgres:5432/umami"
+      APP_SECRET: "${UMAMI_APP_SECRET:-local-umami-app-secret}"
+      DISABLE_TELEMETRY: "1"
+    ports:
+      # Host-only, like postgres: reach the dashboard through Caddy or a tunnel
+      - "127.0.0.1:${UMAMI_PORT:-3001}:3000"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:3000/api/heartbeat || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
@@ -209,6 +253,8 @@ services:
       postgrest:
         condition: service_started
       qdrant:
+        condition: service_started
+      umami:
         condition: service_started
       inngest:
         condition: service_healthy

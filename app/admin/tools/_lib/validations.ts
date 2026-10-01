@@ -10,9 +10,20 @@ export const searchParamsSchema = z.object({
   from: z.string().optional(),
   to: z.string().optional(),
   operator: z.enum(["and", "or"]).optional(),
+  // Faceted filters, each a dot-joined list of values
+  status: z.string().optional(),
+  categories: z.string().optional(),
+  roles: z.string().optional(),
+  translationStatusVi: z.string().optional(),
+  isBroken: z.string().optional(),
+  pricingTier: z.string().optional(),
+  isFeatured: z.string().optional(),
 });
 
 export const getToolsSchema = searchParamsSchema;
+
+/** Filter value that matches tools with nothing set, e.g. no category. */
+export const FILTER_NONE = "none";
 
 export type GetToolsSchema = z.infer<typeof getToolsSchema>;
 

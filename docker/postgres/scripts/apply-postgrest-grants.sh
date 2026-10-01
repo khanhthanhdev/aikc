@@ -64,9 +64,6 @@ CREATE OR REPLACE VIEW category_public AS SELECT * FROM "Category";
 -- Tag view: no PII, expose all columns
 CREATE OR REPLACE VIEW tag_public AS SELECT * FROM "Tag";
 
--- Collection view: no PII, expose all columns
-CREATE OR REPLACE VIEW collection_public AS SELECT * FROM "Collection";
-
 -- Ad view: strip advertiser email
 CREATE OR REPLACE VIEW ad_public AS
   SELECT
@@ -80,7 +77,6 @@ CREATE OR REPLACE VIEW ad_public AS
 -- Junction tables (Prisma uses alphabetical ordering)
 CREATE OR REPLACE VIEW tool_tag_public AS SELECT * FROM "_TagToTool";
 CREATE OR REPLACE VIEW tool_category_public AS SELECT * FROM "_CategoryToTool";
-CREATE OR REPLACE VIEW collection_tool_public AS SELECT * FROM "_CollectionToTool";
 
 -- ---------------------------------------------------------------
 -- Grant SELECT only on the safe views
@@ -88,11 +84,9 @@ CREATE OR REPLACE VIEW collection_tool_public AS SELECT * FROM "_CollectionToToo
 GRANT SELECT ON tool_public                  TO web_anon;
 GRANT SELECT ON category_public              TO web_anon;
 GRANT SELECT ON tag_public                   TO web_anon;
-GRANT SELECT ON collection_public            TO web_anon;
 GRANT SELECT ON ad_public                    TO web_anon;
 GRANT SELECT ON tool_tag_public              TO web_anon;
 GRANT SELECT ON tool_category_public         TO web_anon;
-GRANT SELECT ON collection_tool_public       TO web_anon;
 
 -- Future tables: NO default grants (must be explicitly opted in)
 ALTER DEFAULT PRIVILEGES FOR ROLE ${POSTGRES_USER} IN SCHEMA public

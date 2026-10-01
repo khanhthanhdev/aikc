@@ -1,6 +1,5 @@
 "use client";
 
-import type { Tool } from "@prisma/client";
 import type { Table } from "@tanstack/react-table";
 import { PlayIcon } from "lucide-react";
 import { toast } from "sonner";
@@ -11,10 +10,11 @@ import {
   processTools,
 } from "~/app/admin/tools/_lib/actions";
 import { Button } from "~/components/admin/ui/button";
+import type { ToolRow } from "../_lib/queries";
 import { ToolsDeleteDialog } from "./tools-delete-dialog";
 
 interface ToolsTableToolbarActionsProps {
-  table: Table<Tool>;
+  table: Table<ToolRow>;
 }
 
 export function ToolsTableToolbarActions({

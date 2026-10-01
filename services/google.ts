@@ -21,6 +21,14 @@ export const googleFlashLiteModel = gemma26bModel;
 export const googleFlashModel = gemma31bModel;
 export const googleFlashModelId = GEMMA_31B_MODEL_ID;
 
+/**
+ * Batch jobs (roles, categories) need a long structured reply per tool. Gemma
+ * fails about a third of those: it loops on a word until the token cap cuts
+ * the JSON off, or Google's filter returns nothing. Flash-Lite does not.
+ */
+export const GEMINI_BATCH_MODEL_ID = env.GOOGLE_BATCH_MODEL;
+const geminiBatchModel = google(GEMINI_BATCH_MODEL_ID);
+
 export const googleNoThinkingProviderOptions = {
   google: {
     thinkingConfig: {
@@ -39,34 +47,31 @@ interface ModelSlot {
   lastTime: number;
 }
 
-class GemmaRateLimiterPool {
+class ModelRateLimiterPool {
   private slots: ModelSlot[];
   private nextIndex = 0;
-  // 20 requests per minute per model = 40 RPM across both models
-  private readonly maxRpm = 20;
   private readonly windowMs = 60_000;
-  private readonly minIntervalMs = 2_800; // Spacing between calls to same model
   private mutex = Promise.resolve();
 
-  constructor() {
-    this.slots = [
-      {
-        id: GEMMA_26B_MODEL_ID,
-        model: gemma26bModel,
-        timestamps: [],
-        lastTime: 0,
-      },
-      {
-        id: GEMMA_31B_MODEL_ID,
-        model: gemma31bModel,
-        timestamps: [],
-        lastTime: 0,
-      },
-    ];
+  /**
+   * @param maxRpm Requests per minute allowed on each model.
+   * @param minIntervalMs Spacing between calls to the same model.
+   */
+  constructor(
+    models: { id: string; model: LanguageModel }[],
+    private readonly maxRpm: number,
+    private readonly minIntervalMs: number
+  ) {
+    this.slots = models.map(({ id, model }) => ({
+      id,
+      model,
+      timestamps: [],
+      lastTime: 0,
+    }));
   }
 
   /**
-   * Acquires the next available model slot adhering to 20 RPM per model (40 RPM total).
+   * Acquires the next available model slot adhering to each model's RPM limit.
    */
   async acquire(excludeId?: string): Promise<{ model: LanguageModel; id: string }> {
     return new Promise((resolve) => {
@@ -83,8 +88,9 @@ class GemmaRateLimiterPool {
       const preferred = this.nextIndex;
       this.nextIndex = (this.nextIndex + 1) % this.slots.length;
 
-      const candidates = [preferred, 1 - preferred]
-        .map((idx) => this.slots[idx])
+      // Every slot, starting from the preferred one
+      const candidates = this.slots
+        .map((_, offset) => this.slots[(preferred + offset) % this.slots.length])
         .filter((slot) => !excludeId || slot.id !== excludeId);
 
       const viableCandidates = candidates.length > 0 ? candidates : this.slots;
@@ -129,14 +135,29 @@ class GemmaRateLimiterPool {
   }
 }
 
-export const gemmaPool = new GemmaRateLimiterPool();
+// 20 requests per minute per model = 40 RPM across both models
+export const gemmaPool = new ModelRateLimiterPool(
+  [
+    { id: GEMMA_26B_MODEL_ID, model: gemma26bModel },
+    { id: GEMMA_31B_MODEL_ID, model: gemma31bModel },
+  ],
+  20,
+  2_800
+);
+
+// 30 RPM on one model; a 1,200-tool roles run at up to 40 RPM hit no 429s
+const batchPool = new ModelRateLimiterPool(
+  [{ id: GEMINI_BATCH_MODEL_ID, model: geminiBatchModel }],
+  30,
+  2_000
+);
 
 /**
- * A model for one batch call: the next free Gemma slot, so jobs over many
- * tools stay under the Gemini rate limits.
+ * A model for one batch call (see GEMINI_BATCH_MODEL_ID), paced so jobs over
+ * many tools stay under the Gemini rate limits.
  */
 export const acquireBatchModel = async (): Promise<LanguageModel> =>
-  (await gemmaPool.acquire()).model;
+  (await batchPool.acquire()).model;
 
 /**
  * Executes generateText with automatic Gemma 4 model rotation and rate limiting.

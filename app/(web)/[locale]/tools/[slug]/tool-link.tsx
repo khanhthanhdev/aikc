@@ -5,6 +5,7 @@ import { ArrowUpRightIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { ComponentProps } from "react";
 import { Button } from "~/components/web/ui/button";
+import { trackEvent } from "~/lib/analytics";
 import type { ToolOne } from "~/server/tools/payloads";
 
 type ToolLinkProps = ComponentProps<typeof Button> & {
@@ -18,6 +19,8 @@ export const ToolLink = ({ tool, ...props }: ToolLinkProps) => {
     <Button asChild suffix={<ArrowUpRightIcon />} {...props}>
       <a
         href={tool.affiliateUrl || tool.websiteUrl}
+        // The outbound click is the clearest sign the directory helped
+        onClick={() => trackEvent("visit_tool", { tool: tool.slug })}
         rel={`noreferrer noopener ${tool.isFeatured ? "" : "nofollow"}`}
         target="_blank"
       >

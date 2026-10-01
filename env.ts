@@ -47,6 +47,7 @@ export const env = createEnv({
     GEMINI_API_KEY: z.string().min(1),
     GOOGLE_FLASH_LITE_MODEL: z.string().default("gemma-4-26b-a4b-it"),
     GOOGLE_FLASH_MODEL: z.string().default("gemma-4-31b-it"),
+    GOOGLE_BATCH_MODEL: z.string().default("gemini-flash-lite-latest"),
     INFINITY_EMBEDDING_URL: z.string().url().default("http://localhost:7997"),
     INFINITY_EMBEDDING_MODEL: z
       .string()
@@ -61,6 +62,8 @@ export const env = createEnv({
     R2_SECRET_ACCESS_KEY: z.string().min(1),
     QDRANT_URL: z.string().url().min(1),
     QDRANT_API_KEY: z.string().min(1),
+    // Analytics: the tracker is left out of the page while the ID is unset
+    UMAMI_WEBSITE_ID: z.string().uuid().optional(),
   },
 
   /**

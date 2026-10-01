@@ -1,6 +1,6 @@
 "use client";
 
-import type { Tool } from "@prisma/client";
+import { PricingTier } from "@prisma/client";
 import { PlusIcon } from "lucide-react";
 import Link from "next/link";
 import { use, useMemo } from "react";
@@ -10,18 +10,33 @@ import { DataTableToolbar } from "~/components/admin/data-table/data-table-toolb
 import { DataTableViewOptions } from "~/components/admin/data-table/data-table-view-options";
 import { DateRangePicker } from "~/components/admin/date-range-picker";
 import { Button } from "~/components/admin/ui/button";
+import { formatRole, userRoles } from "~/config/roles";
 import { useDataTable } from "~/hooks/use-data-table";
 import type { DataTableFilterField } from "~/types";
-import type { getTools } from "../_lib/queries";
-import { getColumns } from "./tools-table-columns";
+import type {
+  getCategoryFilterOptions,
+  getTools,
+  ToolRow,
+} from "../_lib/queries";
+import { FILTER_NONE } from "../_lib/validations";
+import {
+  getColumns,
+  pricingTierLabels,
+  toolStatusLabels,
+} from "./tools-table-columns";
 import { ToolsTableToolbarActions } from "./tools-table-toolbar-actions";
 
 interface ToolsTableProps {
+  categoriesPromise: ReturnType<typeof getCategoryFilterOptions>;
   toolsPromise: ReturnType<typeof getTools>;
 }
 
-export function ToolsTable({ toolsPromise }: ToolsTableProps) {
+export function ToolsTable({
+  categoriesPromise,
+  toolsPromise,
+}: ToolsTableProps) {
   const { tools, toolsTotal, pageCount } = use(toolsPromise);
+  const categories = use(categoriesPromise);
 
   // Memoize the columns so they don't re-render on every render
   const columns = useMemo(() => getColumns(), []);
@@ -37,23 +52,72 @@ export function ToolsTable({ toolsPromise }: ToolsTableProps) {
    * @prop {React.ReactNode} [icon] - An optional icon to display next to the label.
    * @prop {boolean} [withCount] - An optional boolean to display the count of the filter option.
    */
-  const filterFields: DataTableFilterField<Tool>[] = [
+  const filterFields: DataTableFilterField<ToolRow>[] = [
     {
       label: "Name",
       value: "name",
       placeholder: "Filter by name...",
     },
-    // {
-    //   label: "Status",
-    //   value: "publishedAt",
-    //   options: [
-    //     {
-    //       label: "Published",
-    //       value: "published",
-    //       icon: CheckIcon,
-    //     },
-    //   ],
-    // },
+    {
+      label: "Status",
+      value: "status",
+      options: Object.entries(toolStatusLabels).map(([value, label]) => ({
+        label,
+        value,
+      })),
+    },
+    {
+      label: "Category",
+      value: "categories",
+      options: [
+        { label: "Uncategorized", value: FILTER_NONE },
+        ...categories.map(({ name, slug }) => ({ label: name, value: slug })),
+      ],
+    },
+    {
+      label: "Role",
+      value: "roles",
+      options: [
+        { label: "No role", value: FILTER_NONE },
+        ...userRoles.map((role) => ({ label: formatRole(role), value: role })),
+      ],
+    },
+    {
+      label: "VI",
+      value: "translationStatusVi",
+      options: [
+        { label: "Missing", value: "MISSING" },
+        { label: "Machine", value: "MACHINE" },
+        { label: "Reviewed", value: "REVIEWED" },
+      ],
+    },
+    {
+      label: "Link",
+      value: "isBroken",
+      options: [
+        { label: "Broken", value: "broken" },
+        { label: "OK", value: "ok" },
+      ],
+    },
+    {
+      label: "Pricing",
+      value: "pricingTier",
+      options: [
+        { label: "Not set", value: FILTER_NONE },
+        ...Object.values(PricingTier).map((tier) => ({
+          label: pricingTierLabels[tier],
+          value: tier,
+        })),
+      ],
+    },
+    {
+      label: "Featured",
+      value: "isFeatured",
+      options: [
+        { label: "Featured", value: "featured" },
+        { label: "Not featured", value: "regular" },
+      ],
+    },
   ];
 
   const { table } = useDataTable({
@@ -65,6 +129,13 @@ export function ToolsTable({ toolsPromise }: ToolsTableProps) {
     initialState: {
       sorting: [{ id: "createdAt", desc: true }],
       columnPinning: { right: ["actions"] },
+      // Still filterable from the toolbar; shown through "View" when needed.
+      columnVisibility: {
+        categories: false,
+        roles: false,
+        pricingTier: false,
+        isFeatured: false,
+      },
     },
     // For remembering the previous row selection on page change
     getRowId: (originalRow, index) => `${originalRow.id}-${index}`,

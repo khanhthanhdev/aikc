@@ -38,6 +38,7 @@ import {
   FormMessage,
 } from "~/components/common/form";
 import {
+  formatRole,
   isUserRole,
   QUESTIONS_PER_ROLE,
   SUGGESTED_QUESTIONS,
@@ -770,9 +771,3 @@ const LANGUAGES = [
   { key: "en", label: "English" },
   { key: "vi", label: "Vietnamese (Tiếng Việt)" },
 ] as const;
-
-/** `data-analyst` → `Data analyst` */
-const formatRole = (role: UserRole) => {
-  const words = role.replaceAll("-", " ");
-  return words.charAt(0).toUpperCase() + words.slice(1);
-};

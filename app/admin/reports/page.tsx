@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import type { SearchParams } from "nuqs/server";
 import { Suspense } from "react";
 import { DataTableSkeleton } from "~/components/admin/data-table/data-table-skeleton";
-import { ToolsTable } from "./_components/tools-table";
-import { getCategoryFilterOptions, getTools } from "./_lib/queries";
+import { ReportsTable } from "./_components/reports-table";
+import { getReports } from "./_lib/queries";
 import { searchParamsSchema } from "./_lib/validations";
 
 interface PageProps {
@@ -11,32 +11,28 @@ interface PageProps {
 }
 
 export const metadata: Metadata = {
-  title: "Tools",
+  title: "Reports",
 };
 
-export default async function ToolsPage({ searchParams }: PageProps) {
+export default async function ReportsPage({ searchParams }: PageProps) {
   const search = searchParamsSchema.parse(await searchParams);
-  const toolsPromise = getTools(search);
-  const categoriesPromise = getCategoryFilterOptions();
+  const reportsPromise = getReports(search);
 
   return (
     <Suspense
       fallback={
         <DataTableSkeleton
-          cellWidths={["14%", "38%", "8%", "8%", "8%", "12%", "12%"]}
+          cellWidths={["18%", "10%", "36%", "8%", "14%", "10%", "4%"]}
           columnCount={7}
-          filterableColumnCount={7}
+          filterableColumnCount={2}
           rowCount={15}
           searchableColumnCount={1}
           shrinkZero
-          title="Tools"
+          title="Reports"
         />
       }
     >
-      <ToolsTable
-        categoriesPromise={categoriesPromise}
-        toolsPromise={toolsPromise}
-      />
+      <ReportsTable reportsPromise={reportsPromise} />
     </Suspense>
   );
 }

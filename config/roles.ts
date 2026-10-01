@@ -63,6 +63,12 @@ export const userRoles = Object.keys(USER_ROLES) as [UserRole, ...UserRole[]];
 export const isUserRole = (value: unknown): value is UserRole =>
   typeof value === "string" && Object.hasOwn(USER_ROLES, value);
 
+/** Admin-facing label: `data-analyst` → `Data analyst` */
+export const formatRole = (role: UserRole) => {
+  const words = role.replaceAll("-", " ");
+  return words.charAt(0).toUpperCase() + words.slice(1);
+};
+
 /**
  * Cookie that remembers the visitor's pick, so the role popup is shown once.
  * Holds a role key, or `ROLE_SKIPPED` when they chose not to say.

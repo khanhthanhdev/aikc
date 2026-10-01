@@ -65,6 +65,13 @@ const trustPageContent: Record<TrustPageName, LocalizedTrustPageContent> = {
         ],
       },
       {
+        heading: "Usage statistics",
+        paragraphs: [
+          "To understand how the directory is used, AI Knowledge Cloud counts visits with Umami, an open-source analytics tool running on our own server. It records the pages viewed, the website that referred you, your browser, device type and country, and actions such as searches, the role you pick and clicks through to a tool's website. It does not use cookies, does not store your IP address, and does not identify you or follow you across other websites. The statistics stay on our server and are not shared with advertisers.",
+          "Questions sent to the AI assistant are stored together with an anonymous visitor code, a one-way code derived from your network address rather than the address itself, so we can measure how the assistant is used and improve its answers. Please do not include personal information in your questions.",
+        ],
+      },
+      {
         heading: "Use, links, and retention",
         paragraphs: [
           "Information supplied for a directory request is used to respond, review the request, improve listing accuracy, and keep the service secure. AI Knowledge Cloud links to independent tool providers; their websites, accounts, payments, and privacy practices are governed by their own terms. Review a provider's policy before sharing information or creating an account there. If you need to ask about information connected to an AI Knowledge Cloud request, email hello@aikc.vn with enough detail to identify the request without sending unnecessary sensitive data.",
@@ -82,6 +89,13 @@ const trustPageContent: Record<TrustPageName, LocalizedTrustPageContent> = {
         heading: "Thông tin liên quan đến yêu cầu của bạn",
         paragraphs: [
           "Khi bạn chọn liên hệ, gửi một mục hoặc báo lỗi, tin nhắn có thể bao gồm địa chỉ email và thông tin bạn cung cấp về yêu cầu. Chỉ nên gửi thông tin liên quan đến thư mục và tránh gửi dữ liệu cá nhân nhạy cảm. Quản trị viên được ủy quyền có thể sử dụng thông tin tài khoản và phiên làm việc để bảo vệ quy trình xuất bản, quản lý nội dung danh mục và điều tra hành vi lạm dụng hoặc sự cố bảo mật. Các mục công cụ công khai nhằm mô tả dịch vụ, không nhằm công bố dữ liệu cá nhân.",
+        ],
+      },
+      {
+        heading: "Thống kê lượt truy cập",
+        paragraphs: [
+          "Để hiểu thư mục được sử dụng như thế nào, AI Knowledge Cloud đếm lượt truy cập bằng Umami, một công cụ thống kê mã nguồn mở chạy trên máy chủ của chúng tôi. Công cụ ghi nhận các trang được xem, website đã dẫn bạn đến, trình duyệt, loại thiết bị và quốc gia, cùng các thao tác như tìm kiếm, vai trò bạn chọn và lượt bấm sang website của một công cụ. Umami không dùng cookie, không lưu địa chỉ IP, không nhận diện bạn và không theo dõi bạn trên các website khác. Số liệu thống kê được lưu trên máy chủ của chúng tôi và không chia sẻ với bên quảng cáo.",
+          "Câu hỏi gửi cho trợ lý AI được lưu kèm một mã khách truy cập ẩn danh, là mã một chiều tạo từ địa chỉ mạng chứ không phải chính địa chỉ đó, để chúng tôi đo mức độ sử dụng trợ lý và cải thiện câu trả lời. Vui lòng không đưa thông tin cá nhân vào câu hỏi.",
         ],
       },
       {

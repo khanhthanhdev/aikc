@@ -17,6 +17,7 @@ import {
   ROLE_SKIPPED,
   type UserRole,
 } from "~/config/roles";
+import { trackEvent } from "~/lib/analytics";
 
 type RoleContextValue = {
   /** The visitor's role, or null when unknown or skipped. */
@@ -71,6 +72,8 @@ export function RoleProvider({ children }: { children: ReactNode }) {
       setRoleState(next);
       setHasChosen(true);
       setDialogOpen(false);
+      // Who the site serves, as visitors describe themselves
+      trackEvent("pick_role", { role: value });
 
       // Re-render the server components that read the cookie
       router.refresh();
