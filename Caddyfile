@@ -28,7 +28,31 @@
 		-X-Powered-By
 	}
 
-	respond /healthz 200
+	# Preserve separate CDN cache entries for HTML and Markdown homepages.
+	@markdown_home path / /en /en/ /vi /vi/
+	header @markdown_home +Vary "Accept"
+
+	# Every route lives in a `handle` block: Caddy runs `handle` before a bare
+	# `respond`, so a top-level `respond` would never fire once the catch-all
+	# below exists (it did not, which let direct IP requests reach the app).
+
+	# Block direct IP access - only allow requests via Cloudflare with proper Host.
+	# `abort` closes the connection without a response.
+	@blocked {
+		not header_regexp Host ^((www|stats)\.)?aikc\.vn$
+	}
+	handle @blocked {
+		abort
+	}
+
+	handle /healthz {
+		respond 200
+	}
+
+	# Cloudflare proxy health check
+	handle /cdn-cgi/trace {
+		respond 200
+	}
 
 	# Umami analytics dashboard. Needs a proxied DNS record for the host in
 	# Cloudflare. The public site loads the tracker through the app instead.
@@ -38,19 +62,6 @@
 			header_up X-Real-IP {http.request.header.CF-Connecting-IP}
 		}
 	}
-
-	# Block direct IP access - only allow requests via Cloudflare with proper Host
-	@blocked {
-		not header_regexp Host ^((www|stats)\.)?aikc\.vn$
-	}
-	respond @blocked 444
-
-	# Cloudflare proxy health check
-	respond /cdn-cgi/trace 200
-
-	# Preserve separate CDN cache entries for HTML and Markdown homepages.
-	@markdown_home path / /en /en/ /vi /vi/
-	header @markdown_home +Vary "Accept"
 
 	# Main app
 	handle {
