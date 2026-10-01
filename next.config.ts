@@ -132,6 +132,25 @@ const nextConfig: NextConfig = {
     ];
   },
 
+  // Umami analytics, served from this origin so the tracker passes the CSP
+  // and is not dropped by blockers that match third-party analytics hosts.
+  // Only the tracker script and its event endpoint go through; the dashboard
+  // stays on its own host.
+  async rewrites() {
+    const umamiUrl = process.env.UMAMI_URL || "http://umami:3000";
+
+    return [
+      {
+        source: "/_proxy/umami/script.js",
+        destination: `${umamiUrl}/script.js`,
+      },
+      {
+        source: "/_proxy/umami/api/send",
+        destination: `${umamiUrl}/api/send`,
+      },
+    ];
+  },
+
   async headers() {
     return [
       {

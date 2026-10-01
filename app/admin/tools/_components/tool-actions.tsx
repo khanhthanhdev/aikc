@@ -27,18 +27,18 @@ import {
 import { config } from "~/config";
 import { cx } from "~/utils/cva";
 
-interface ToolActionsProps
+interface ToolActionsProps<TTool extends Tool>
   extends React.ComponentPropsWithoutRef<typeof Button> {
-  row?: Row<Tool>;
-  tool: Tool;
+  row?: Row<TTool>;
+  tool: TTool;
 }
 
-export const ToolActions = ({
+export const ToolActions = <TTool extends Tool>({
   tool,
   row,
   className,
   ...props
-}: ToolActionsProps) => {
+}: ToolActionsProps<TTool>) => {
   const router = useRouter();
   const [dialog, setDialog] = useState<"delete" | "schedule" | null>(null);
 

@@ -1,25 +1,29 @@
 "use client";
 
 import { Slot } from "@radix-ui/react-slot";
-import { type AnchorHTMLAttributes, forwardRef } from "react";
-import { cx } from "~/utils/cva"; // Assuming this utility exists
+import { type AnchorHTMLAttributes, forwardRef, type MouseEvent } from "react";
+import { type AnalyticsEventData, trackEvent } from "~/lib/analytics";
+import { cx } from "~/utils/cva";
 
 interface ExternalLinkProps extends AnchorHTMLAttributes<HTMLAnchorElement> {
   asChild?: boolean;
   eventName?: string;
-  eventProps?: Record<string, any>;
+  eventProps?: AnalyticsEventData;
 }
 
 export const ExternalLink = forwardRef<HTMLAnchorElement, ExternalLinkProps>(
-  ({ className, asChild = false, eventName, eventProps, ...props }, ref) => {
+  (
+    { className, asChild = false, eventName, eventProps, onClick, ...props },
+    ref
+  ) => {
     const Comp = asChild ? Slot : "a";
 
-    // Placeholder for analytics
-    const handleClick = () => {
-      if (eventName && process.env.NODE_ENV === "development") {
-        console.log("Track event:", eventName, eventProps);
-        // TODO: Integrate actual analytics here if found
+    const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
+      if (eventName) {
+        trackEvent(eventName, eventProps);
       }
+
+      onClick?.(event);
     };
 
     return (

@@ -18,9 +18,10 @@ const getStats = unstable_cache(
       prisma.tool.count(),
       prisma.category.count(),
       prisma.tag.count(),
+      prisma.report.count({ where: { resolvedAt: null } }),
     ]),
   ["admin-stats"],
-  { revalidate: 60 }
+  { revalidate: 60, tags: ["admin-stats"] }
 );
 
 export const metadata: Metadata = {

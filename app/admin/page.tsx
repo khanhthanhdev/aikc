@@ -15,7 +15,7 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-2 gap-4 overflow-clip md:grid-cols-3 lg:grid-cols-4">
         <Suspense
-          fallback={Array.from({ length: 4 }).map((_, index) => (
+          fallback={Array.from({ length: 5 }).map((_, index) => (
             <Card key={index}>
               <CardHeader>
                 <Skeleton className="h-5 w-24" />

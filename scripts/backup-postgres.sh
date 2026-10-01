@@ -117,6 +117,28 @@ log "Globals OK: $(du -h "$GLOBALS" | cut -f1)"
 
 PARTIALS=""
 
+# Umami analytics keeps its own database on the same server. Losing it would
+# not break the site, so a failure here warns instead of failing the run.
+UMAMI_DIR="${BACKUP_DIR}/umami"
+if compose exec -T "$SERVICE" psql -U "$PGUSER_NAME" -d "$PGDB_NAME" -tAc   "SELECT 1 FROM pg_database WHERE datname = 'umami'" 2>/dev/null | grep -q 1; then
+  mkdir -p "$UMAMI_DIR"
+  UMAMI_DUMP="${UMAMI_DIR}/umami_${STAMP}.sql.gz"
+  PARTIALS="${UMAMI_DUMP}.partial"
+
+  if compose exec -T "$SERVICE"     pg_dump -U "$PGUSER_NAME" -d umami --format=plain --no-owner --no-acl     | gzip -9 > "${UMAMI_DUMP}.partial"     && gzip -dc "${UMAMI_DUMP}.partial" | tail -5     | grep -q 'PostgreSQL database dump complete'; then
+    mv "${UMAMI_DUMP}.partial" "$UMAMI_DUMP"
+    log "Umami dump OK: $(du -h "$UMAMI_DUMP" | cut -f1)"
+
+    if [ "$(date +%d)" = "01" ]; then
+      cp -p "$UMAMI_DUMP" "${MONTHLY_DIR}/"
+    fi
+  else
+    log "WARNING: umami dump failed; analytics are not in this backup"
+  fi
+
+  PARTIALS=""
+fi
+
 # Keep the 1st-of-month dump on a longer clock than the dailies.
 if [ "$(date +%d)" = "01" ]; then
   cp -p "$DUMP" "${MONTHLY_DIR}/"
@@ -136,5 +158,9 @@ fi
 find "$BACKUP_DIR" -maxdepth 1 -name 'aikc_*.sql.gz' -type f -mtime "+${DAILY_RETENTION}" -delete
 find "$MONTHLY_DIR" -maxdepth 1 -name 'aikc_*.sql.gz' -type f -mtime "+$((MONTHLY_RETENTION * 31))" -delete
 find "$GLOBALS_DIR" -maxdepth 1 -name 'globals_*.sql.gz' -type f -mtime "+${DAILY_RETENTION}" -delete
+if [ -d "$UMAMI_DIR" ]; then
+  find "$UMAMI_DIR" -maxdepth 1 -name 'umami_*.sql.gz' -type f -mtime "+${DAILY_RETENTION}" -delete
+fi
+find "$MONTHLY_DIR" -maxdepth 1 -name 'umami_*.sql.gz' -type f -mtime "+$((MONTHLY_RETENTION * 31))" -delete
 
 log "Finished. $(find "$BACKUP_DIR" -maxdepth 1 -name 'aikc_*.sql.gz' | wc -l) daily, $(find "$MONTHLY_DIR" -maxdepth 1 -name 'aikc_*.sql.gz' | wc -l) monthly on disk"

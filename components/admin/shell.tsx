@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  FlagIcon,
   GemIcon,
   GlobeIcon,
   LayoutDashboardIcon,
@@ -108,6 +109,13 @@ export function Shell({
                 href: "/admin/tags",
                 label: stats[2].toString(),
                 prefix: <TagIcon />,
+              },
+              {
+                title: "Reports",
+                href: "/admin/reports",
+                // Only open reports need attention, so hide a zero count.
+                label: stats[3] ? stats[3].toString() : undefined,
+                prefix: <FlagIcon />,
               },
               {
                 title: "AI Logs",

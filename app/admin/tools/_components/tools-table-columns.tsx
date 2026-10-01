@@ -1,7 +1,7 @@
 "use client";
 
 import { formatDate } from "@curiousleaf/utils";
-import type { Tool } from "@prisma/client";
+import type { PricingTier } from "@prisma/client";
 import type { ColumnDef } from "@tanstack/react-table";
 import { ToolActions } from "~/app/admin/tools/_components/tool-actions";
 import { DataTableColumnHeader } from "~/components/admin/data-table/data-table-column-header";
@@ -9,8 +9,30 @@ import { DataTableLink } from "~/components/admin/data-table/data-table-link";
 import { DataTableThumbnail } from "~/components/admin/data-table/data-table-thumbnail";
 import { Badge } from "~/components/admin/ui/badge";
 import { Checkbox } from "~/components/common/checkbox";
+import { formatRole, isUserRole } from "~/config/roles";
+import type { ToolRow, ToolStatus } from "../_lib/queries";
 
-export function getColumns(): ColumnDef<Tool>[] {
+export const toolStatusLabels: Record<ToolStatus, string> = {
+  published: "Published",
+  scheduled: "Scheduled",
+  draft: "Draft",
+};
+
+const toolStatusColors: Record<ToolStatus, string> = {
+  published: "bg-green-100 text-green-700",
+  scheduled: "bg-blue-100 text-blue-700",
+  draft: "bg-gray-100 text-gray-700",
+};
+
+export const pricingTierLabels: Record<PricingTier, string> = {
+  FREE: "Free",
+  FREEMIUM: "Freemium",
+  PAID: "Paid",
+  OPEN_SOURCE: "Open source",
+  CUSTOM: "Custom",
+};
+
+export function getColumns(): ColumnDef<ToolRow>[] {
   return [
     {
       accessorKey: "name",
@@ -60,6 +82,123 @@ export function getColumns(): ColumnDef<Tool>[] {
         </div>
       ),
       enableSorting: false,
+    },
+    {
+      accessorKey: "status",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Status" />
+      ),
+      cell: ({ row }) => {
+        const { status } = row.original;
+
+        return (
+          <Badge className={toolStatusColors[status]} variant="outline">
+            {toolStatusLabels[status]}
+          </Badge>
+        );
+      },
+      enableSorting: false,
+      size: 0,
+    },
+    {
+      accessorKey: "categories",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Categories" />
+      ),
+      cell: ({ row }) => {
+        const names = row.original.categories.map(({ name }) => name);
+
+        return names.length ? (
+          <div
+            className="max-w-64 truncate text-muted-foreground"
+            title={names.join(", ")}
+          >
+            {names.join(", ")}
+          </div>
+        ) : (
+          <span className="text-muted-foreground">—</span>
+        );
+      },
+      enableSorting: false,
+    },
+    {
+      accessorKey: "roles",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Roles" />
+      ),
+      cell: ({ row }) => {
+        const roles = row.original.roles.filter(isUserRole).map(formatRole);
+
+        return roles.length ? (
+          <div
+            className="max-w-64 truncate text-muted-foreground"
+            title={roles.join(", ")}
+          >
+            {roles.join(", ")}
+          </div>
+        ) : (
+          <span className="text-muted-foreground">—</span>
+        );
+      },
+      enableSorting: false,
+    },
+    {
+      accessorKey: "pricingTier",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Pricing" />
+      ),
+      cell: ({ row }) => {
+        const { pricingTier: tier } = row.original;
+
+        return (
+          <span className="whitespace-nowrap text-muted-foreground">
+            {tier ? pricingTierLabels[tier] : "—"}
+          </span>
+        );
+      },
+      size: 0,
+    },
+    {
+      accessorKey: "isFeatured",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Featured" />
+      ),
+      cell: ({ row }) =>
+        row.original.isFeatured ? (
+          <Badge className="bg-purple-100 text-purple-700" variant="outline">
+            Featured
+          </Badge>
+        ) : (
+          <span className="text-muted-foreground">—</span>
+        ),
+      size: 0,
+    },
+    {
+      accessorKey: "isBroken",
+      header: ({ column }) => (
+        <DataTableColumnHeader column={column} title="Link" />
+      ),
+      cell: ({ row }) => {
+        const { isBroken, lastCheckedAt } = row.original;
+        const checked = lastCheckedAt
+          ? `Last checked ${formatDate(lastCheckedAt)}`
+          : "Not checked yet";
+
+        return isBroken ? (
+          <Badge
+            className="bg-red-100 text-red-700"
+            title={checked}
+            variant="outline"
+          >
+            Broken
+          </Badge>
+        ) : (
+          <span className="text-muted-foreground" title={checked}>
+            {lastCheckedAt ? "OK" : "—"}
+          </span>
+        );
+      },
+      size: 0,
     },
     {
       accessorKey: "createdAt",
