@@ -40,6 +40,56 @@ export const getLibrarySearchQuery = (userTexts: string[]): string =>
     .join("\n")
     .slice(-LIBRARY_SEARCH_MAX_LENGTH);
 
+// Matched against the question lowercased and stripped of Vietnamese marks,
+// so "Cách dùng", "cach dung" and "CÁCH DÙNG" all count
+const TUTORIAL_PATTERNS = [
+  /\bcach (dung|su dung|bat dau|cai dat|tao|lam)\b/,
+  /\blam (sao|the nao)( de)? (dung|su dung|bat dau|cai dat|tao)\b/,
+  /\bhuong dan\b/,
+  /\bbat dau (voi|dung|su dung)\b/,
+  /\bhow (to|do i|can i|do you|should i) (use|start|get started|set up|setup|install|create|make)\b/,
+  /\b(get|getting) started\b/,
+  /\b(tutorials?|walkthrough|step by step|videos?)\b/,
+];
+
+/**
+ * Whether a question asks how to use a tool, for a guide or for videos: the
+ * questions that should get tutorial videos even when the model forgets to
+ * search for them.
+ */
+export const isTutorialQuestion = (text: string): boolean => {
+  const normalized = text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .replace(/đ/g, "d");
+  return TUTORIAL_PATTERNS.some((pattern) => pattern.test(normalized));
+};
+
+const FALLBACK_VIDEO_QUERY_TURNS = 2;
+const FALLBACK_VIDEO_QUERY_MAX_LENGTH = 120;
+
+/**
+ * What to search YouTube for when the model skipped the video search: the
+ * question itself, with the one before it so a follow-up like "any videos?"
+ * keeps its topic, and the name of the tool whose page the chat is on.
+ */
+export const getFallbackVideoQuery = (
+  userTexts: string[],
+  toolName?: string
+): string => {
+  const question = userTexts
+    .map((text) => text.trim())
+    .filter(Boolean)
+    .slice(-FALLBACK_VIDEO_QUERY_TURNS)
+    .join(" ");
+  const named =
+    toolName && !question.toLowerCase().includes(toolName.toLowerCase())
+      ? `${toolName} ${question}`
+      : question;
+  return named.slice(0, FALLBACK_VIDEO_QUERY_MAX_LENGTH);
+};
+
 /**
  * Collects the answer text and tool results of every step of a multi-step
  * turn. `result.text` / `result.toolResults` only hold the final step, which

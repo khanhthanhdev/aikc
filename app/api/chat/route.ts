@@ -7,6 +7,7 @@ import {
   streamText,
   type UIMessage,
   type UIMessageChunk,
+  type UIMessageStreamWriter,
 } from "ai";
 import { cookies } from "next/headers";
 import { after } from "next/server";
@@ -22,8 +23,10 @@ import {
 } from "~/lib/chat-library-context";
 import {
   collectStepOutputs,
+  getFallbackVideoQuery,
   getLibrarySearchQuery,
   isCacheableConversation,
+  isTutorialQuestion,
 } from "~/lib/chat-turn";
 import {
   internalServerErrorResponse,
@@ -40,9 +43,13 @@ import {
 import {
   findCachedAnswer,
   type SemanticCacheEntry,
+  type SemanticCacheToolResult,
   storeCachedAnswer,
 } from "~/lib/semantic-cache";
-import { searchYoutubeVideos } from "~/services/ai-chat-tools";
+import {
+  findYoutubeVideos,
+  searchYoutubeVideos,
+} from "~/services/ai-chat-tools";
 import {
   googleFlashModel,
   googleFlashModelId,
@@ -56,7 +63,9 @@ const MAX_MESSAGE_TEXT_LENGTH = 8000;
 const SUGGESTIONS_MARKER = "---SUGGESTIONS---";
 
 // Bump to stop reusing answers cached under older prompts or behaviour
-const CACHE_KEY_PREFIX = "chat-v2";
+const CACHE_KEY_PREFIX = "chat-v3";
+
+const VIDEO_TOOL_NAME = "searchYoutubeVideos";
 
 const SESSION_COOKIE = "aikc_chat_sid";
 const SESSION_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
@@ -120,7 +129,7 @@ Quy tắc câu hỏi tiếp theo:
 };
 
 const chatTools = {
-  searchYoutubeVideos, // YouTube search remains in English
+  [VIDEO_TOOL_NAME]: searchYoutubeVideos, // YouTube search remains in English
 };
 
 // Strict message schema — only accept user/assistant text parts that we
@@ -374,6 +383,80 @@ function createCachedMessageStream(
   });
 }
 
+/**
+ * Searches YouTube with the user's own question and streams the videos as
+ * if the model had called the tool, so the chat shows them the same way.
+ */
+async function writeFallbackVideos(
+  writer: UIMessageStreamWriter,
+  query: string
+): Promise<SemanticCacheToolResult> {
+  const toolCallId = `fallback-${crypto.randomUUID()}`;
+  const input = { query };
+  writer.write({
+    type: "tool-input-available",
+    toolCallId,
+    toolName: VIDEO_TOOL_NAME,
+    input,
+  });
+  const output = await findYoutubeVideos(input.query);
+  writer.write({ type: "tool-output-available", toolCallId, output });
+  return { toolCallId, toolName: VIDEO_TOOL_NAME, input, output };
+}
+
+async function cacheAnswer({
+  cacheKey,
+  role,
+  toolSlug,
+  steps,
+  fallbackResult,
+  wantsVideos,
+}: {
+  cacheKey: string;
+  role?: UserRole;
+  toolSlug?: string;
+  steps: PromiseLike<Parameters<typeof collectStepOutputs>[0]>;
+  fallbackResult: SemanticCacheToolResult | null;
+  wantsVideos: boolean;
+}) {
+  try {
+    // Every step: after a video search the last one holds only suggestions
+    const collected = collectStepOutputs(await steps);
+    const answer = collected.answer;
+    const toolResults = fallbackResult
+      ? [...collected.toolResults, fallbackResult]
+      : collected.toolResults;
+    if (!answer && toolResults.length === 0) {
+      return;
+    }
+    // A failed, timed-out or skipped video search would be replayed without
+    // videos all week
+    const videoResults = toolResults.filter(
+      ({ toolName }) => toolName === VIDEO_TOOL_NAME
+    );
+    const hasVideos = videoResults.some(
+      ({ output }) => Array.isArray(output) && output.length > 0
+    );
+    const videoSearchFailed = videoResults.length > 0 && !hasVideos;
+    if (videoSearchFailed || (wantsVideos && !hasVideos)) {
+      return;
+    }
+
+    await storeCachedAnswer({
+      question: cacheKey,
+      answer,
+      context: [],
+      role,
+      toolSlug,
+      toolResults,
+    });
+  } catch (err) {
+    if (isDev) {
+      console.error("Failed to cache answer:", err);
+    }
+  }
+}
+
 export async function POST(req: Request) {
   try {
     // Reject cross-origin POSTs — this endpoint should only be hit by our
@@ -439,12 +522,11 @@ export async function POST(req: Request) {
     }
 
     // Runs alongside the cache lookup; simply ignored on a cache hit
+    const userTexts = messages
+      .filter((message) => message.role === "user")
+      .map(getMessageText);
     const libraryContextPromise = getLibraryContext({
-      query: getLibrarySearchQuery(
-        messages
-          .filter((message) => message.role === "user")
-          .map(getMessageText)
-      ),
+      query: getLibrarySearchQuery(userTexts),
       toolSlug,
       locale,
     });
@@ -516,43 +598,66 @@ export async function POST(req: Request) {
     });
     turn.watch(result);
 
-    // Store the completed answer in the semantic cache once streaming finishes
-    void (async () => {
-      if (!cacheKey) {
-        return;
-      }
-      try {
-        // Every step: after a video search the last one holds only suggestions
-        const { answer, toolResults } = collectStepOutputs(await result.steps);
-        if (!answer && toolResults.length === 0) {
-          return;
-        }
-        // A failed or timed-out video search would be replayed without videos all week
-        const videoSearchFailed = toolResults.some(
-          ({ toolName, output }) =>
-            toolName === "searchYoutubeVideos" &&
-            !(Array.isArray(output) && output.length > 0)
-        );
-        if (videoSearchFailed) {
-          return;
+    const wantsVideos = isTutorialQuestion(query);
+
+    const stream = createUIMessageStream({
+      execute: async ({ writer }) => {
+        let calledVideoTool = false;
+        let failed = false;
+
+        const reader = result
+          .toUIMessageStream({ sendFinish: false })
+          .getReader();
+        for (;;) {
+          const { done, value: chunk } = await reader.read();
+          if (done) {
+            break;
+          }
+          if (
+            chunk.type === "tool-input-available" &&
+            chunk.toolName === VIDEO_TOOL_NAME
+          ) {
+            calledVideoTool = true;
+          }
+          if (chunk.type === "error" || chunk.type === "abort") {
+            failed = true;
+          }
+          writer.write(chunk);
         }
 
-        await storeCachedAnswer({
-          question: cacheKey,
-          answer,
-          context: [],
-          role,
-          toolSlug,
-          toolResults,
-        });
-      } catch (err) {
-        if (isDev) {
-          console.error("Failed to cache answer:", err);
-        }
-      }
-    })();
+        // Gemma sometimes writes the whole answer and skips the video search
+        // the prompt asks for; search with the question itself instead
+        const fallbackResult =
+          wantsVideos && !calledVideoTool && !failed && !req.signal.aborted
+            ? await writeFallbackVideos(
+                writer,
+                getFallbackVideoQuery(
+                  userTexts,
+                  libraryContext.currentTool?.name
+                )
+              )
+            : null;
 
-    return result.toUIMessageStreamResponse();
+        if (failed) {
+          return;
+        }
+        writer.write({ type: "finish", finishReason: "stop" });
+
+        // Store the completed answer in the semantic cache
+        if (cacheKey) {
+          void cacheAnswer({
+            cacheKey,
+            role,
+            toolSlug,
+            steps: result.steps,
+            fallbackResult,
+            wantsVideos,
+          });
+        }
+      },
+    });
+
+    return createUIMessageStreamResponse({ stream });
   } catch (error) {
     if (error instanceof SyntaxError) {
       return invalidRequestResponse();
