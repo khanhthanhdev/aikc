@@ -9,6 +9,7 @@ import { JsonLd } from "~/components/common/json-ld";
 import { ToolListSkeleton } from "~/components/web/tool-list-skeleton";
 import { Intro, IntroTitle } from "~/components/web/ui/intro";
 import { Wrapper } from "~/components/web/ui/wrapper";
+import { PRERENDER_LIMIT } from "~/config/prerender";
 import { buildBreadcrumbSchema } from "~/lib/json-ld";
 import type { TagOne } from "~/server/tags/payloads";
 import { findTagSlugs, findUniqueTag } from "~/server/tags/queries";
@@ -36,7 +37,7 @@ export const generateStaticParams = async () => {
   }
 
   try {
-    const tags = await findTagSlugs({});
+    const tags = await findTagSlugs({ take: PRERENDER_LIMIT });
     return tags.map(({ slug }) => ({ slug }));
   } catch {
     return [];

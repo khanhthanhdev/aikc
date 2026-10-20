@@ -32,6 +32,7 @@ import { Gallery } from "~/components/web/ui/gallery";
 import { IntroDescription } from "~/components/web/ui/intro";
 import { Tag } from "~/components/web/ui/tag";
 import { Wrapper } from "~/components/web/ui/wrapper";
+import { PRERENDER_LIMIT } from "~/config/prerender";
 import { isUserRole } from "~/config/roles";
 import { Link } from "~/i18n/navigation";
 import {
@@ -83,7 +84,7 @@ export const generateStaticParams = async () => {
   }
 
   try {
-    const tools = await findToolSlugs({});
+    const tools = await findToolSlugs({ take: PRERENDER_LIMIT });
     return tools.map(({ slug }) => ({ slug }));
   } catch {
     return [];
