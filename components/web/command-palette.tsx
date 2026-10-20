@@ -12,7 +12,15 @@ import {
 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  type CSSProperties,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { inferServerActionReturnData } from "zsa";
 import {
   keywordSearchPaletteItems,
@@ -30,7 +38,6 @@ import {
   CommandShortcut,
 } from "~/components/web/ui/command";
 import { Favicon } from "~/components/web/ui/favicon";
-import { Shortcut } from "~/components/web/ui/shortcut";
 import { useCommandPalette } from "~/contexts/command-palette-context";
 import { useDebouncedState } from "~/hooks/use-debounced-state";
 import { useRouter } from "~/i18n/navigation";
@@ -102,6 +109,64 @@ const resultValues = (results: PaletteResults) => [
   ...results.tags.map((tag: PaletteResults["tags"][0]) => `tag:${tag.slug}`),
 ];
 
+const PALETTE_WIDTH = 560;
+const PALETTE_GUTTER = 12;
+/** Height of the palette's input row, to center it on the header box */
+const INPUT_ROW_HEIGHT = 50;
+
+/**
+ * Places the palette over the header's search box, so the box seems to open
+ * into the results rather than a second search box appearing. Without a
+ * visible box (top of the homepage), the palette stays centered.
+ */
+const useAnchoredPosition = (isOpen: boolean) => {
+  const [position, setPosition] = useState<CSSProperties>();
+
+  useLayoutEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    const measure = () => {
+      const trigger = [
+        ...document.querySelectorAll<HTMLElement>("[data-search-trigger]"),
+      ].find(
+        (element) =>
+          element.getClientRects().length > 0 &&
+          getComputedStyle(element).visibility !== "hidden"
+      );
+      if (!trigger) {
+        setPosition(undefined);
+        return;
+      }
+
+      const rect = trigger.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const width = Math.min(PALETTE_WIDTH, viewportWidth - PALETTE_GUTTER * 2);
+      const left = Math.min(
+        Math.max(rect.left, PALETTE_GUTTER),
+        viewportWidth - width - PALETTE_GUTTER
+      );
+      const top = Math.max(
+        rect.top + rect.height / 2 - INPUT_ROW_HEIGHT / 2,
+        PALETTE_GUTTER / 2
+      );
+      setPosition({
+        top,
+        left,
+        width,
+        maxHeight: `calc(100dvh - ${top + PALETTE_GUTTER}px)`,
+      });
+    };
+
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [isOpen]);
+
+  return position;
+};
+
 const shouldIgnoreHotkeyTarget = (target: EventTarget | null) => {
   if (!(target instanceof HTMLElement)) {
     return false;
@@ -132,6 +197,7 @@ export const CommandPalette = () => {
   // other item left, so new results would arrive with nothing selected
   const [selected, setSelected] = useState("");
   const searchIdRef = useRef(0);
+  const position = useAnchoredPosition(palette.isOpen);
 
   const handleKeywordResults = useCallback(
     async (
@@ -335,6 +401,7 @@ export const CommandPalette = () => {
       onOpenChange={handleOpenChange}
       onValueChange={setSelected}
       open={palette.isOpen}
+      position={position}
       shouldFilter={false}
       value={selected}
     >
@@ -352,7 +419,6 @@ export const CommandPalette = () => {
               className="size-4 animate-spin"
             />
           )}
-          <Shortcut className="text-muted-foreground/80 text-xs" size="h6" />
         </div>
       </div>
 
@@ -386,6 +452,10 @@ export const CommandPalette = () => {
             {results.tools.map((tool: PaletteResults["tools"][0]) => {
               const toolName =
                 locale === "vi" ? (tool.nameVi ?? tool.name) : tool.name;
+              const tagline =
+                locale === "vi"
+                  ? (tool.taglineVi ?? tool.tagline)
+                  : tool.tagline;
               // Extract domain from websiteUrl
               const domain = tool.websiteUrl
                 ? new URL(tool.websiteUrl).hostname.replace(/^www\./, "")
@@ -393,28 +463,30 @@ export const CommandPalette = () => {
 
               return (
                 <CommandItem
-                  className="flex items-center justify-between gap-3"
+                  className="gap-3 py-2"
                   key={tool.id}
                   onSelect={() => handleSelect(`/tools/${tool.slug}`)}
                   value={`tool:${tool.slug}`}
                 >
-                  <div className="flex min-w-0 items-center gap-2">
+                  <span className="grid size-10 shrink-0 place-items-center rounded-lg border bg-background">
                     {tool.faviconUrl ? (
                       <Favicon
-                        className="size-5 shrink-0"
+                        className="size-6"
                         src={tool.faviconUrl}
                         title={toolName}
                       />
                     ) : (
-                      <WrenchIcon className="size-4 shrink-0 text-muted-foreground" />
+                      <WrenchIcon className="size-4 text-muted-foreground" />
                     )}
+                  </span>
+                  <span className="grid min-w-0 flex-1">
                     <span className="truncate font-medium">{toolName}</span>
-                  </div>
-                  {domain && (
-                    <span className="shrink-0 text-muted-foreground text-sm">
-                      {domain}
-                    </span>
-                  )}
+                    {(tagline || domain) && (
+                      <span className="truncate text-muted-foreground text-xs">
+                        {tagline || domain}
+                      </span>
+                    )}
+                  </span>
                 </CommandItem>
               );
             })}

@@ -27,6 +27,11 @@ interface CommandDialogProps extends DialogPrimitive.DialogProps {
   /** The highlighted item's value, to control it from outside */
   value?: string;
   onValueChange?: (value: string) => void;
+  /**
+   * Where to place the dialog instead of centering it, e.g. over the search
+   * box that opened it so the box seems to grow into the results
+   */
+  position?: React.CSSProperties;
 }
 
 const CommandDialog = ({
@@ -34,6 +39,7 @@ const CommandDialog = ({
   shouldFilter = true,
   value,
   onValueChange,
+  position,
   ...props
 }: CommandDialogProps) => {
   const t = useTranslations("CommandPalette");
@@ -44,8 +50,14 @@ const CommandDialog = ({
         <DialogPrimitive.Overlay className="data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 fixed inset-0 z-40 bg-background/70 backdrop-blur-sm data-[state=closed]:animate-out data-[state=open]:animate-in" />
 
         <DialogPrimitive.Content
-          className="data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95 fixed top-[16%] left-1/2 z-50 max-h-[75vh] w-[min(500px,calc(100%-1.5rem))] -translate-x-1/2 overflow-hidden rounded-xl border bg-background shadow-lg data-[state=closed]:animate-out data-[state=open]:animate-in sm:top-[10%] sm:max-h-none"
+          className={cx(
+            "data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95 fixed z-50 overflow-hidden rounded-xl border bg-background shadow-lg data-[state=closed]:animate-out data-[state=open]:animate-in",
+            position
+              ? "origin-top"
+              : "top-[16%] left-1/2 max-h-[75vh] w-[min(500px,calc(100%-1.5rem))] -translate-x-1/2 sm:top-[10%] sm:max-h-none"
+          )}
           onWheel={(e) => e.stopPropagation()}
+          style={position}
         >
           <DialogPrimitive.Title className="sr-only">
             {t("srTitle")}

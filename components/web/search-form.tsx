@@ -30,8 +30,12 @@ export const SearchForm = ({
         "flex h-8 w-52 shrink-0 items-center gap-2 rounded-lg border bg-muted/20 px-2.5 text-muted-foreground text-sm transition-[color,background-color,opacity,visibility] duration-200 hover:bg-muted/40 hover:text-foreground max-sm:h-8 max-sm:w-8 max-sm:justify-center max-sm:border-transparent max-sm:bg-transparent max-sm:px-0",
         // The homepage's own search box is on screen; two would compete
         isHeroInView && "pointer-events-none invisible opacity-0",
+        // The palette opens on top of this box, as the box grown into the
+        // results; showing both would look like two search boxes
+        palette.isOpen && "opacity-0",
         className
       )}
+      data-search-trigger=""
       onClick={palette.open}
       type="button"
       {...props}
