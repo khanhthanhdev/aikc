@@ -31,6 +31,24 @@ const TLS_ERROR_PATTERN =
 const CONNECTION_ERROR_PATTERN =
   /REFUSED|RESET|UNREACH|EHOSTDOWN|ConnectionClosed|Unable to connect/i;
 
+/**
+ * A lapsed domain is often parked: it answers 200 with a registrar's ad or
+ * "for sale" page, so only the page itself shows the tool is gone.
+ */
+const PARKED_DOMAIN = "Parked domain";
+/** Domain marketplaces a lapsed domain redirects to. */
+const DOMAIN_MARKETPLACE_HOST =
+  /(^|\.)(afternic\.com|atom\.com|brandforce\.com|dan\.com|hugedomains\.com|sedo\.com|squadhelp\.com|undeveloped\.com)$/i;
+const PARKED_PAGE_PATTERNS = [
+  // GoDaddy: a stub that sends the browser to /lander, then the parking app
+  /window\.location\.href\s*=\s*["']\/lander["']/,
+  /wsimg\.com\/parking-lander/,
+  /sedoparking\.com|parkingcrew\.net|parking\.bodiscdn\.com/i,
+  /\b(this )?domain (name )?(is|may be) (parked|for sale)\b/i,
+];
+/** Parking pages are small; their markers sit near the top. */
+const PARKED_PAGE_MAX_BYTES = 64 * 1024;
+
 interface LinkValidationResult {
   error?: string;
   isValid: boolean;
@@ -252,12 +270,76 @@ async function safeFetch(
   }
 }
 
+/** Whether the link ended up on a domain marketplace (another host). */
+function redirectsToMarketplace(url: string, response: Response): boolean {
+  if (!response.url) {
+    return false;
+  }
+  const finalHost = new URL(response.url).hostname;
+  return (
+    finalHost !== new URL(url).hostname &&
+    DOMAIN_MARKETPLACE_HOST.test(finalHost)
+  );
+}
+
+/** The start of a response body as text, giving up after the request timeout. */
+async function readBodyStart(response: Response): Promise<string> {
+  const reader = response.body?.getReader();
+  if (!reader) {
+    return "";
+  }
+
+  const timeoutId = setTimeout(() => reader.cancel(), REQUEST_TIMEOUT);
+  const decoder = new TextDecoder();
+  let text = "";
+  try {
+    while (text.length < PARKED_PAGE_MAX_BYTES) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      text += decoder.decode(value, { stream: true });
+    }
+  } finally {
+    clearTimeout(timeoutId);
+    reader.cancel().catch(() => {});
+  }
+  return text;
+}
+
+/**
+ * Whether a link that answered fine lands on a parked or for-sale page.
+ * `response` is the final hop; its body is read here when it came from GET,
+ * otherwise the page is fetched again with GET. Any failure counts as not
+ * parked, since the link itself already answered.
+ */
+async function isParkedDomain(
+  url: string,
+  response: Response,
+  method: "HEAD" | "GET"
+): Promise<boolean> {
+  try {
+    if (redirectsToMarketplace(url, response)) {
+      return true;
+    }
+
+    const page = method === "GET" ? response : await safeFetch(url, "GET");
+    if (!page.ok || !page.headers.get("content-type")?.includes("html")) {
+      await page.body?.cancel();
+      return false;
+    }
+    const body = await readBodyStart(page);
+    return PARKED_PAGE_PATTERNS.some((pattern) => pattern.test(body));
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Check if a link is alive using HEAD request with fallback to GET.
  * SSRF-safe: every redirect hop is re-validated against the private IP list.
  *
- * Broken: malformed or private URL, domain gone, 402/404/410, 5xx (not 503),
- * invalid TLS certificate, refused connection. Not broken, only inconclusive
+ * Broken: malformed or private URL, domain gone, parked or for-sale domain,
+ * 402/404/410, 5xx (not 503), invalid TLS certificate, refused connection.
+ * Not broken, only inconclusive
  * (`isValid: true` with the reason in `error`): 401/403/429/503, timeouts,
  * DNS resolver failures and any other status or error.
  */
@@ -271,12 +353,14 @@ export async function validateLink(url: string): Promise<LinkValidationResult> {
 
   try {
     let response: Response;
+    let method: "HEAD" | "GET" = "HEAD";
     try {
       response = await safeFetch(url, "HEAD");
       // Many servers reject or mishandle HEAD, so confirm a failure with GET
       // before trusting it.
       if (!response.ok) {
         log.debug(`HEAD got ${response.status}, retrying with GET: ${url}`);
+        method = "GET";
         response = await safeFetch(url, "GET");
       }
     } catch (error) {
@@ -296,7 +380,17 @@ export async function validateLink(url: string): Promise<LinkValidationResult> {
 
     const { status } = response;
 
+    // Marketplaces may block the checker too, so the redirect alone decides.
+    const parked = response.ok
+      ? await isParkedDomain(url, response, method)
+      : redirectsToMarketplace(url, response);
+    if (parked) {
+      log.warn(`Link lands on a parked or for-sale page: ${url}`, { status });
+      return { isValid: false, statusCode: status, error: PARKED_DOMAIN };
+    }
+
     if (response.ok) {
+      await response.body?.cancel().catch(() => {});
       log.info(`Link valid: ${url}`, { status });
       return { isValid: true, statusCode: status };
     }
