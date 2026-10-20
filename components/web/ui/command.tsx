@@ -24,11 +24,16 @@ Command.displayName = CommandPrimitive.displayName;
 
 interface CommandDialogProps extends DialogPrimitive.DialogProps {
   shouldFilter?: boolean;
+  /** The highlighted item's value, to control it from outside */
+  value?: string;
+  onValueChange?: (value: string) => void;
 }
 
 const CommandDialog = ({
   children,
   shouldFilter = true,
+  value,
+  onValueChange,
   ...props
 }: CommandDialogProps) => {
   const t = useTranslations("CommandPalette");
@@ -49,7 +54,12 @@ const CommandDialog = ({
             {t("srDescription")}
           </DialogPrimitive.Description>
 
-          <Command className="grid gap-1" shouldFilter={shouldFilter}>
+          <Command
+            className="grid gap-1"
+            onValueChange={onValueChange}
+            shouldFilter={shouldFilter}
+            value={value}
+          >
             {children}
           </Command>
 

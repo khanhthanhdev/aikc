@@ -78,6 +78,30 @@ const mergeSemanticResults = (
   };
 };
 
+/** The cmdk value of the first result, which Enter should open. */
+const firstResultValue = (results: PaletteResults) => {
+  const [tool] = results.tools;
+  if (tool) {
+    return `tool:${tool.slug}`;
+  }
+  const [category] = results.categories;
+  if (category) {
+    return `category:${category.slug}`;
+  }
+  const [tag] = results.tags;
+  return tag ? `tag:${tag.slug}` : "";
+};
+
+const resultValues = (results: PaletteResults) => [
+  ...results.tools.map(
+    (tool: PaletteResults["tools"][0]) => `tool:${tool.slug}`
+  ),
+  ...results.categories.map(
+    (category: PaletteResults["categories"][0]) => `category:${category.slug}`
+  ),
+  ...results.tags.map((tag: PaletteResults["tags"][0]) => `tag:${tag.slug}`),
+];
+
 const shouldIgnoreHotkeyTarget = (target: EventTarget | null) => {
   if (!(target instanceof HTMLElement)) {
     return false;
@@ -104,6 +128,9 @@ export const CommandPalette = () => {
   const [results, setResults] = useState<ProgressiveResults | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
+  // cmdk keeps a stale highlight when the highlighted item unmounts with no
+  // other item left, so new results would arrive with nothing selected
+  const [selected, setSelected] = useState("");
   const searchIdRef = useRef(0);
 
   const handleKeywordResults = useCallback(
@@ -123,6 +150,7 @@ export const CommandPalette = () => {
         semanticComplete: false,
         isWaitingForSemantic: true,
       });
+      setSelected(firstResultValue(data));
       setIsPending(false);
       return true;
     },
@@ -196,6 +224,7 @@ export const CommandPalette = () => {
     setInput("");
     setResults(null);
     setError(null);
+    setSelected("");
     searchIdRef.current++;
   }, []);
 
@@ -254,12 +283,27 @@ export const CommandPalette = () => {
     if (trimmed.length > 1) {
       executeProgressiveSearch(trimmed);
     } else {
+      searchIdRef.current++;
       setResults(null);
       setError(null);
+      setIsPending(false);
+      setSelected("");
     }
   }, [query, executeProgressiveSearch]);
 
-  const hasQuery = input.trim().length > 0;
+  // Semantic results are merged in after the keyword ones: keep what the
+  // visitor highlighted, unless it is gone from the list
+  useEffect(() => {
+    if (results && !resultValues(results).includes(selected)) {
+      setSelected(firstResultValue(results));
+    }
+  }, [results, selected]);
+
+  const trimmedInput = input.trim();
+  const hasQuery = trimmedInput.length > 0;
+  // Searching from the first keystroke, through the debounce, to the results
+  const isSearching =
+    isPending || (trimmedInput.length > 1 && trimmedInput !== query.trim());
   const hasTools = !!results?.tools.length;
   const hasCategories = !!results?.categories.length;
   const hasTags = !!results?.tags.length;
@@ -289,8 +333,10 @@ export const CommandPalette = () => {
   return (
     <CommandDialog
       onOpenChange={handleOpenChange}
+      onValueChange={setSelected}
       open={palette.isOpen}
       shouldFilter={false}
+      value={selected}
     >
       <div className="relative">
         <CommandInput
@@ -299,8 +345,8 @@ export const CommandPalette = () => {
           value={input}
         />
 
-        <div className="absolute inset-y-0 right-3 flex items-center gap-2 text-muted-foreground">
-          {isPending && (
+        <div className="absolute inset-y-0 right-12 flex items-center gap-2 text-muted-foreground">
+          {isSearching && (
             <LoaderIcon
               aria-label={t("searching")}
               className="size-4 animate-spin"
@@ -314,9 +360,11 @@ export const CommandPalette = () => {
         <CommandEmpty>
           {error
             ? t("searchFailed", { error })
-            : hasQuery
-              ? t("noResults")
-              : t("emptyPrompt")}
+            : isSearching
+              ? `${t("searching")}…`
+              : trimmedInput.length > 1
+                ? t("noResults")
+                : t("emptyPrompt")}
         </CommandEmpty>
 
         {!hasQuery && (
@@ -423,32 +471,40 @@ export const CommandPalette = () => {
           </>
         )}
 
-        <CommandSeparator />
-        <CommandGroup heading={t("appearanceHeading")}>
-          {resolvedTheme === "dark" ? (
-            <CommandItem
-              onSelect={() => {
-                setTheme("light");
-                handleClose();
-              }}
-            >
-              <SunIcon className="size-4 shrink-0 text-muted-foreground" />
-              <span className="flex-1 truncate">{t("switchToLightMode")}</span>
-              <CommandShortcut>⇧⌘L</CommandShortcut>
-            </CommandItem>
-          ) : (
-            <CommandItem
-              onSelect={() => {
-                setTheme("dark");
-                handleClose();
-              }}
-            >
-              <MoonIcon className="size-4 shrink-0 text-muted-foreground" />
-              <span className="flex-1 truncate">{t("switchToDarkMode")}</span>
-              <CommandShortcut>⇧⌘L</CommandShortcut>
-            </CommandItem>
-          )}
-        </CommandGroup>
+        {!hasQuery && (
+          <>
+            <CommandSeparator />
+            <CommandGroup heading={t("appearanceHeading")}>
+              {resolvedTheme === "dark" ? (
+                <CommandItem
+                  onSelect={() => {
+                    setTheme("light");
+                    handleClose();
+                  }}
+                >
+                  <SunIcon className="size-4 shrink-0 text-muted-foreground" />
+                  <span className="flex-1 truncate">
+                    {t("switchToLightMode")}
+                  </span>
+                  <CommandShortcut>⇧⌘L</CommandShortcut>
+                </CommandItem>
+              ) : (
+                <CommandItem
+                  onSelect={() => {
+                    setTheme("dark");
+                    handleClose();
+                  }}
+                >
+                  <MoonIcon className="size-4 shrink-0 text-muted-foreground" />
+                  <span className="flex-1 truncate">
+                    {t("switchToDarkMode")}
+                  </span>
+                  <CommandShortcut>⇧⌘L</CommandShortcut>
+                </CommandItem>
+              )}
+            </CommandGroup>
+          </>
+        )}
       </CommandList>
       {results && (
         <SearchStatusFooter
