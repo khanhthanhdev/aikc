@@ -55,6 +55,13 @@
 		abort
 	}
 
+	# One canonical host. The app only accepts its own origin (NEXT_PUBLIC_SITE_URL,
+	# no www), so the chat answered every question asked on www with a 403.
+	@www host www.aikc.vn
+	handle @www {
+		redir https://aikc.vn{uri} permanent
+	}
+
 	handle /healthz {
 		respond 200
 	}
