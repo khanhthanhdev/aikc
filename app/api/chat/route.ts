@@ -26,6 +26,7 @@ import {
   getFallbackVideoQuery,
   getLibrarySearchQuery,
   isCacheableConversation,
+  isToolOverviewQuestion,
   isTutorialQuestion,
 } from "~/lib/chat-turn";
 import {
@@ -62,8 +63,9 @@ const MAX_MESSAGE_TEXT_LENGTH = 8000;
 
 const SUGGESTIONS_MARKER = "---SUGGESTIONS---";
 
-// Bump to stop reusing answers cached under older prompts or behaviour
-const CACHE_KEY_PREFIX = "chat-v3";
+// Part of the text the cache embeds, so changing it does not retire old
+// entries (they still match at ~0.99); bump CHAT_CACHE_VERSION for that
+const CACHE_KEY_PREFIX = "chat-v2";
 
 const VIDEO_TOOL_NAME = "searchYoutubeVideos";
 
@@ -86,9 +88,9 @@ Guidelines:
 - Never announce or narrate what you are going to do ("I'll search for videos", "Let me find...", "Here are some videos"). Just answer.
 
 Tutorial videos (searchYoutubeVideos tool):
-- Call it ONLY when the user asks how to use a tool, for a tutorial or guide, how to get started, or explicitly for videos.
-- Do NOT call it for pricing, plans, comparisons, alternatives, tool recommendations, or general questions.
-- When the question is a how-to or tutorial question, you MUST call it: first write the helpful text answer (key steps, features or tips), then call the tool once with a short English query like "Notion tutorial for beginners". After the tool call, write only the follow-up questions block — nothing about the videos; they are shown automatically.
+- Call it when the user asks how to use a tool, how a tool works, what a specific tool is or what it can do, about its features, for a tutorial or guide, how to get started, or explicitly for videos. A video lets the user watch the tool instead of reading.
+- Do NOT call it for pricing, plans, comparisons, alternatives, tool recommendations, or general questions not about a specific tool.
+- For those questions you MUST call it: first write the helpful text answer (what the tool does, key steps, features or tips), then call the tool once with a short English query like "Notion tutorial for beginners". After the tool call, write only the follow-up questions block — nothing about the videos; they are shown automatically.
 ${context}
 
 ALWAYS end your text with follow-up questions. Format exactly as:
@@ -112,9 +114,9 @@ Hướng dẫn:
 - Không bao giờ thông báo hay kể lại việc mình sắp làm ("Tôi sẽ tìm video", "Để tôi tìm...", "Dưới đây là một số video"). Chỉ trả lời.
 
 Video hướng dẫn (công cụ searchYoutubeVideos):
-- CHỈ gọi khi người dùng hỏi cách sử dụng một công cụ, xin hướng dẫn, cách bắt đầu, hoặc hỏi rõ về video.
-- KHÔNG gọi khi hỏi về giá, gói, so sánh, công cụ thay thế, gợi ý công cụ hay câu hỏi chung.
-- Với câu hỏi về cách dùng hoặc hướng dẫn thì BẮT BUỘC gọi: trước tiên viết câu trả lời hữu ích (các bước chính, tính năng hoặc mẹo), sau đó gọi công cụ một lần với truy vấn ngắn bằng tiếng Anh như "Notion tutorial for beginners". Sau lệnh gọi, chỉ viết khối câu hỏi tiếp theo — không viết gì về video; video được hiển thị tự động và bằng tiếng Anh.
+- Gọi khi người dùng hỏi cách sử dụng một công cụ, công cụ hoạt động thế nào, một công cụ cụ thể là gì hoặc làm được gì, về tính năng của nó, xin hướng dẫn, cách bắt đầu, hoặc hỏi rõ về video. Video giúp người dùng xem công cụ thay vì phải đọc.
+- KHÔNG gọi khi hỏi về giá, gói, so sánh, công cụ thay thế, gợi ý công cụ hay câu hỏi chung không về một công cụ cụ thể.
+- Với các câu hỏi đó thì BẮT BUỘC gọi: trước tiên viết câu trả lời hữu ích (công cụ làm gì, các bước chính, tính năng hoặc mẹo), sau đó gọi công cụ một lần với truy vấn ngắn bằng tiếng Anh như "Notion tutorial for beginners". Sau lệnh gọi, chỉ viết khối câu hỏi tiếp theo — không viết gì về video; video được hiển thị tự động và bằng tiếng Anh.
 ${context}
 
 LUÔN kết thúc phần văn bản bằng các câu hỏi tiếp theo. Định dạng chính xác như:
@@ -598,7 +600,12 @@ export async function POST(req: Request) {
     });
     turn.watch(result);
 
-    const wantsVideos = isTutorialQuestion(query);
+    const wantsVideos =
+      isTutorialQuestion(query) ||
+      isToolOverviewQuestion(query, {
+        currentToolName: libraryContext.currentTool?.name,
+        libraryToolNames: libraryContext.tools.map(({ name }) => name),
+      });
 
     const stream = createUIMessageStream({
       execute: async ({ writer }) => {

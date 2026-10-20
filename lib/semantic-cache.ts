@@ -61,7 +61,7 @@ interface FindCachedAnswerOptions {
 /** Answers are kept for a week so edits to a tool (pricing, description) reach the chat. */
 export const CHAT_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 7;
 /** Bump to ignore every chat answer cached before a behaviour change. */
-export const CHAT_CACHE_VERSION = 2;
+export const CHAT_CACHE_VERSION = 3;
 // Several near neighbours are fetched so an expired top hit cannot hide a fresh one
 const CHAT_CACHE_CANDIDATES = 5;
 

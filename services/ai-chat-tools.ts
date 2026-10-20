@@ -112,7 +112,7 @@ export const findYoutubeVideos = async (
  */
 export const searchYoutubeVideos = tool({
   description:
-    "Search YouTube for tutorial or how-to videos and display them to the user. Only use it when the user asks how to use a tool, for a tutorial or guide, or for videos — never for pricing, comparisons or tool recommendations. Provide an English search query describing the video topic.",
+    "Search YouTube for tutorial, overview or how-to videos and display them to the user. Use it when the user asks how to use a tool, how it works, what a specific tool is or does, for a tutorial or guide, or for videos — never for pricing, comparisons or tool recommendations. Provide an English search query describing the video topic.",
   inputSchema: searchYoutubeSchema,
   execute: ({ query }) => findYoutubeVideos(query),
 });
