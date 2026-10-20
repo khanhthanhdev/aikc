@@ -12,6 +12,7 @@ import { Prose } from "~/components/common/prose";
 import { Intro, IntroDescription, IntroTitle } from "~/components/web/ui/intro";
 import { Wrapper } from "~/components/web/ui/wrapper";
 import { config } from "~/config";
+import { PRERENDER_LIMIT } from "~/config/prerender";
 import { isToolPublished } from "~/lib/tools";
 import type { ToolOne } from "~/server/tools/payloads";
 import { findToolSlugs, findUniqueTool } from "~/server/tools/queries";
@@ -89,7 +90,10 @@ export const generateStaticParams = async () => {
   }
 
   try {
-    const tools = await findToolSlugs({ where: { publishedAt: undefined } });
+    const tools = await findToolSlugs({
+      where: { publishedAt: undefined },
+      take: PRERENDER_LIMIT,
+    });
     return tools.map(({ slug }) => ({ slug }));
   } catch {
     return [];
