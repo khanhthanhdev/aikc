@@ -4,11 +4,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { formatDate } from "date-fns";
 import { PlusIcon, TrashIcon } from "lucide-react";
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import type React from "react";
+import { useState } from "react";
 import { useFieldArray, useForm, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { useServerAction } from "zsa-react";
+import { ToolsDeleteDialog } from "~/app/admin/tools/_components/tools-delete-dialog";
 import {
   createTool,
   suggestToolRolesForForm,
@@ -69,6 +71,9 @@ export function ToolForm({
   tags,
   ...props
 }: ToolFormProps) {
+  const router = useRouter();
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+
   const form = useForm<ToolSchema>({
     resolver: zodResolver(toolSchema),
     defaultValues: {
@@ -653,11 +658,38 @@ export function ToolForm({
             <Link href="/admin/tools">Cancel</Link>
           </Button>
 
-          <Button disabled={isPending} isPending={isPending}>
-            {tool ? "Update tool" : "Create tool"}
-          </Button>
+          <div className="flex gap-4">
+            {tool && (
+              <Button
+                disabled={isPending}
+                onClick={() => setIsDeleteOpen(true)}
+                prefix={<TrashIcon />}
+                type="button"
+                variant="destructive"
+              >
+                Delete tool
+              </Button>
+            )}
+
+            <Button disabled={isPending} isPending={isPending}>
+              {tool ? "Update tool" : "Create tool"}
+            </Button>
+          </div>
         </div>
       </form>
+
+      {tool && (
+        <ToolsDeleteDialog
+          onOpenChange={setIsDeleteOpen}
+          onSuccess={() => {
+            setIsDeleteOpen(false);
+            router.push("/admin/tools");
+          }}
+          open={isDeleteOpen}
+          showTrigger={false}
+          tools={[tool]}
+        />
+      )}
     </Form>
   );
 }

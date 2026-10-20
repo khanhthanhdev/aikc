@@ -9,6 +9,28 @@ const REQUEST_TIMEOUT = 5000;
 const MAX_REDIRECTS = 5;
 const USER_AGENT = "Mozilla/5.0 (compatible; LinkChecker/1.0)";
 
+/**
+ * A link only counts as broken on proof that visitors cannot use it. These
+ * statuses say nothing about that: bot protection (401/403/503) and rate
+ * limits (429) block the checker while the site works fine for people.
+ */
+const INCONCLUSIVE_STATUS_CODES = new Set([401, 403, 429, 503]);
+// 402: hosts like Vercel answer "Payment required / DEPLOYMENT_DISABLED" once
+// the owner stops paying, so the site is gone for everyone.
+const BROKEN_STATUS_CODES = new Set([402, 404, 410]);
+
+const PRIVATE_NETWORK_ERROR = "URL points to private/internal network";
+const DOMAIN_NOT_FOUND = "Domain not found";
+const DNS_ERROR = "DNS lookup error";
+
+/** Answers that prove the name does not exist, not that the resolver failed. */
+const NO_SUCH_DOMAIN_CODES = new Set(["ENOTFOUND", "ENODATA"]);
+
+const TLS_ERROR_PATTERN =
+  /CERT|SSL|TLS|SELF_SIGNED|UNABLE_TO_VERIFY|ALTNAME|HANDSHAKE/i;
+const CONNECTION_ERROR_PATTERN =
+  /REFUSED|RESET|UNREACH|EHOSTDOWN|ConnectionClosed|Unable to connect/i;
+
 interface LinkValidationResult {
   error?: string;
   isValid: boolean;
@@ -135,14 +157,29 @@ async function resolveAndCheckHost(hostname: string): Promise<{
     return { safe: true };
   }
 
+  const errorCodes: string[] = [];
+  const collectError = (error: NodeJS.ErrnoException) => {
+    errorCodes.push(error.code ?? "UNKNOWN");
+    return [] as string[];
+  };
+
   const [v4, v6] = await Promise.all([
-    dns.resolve4(hostname).catch(() => [] as string[]),
-    dns.resolve6(hostname).catch(() => [] as string[]),
+    dns.resolve4(hostname).catch(collectError),
+    dns.resolve6(hostname).catch(collectError),
   ]);
 
   const all = [...v4, ...v6];
   if (all.length === 0) {
-    return { safe: false, reason: "DNS resolution failed" };
+    // A resolver that is down or timing out says nothing about the site.
+    const domainGone = errorCodes.every((code) =>
+      NO_SUCH_DOMAIN_CODES.has(code)
+    );
+    return {
+      safe: false,
+      reason: domainGone
+        ? DOMAIN_NOT_FOUND
+        : `${DNS_ERROR} (${errorCodes.join(", ")})`,
+    };
   }
   if (all.some((ip) => isPrivateIP(ip))) {
     return { safe: false, reason: "resolves to private IP" };
@@ -218,6 +255,11 @@ async function safeFetch(
 /**
  * Check if a link is alive using HEAD request with fallback to GET.
  * SSRF-safe: every redirect hop is re-validated against the private IP list.
+ *
+ * Broken: malformed or private URL, domain gone, 402/404/410, 5xx (not 503),
+ * invalid TLS certificate, refused connection. Not broken, only inconclusive
+ * (`isValid: true` with the reason in `error`): 401/403/429/503, timeouts,
+ * DNS resolver failures and any other status or error.
  */
 export async function validateLink(url: string): Promise<LinkValidationResult> {
   log.debug(`Validating link: ${url}`);
@@ -231,42 +273,82 @@ export async function validateLink(url: string): Promise<LinkValidationResult> {
     let response: Response;
     try {
       response = await safeFetch(url, "HEAD");
-      if (response.status === 405 || response.status === 501) {
-        log.debug(`HEAD not supported, falling back to GET: ${url}`);
+      // Many servers reject or mishandle HEAD, so confirm a failure with GET
+      // before trusting it.
+      if (!response.ok) {
+        log.debug(`HEAD got ${response.status}, retrying with GET: ${url}`);
         response = await safeFetch(url, "GET");
       }
     } catch (error) {
       if (error instanceof Error && error.message.startsWith("SSRF blocked")) {
         log.warn(error.message);
-        return {
-          isValid: false,
-          error: "URL points to private/internal network",
-        };
+        if (error.message.includes(DOMAIN_NOT_FOUND)) {
+          return { isValid: false, error: DOMAIN_NOT_FOUND };
+        }
+        // The host could not be checked, so it was not fetched either.
+        if (error.message.includes(DNS_ERROR)) {
+          return { isValid: true, error: DNS_ERROR };
+        }
+        return { isValid: false, error: PRIVATE_NETWORK_ERROR };
       }
       throw error;
     }
 
+    const { status } = response;
+
     if (response.ok) {
-      log.info(`Link valid: ${url}`, { status: response.status });
-      return { isValid: true, statusCode: response.status };
+      log.info(`Link valid: ${url}`, { status });
+      return { isValid: true, statusCode: status };
     }
 
-    log.warn(`Link returned error: ${url}`, { status: response.status });
-    return {
-      isValid: false,
-      statusCode: response.status,
-      error: `HTTP ${response.status}`,
-    };
-  } catch (error) {
-    if (error instanceof Error) {
-      if (error.name === "AbortError") {
-        log.warn(`Link timeout: ${url}`);
-        return { isValid: false, error: "Request timeout" };
-      }
-      log.error(`Link validation failed: ${url}`, { error: error.message });
-      return { isValid: false, error: error.message };
+    const isBroken =
+      BROKEN_STATUS_CODES.has(status) ||
+      (status >= 500 && !INCONCLUSIVE_STATUS_CODES.has(status));
+
+    if (isBroken) {
+      log.warn(`Link returned error: ${url}`, { status });
+    } else {
+      log.info(`Link inconclusive, not counted as broken: ${url}`, { status });
     }
-    return { isValid: false, error: "Unknown error" };
+
+    return { isValid: !isBroken, statusCode: status, error: `HTTP ${status}` };
+  } catch (error) {
+    if (!(error instanceof Error)) {
+      return { isValid: true, error: "Unknown error" };
+    }
+
+    if (error.name === "AbortError" || error.name === "TimeoutError") {
+      log.warn(`Link timeout, not counted as broken: ${url}`);
+      return { isValid: true, error: "Request timeout" };
+    }
+
+    // Bun puts the code on the error, Node on its `cause`.
+    const { code, cause } = error as Error & {
+      code?: string;
+      cause?: { code?: string; message?: string };
+    };
+    const detail = [code, cause?.code, error.message, cause?.message]
+      .filter(Boolean)
+      .join(" ");
+
+    if (TLS_ERROR_PATTERN.test(detail)) {
+      log.warn(`Link has an invalid TLS certificate: ${url}`, { detail });
+      return {
+        isValid: false,
+        error: `TLS error: ${code ?? cause?.code ?? error.message}`,
+      };
+    }
+
+    if (CONNECTION_ERROR_PATTERN.test(detail)) {
+      log.warn(`Link refused the connection: ${url}`, { detail });
+      return {
+        isValid: false,
+        error: `Connection failed: ${code ?? cause?.code ?? error.message}`,
+      };
+    }
+
+    log.warn(`Link check failed, not counted as broken: ${url}`, { detail });
+    return { isValid: true, error: error.message };
   }
 }
 

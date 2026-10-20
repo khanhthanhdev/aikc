@@ -50,7 +50,50 @@ const TUTORIAL_PATTERNS = [
   /\bhow (to|do i|can i|do you|should i) (use|start|get started|set up|setup|install|create|make)\b/,
   /\b(get|getting) started\b/,
   /\b(tutorials?|walkthrough|step by step|videos?)\b/,
+  /\bhow (does|do) .{1,40}\bwork\b/,
+  /\bhoat dong (nhu the nao|the nao|ra sao)\b/,
 ];
+
+// What a tool is, what it does or what it offers. Only counts when the
+// question is about a particular tool, see isToolOverviewQuestion
+const OVERVIEW_PATTERNS = [
+  /\bwhat(?: is|'s| are)\b/,
+  /\bwhat (can|does|do) .{1,40}\bdo\b/,
+  /\btell me (more )?about\b/,
+  /\b(features?|overview|explain|explained|introduce|introduction|demo)\b/,
+  /\bla gi\b/,
+  /\blam (duoc )?(nhung )?gi\b/,
+  /\btinh nang\b/,
+  /\bgioi thieu\b/,
+];
+
+// Pricing, comparisons and recommendations get no videos, even about one tool
+const NOT_OVERVIEW_PATTERNS = [
+  /\b(price|prices|pricing|cost|costs|free|plans?|subscription)\b/,
+  /\b(compare|comparison|difference|vs|versus|alternatives?|best|recommend)\b/,
+  /\b(gia|chi phi|mien phi|goi)\b/,
+  /\b(so sanh|khac nhau|khac gi|thay the|tot nhat|goi y)\b/,
+];
+
+const normalizeQuestion = (text: string): string =>
+  text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .replace(/đ/g, "d");
+
+const MIN_TOOL_NAME_LENGTH = 3;
+
+const mentionsToolName = (normalized: string, toolName: string): boolean => {
+  const name = normalizeQuestion(toolName).trim();
+  if (name.length < MIN_TOOL_NAME_LENGTH) {
+    return false;
+  }
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`(^|[^\\p{L}\\p{N}])${escaped}($|[^\\p{L}\\p{N}])`, "u").test(
+    normalized
+  );
+};
 
 /**
  * Whether a question asks how to use a tool, for a guide or for videos: the
@@ -58,12 +101,34 @@ const TUTORIAL_PATTERNS = [
  * search for them.
  */
 export const isTutorialQuestion = (text: string): boolean => {
-  const normalized = text
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/\p{M}/gu, "")
-    .replace(/đ/g, "d");
+  const normalized = normalizeQuestion(text);
   return TUTORIAL_PATTERNS.some((pattern) => pattern.test(normalized));
+};
+
+/**
+ * Whether a question asks what a particular tool is, what it does or what its
+ * features are, so a video can show it instead of the reader going through
+ * the whole answer. The tool is the one whose page the chat is on, or a
+ * library tool named in the question.
+ */
+export const isToolOverviewQuestion = (
+  text: string,
+  {
+    currentToolName,
+    libraryToolNames = [],
+  }: { currentToolName?: string; libraryToolNames?: string[] }
+): boolean => {
+  const normalized = normalizeQuestion(text);
+  if (
+    !OVERVIEW_PATTERNS.some((pattern) => pattern.test(normalized)) ||
+    NOT_OVERVIEW_PATTERNS.some((pattern) => pattern.test(normalized))
+  ) {
+    return false;
+  }
+  return (
+    Boolean(currentToolName) ||
+    libraryToolNames.some((name) => mentionsToolName(normalized, name))
+  );
 };
 
 const FALLBACK_VIDEO_QUERY_TURNS = 2;

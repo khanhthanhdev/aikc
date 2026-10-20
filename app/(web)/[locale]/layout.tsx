@@ -5,7 +5,6 @@ import { getMessages, getTranslations } from "next-intl/server";
 import type { PropsWithChildren } from "react";
 import { JsonLd } from "~/components/common/json-ld";
 import { AdBanner } from "~/components/web/ads/ad-banner";
-import { Analytics } from "~/components/web/analytics";
 import { ChatProvider } from "~/components/web/ai-chat/chat-context";
 import { ClientWidgets } from "~/components/web/client-widgets";
 import { DocumentLang } from "~/components/web/document-lang";
@@ -111,8 +110,6 @@ export default async function LocaleLayout({
             <Toaster />
 
             <ClientWidgets />
-
-            <Analytics />
           </CommandPaletteProvider>
         </ChatProvider>
       </RoleProvider>

@@ -33,7 +33,6 @@ import { Favicon } from "~/components/web/ui/favicon";
 import { Shortcut } from "~/components/web/ui/shortcut";
 import { useCommandPalette } from "~/contexts/command-palette-context";
 import { useDebouncedState } from "~/hooks/use-debounced-state";
-import { useTrackSearch } from "~/hooks/use-track-search";
 import { useRouter } from "~/i18n/navigation";
 
 type PaletteResults = inferServerActionReturnData<typeof searchPaletteItems>;
@@ -261,13 +260,6 @@ export const CommandPalette = () => {
   }, [query, executeProgressiveSearch]);
 
   const hasQuery = input.trim().length > 0;
-  const totalHits = results
-    ? results.tools.length + results.categories.length + results.tags.length
-    : 0;
-
-  // Counted once the keyword results are in; semantic ones may still add more
-  useTrackSearch(query, results && !isPending ? totalHits : null, "palette");
-
   const hasTools = !!results?.tools.length;
   const hasCategories = !!results?.categories.length;
   const hasTags = !!results?.tags.length;

@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { getFallbackVideoQuery, isTutorialQuestion } from "~/lib/chat-turn";
+import {
+  getFallbackVideoQuery,
+  isToolOverviewQuestion,
+  isTutorialQuestion,
+} from "~/lib/chat-turn";
 
 test("how-to questions count as tutorial questions, with or without marks", () => {
   for (const question of [
@@ -14,6 +18,8 @@ test("how-to questions count as tutorial questions, with or without marks", () =
     "How to use GitHub Copilot in VS Code?",
     "How do I get started with Zotero?",
     "Any Notion tutorial?",
+    "How does Notion work?",
+    "Notion hoạt động như thế nào?",
   ]) {
     assert.equal(isTutorialQuestion(question), true, question);
   }
@@ -30,6 +36,63 @@ test("pricing, comparison and recommendation questions are not tutorials", () =>
   ]) {
     assert.equal(isTutorialQuestion(question), false, question);
   }
+});
+
+test("overview questions about a named library tool count", () => {
+  const libraryToolNames = ["Perplexity", "Notion", "Zotero"];
+  for (const question of [
+    "What is Perplexity?",
+    "What's Notion and how can it help me study?",
+    "Tell me about Zotero",
+    "What can Notion do?",
+    "Perplexity là gì?",
+    "Notion có những tính năng gì?",
+    "Giới thiệu về Zotero",
+  ]) {
+    assert.equal(
+      isToolOverviewQuestion(question, { libraryToolNames }),
+      true,
+      question
+    );
+  }
+});
+
+test("overview questions on a tool page count without naming the tool", () => {
+  for (const question of [
+    "What can this tool do?",
+    "Công cụ này là gì?",
+    "What are its main features?",
+  ]) {
+    assert.equal(
+      isToolOverviewQuestion(question, { currentToolName: "Notion" }),
+      true,
+      question
+    );
+  }
+});
+
+test("overview questions need a tool and exclude pricing and comparisons", () => {
+  const libraryToolNames = ["Perplexity", "Notion", "Canva"];
+  for (const question of [
+    "What is machine learning?",
+    "What is the best tool for citations?",
+    "What are alternatives to Canva?",
+    "What is Notion's pricing?",
+    "What is the difference between Notion and Perplexity?",
+    "Notion giá bao nhiêu?",
+    "So sánh Notion và Perplexity là gì?",
+    "What is Notionary?",
+  ]) {
+    assert.equal(
+      isToolOverviewQuestion(question, { libraryToolNames }),
+      false,
+      question
+    );
+  }
+  assert.equal(
+    isToolOverviewQuestion("Is it free?", { currentToolName: "Notion" }),
+    false
+  );
 });
 
 test("fallback video query keeps the topic of a follow-up and the tool name", () => {
