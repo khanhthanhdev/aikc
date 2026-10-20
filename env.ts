@@ -62,8 +62,6 @@ export const env = createEnv({
     R2_SECRET_ACCESS_KEY: z.string().min(1),
     QDRANT_URL: z.string().url().min(1),
     QDRANT_API_KEY: z.string().min(1),
-    // Analytics: the tracker is left out of the page while the ID is unset
-    UMAMI_WEBSITE_ID: z.string().uuid().optional(),
   },
 
   /**

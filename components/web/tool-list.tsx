@@ -15,7 +15,6 @@ import {
 } from "~/components/web/tool-list-filters";
 import { Grid } from "~/components/web/ui/grid";
 import type { DefaultAd } from "~/config/ads";
-import { useTrackSearch } from "~/hooks/use-track-search";
 import type { CategoryMany } from "~/server/categories/payloads";
 import type { ToolCardData } from "~/server/tools/payloads";
 import { searchParams } from "~/server/tools/search-params";
@@ -43,10 +42,6 @@ export const ToolList = ({
   });
   // Without its own search box, the list says what it is filtered by
   const showQuery = !!q && props.showSearch === false;
-
-  // Both the hero search and the filter box end up in `q`, so this one place
-  // sees every directory search along with its result count
-  useTrackSearch(q, totalCount, "directory");
 
   return (
     <>

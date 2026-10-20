@@ -72,8 +72,6 @@ export const AdBannerDisplay = ({ ad, className }: AdBannerDisplayProps) => {
           "transition-colors hover:border-amber-200 dark:hover:border-amber-800",
           className
         )}
-        eventName="click_ad"
-        eventProps={{ url: ad.websiteUrl, type: ad.type }}
         href={ad.websiteUrl}
       >
         <div className="mr-4 flex min-w-0 flex-1 items-center">

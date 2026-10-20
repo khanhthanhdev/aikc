@@ -65,9 +65,8 @@ const trustPageContent: Record<TrustPageName, LocalizedTrustPageContent> = {
         ],
       },
       {
-        heading: "Usage statistics",
+        heading: "AI assistant",
         paragraphs: [
-          "To understand how the directory is used, AI Knowledge Cloud counts visits with Umami, an open-source analytics tool running on our own server. It records the pages viewed, the website that referred you, your browser, device type and country, and actions such as searches, the role you pick and clicks through to a tool's website. It does not use cookies, does not store your IP address, and does not identify you or follow you across other websites. The statistics stay on our server and are not shared with advertisers.",
           "Questions sent to the AI assistant are stored together with an anonymous visitor code, a one-way code derived from your network address rather than the address itself, so we can measure how the assistant is used and improve its answers. Please do not include personal information in your questions.",
         ],
       },
@@ -92,9 +91,8 @@ const trustPageContent: Record<TrustPageName, LocalizedTrustPageContent> = {
         ],
       },
       {
-        heading: "Thống kê lượt truy cập",
+        heading: "Trợ lý AI",
         paragraphs: [
-          "Để hiểu thư mục được sử dụng như thế nào, AI Knowledge Cloud đếm lượt truy cập bằng Umami, một công cụ thống kê mã nguồn mở chạy trên máy chủ của chúng tôi. Công cụ ghi nhận các trang được xem, website đã dẫn bạn đến, trình duyệt, loại thiết bị và quốc gia, cùng các thao tác như tìm kiếm, vai trò bạn chọn và lượt bấm sang website của một công cụ. Umami không dùng cookie, không lưu địa chỉ IP, không nhận diện bạn và không theo dõi bạn trên các website khác. Số liệu thống kê được lưu trên máy chủ của chúng tôi và không chia sẻ với bên quảng cáo.",
           "Câu hỏi gửi cho trợ lý AI được lưu kèm một mã khách truy cập ẩn danh, là mã một chiều tạo từ địa chỉ mạng chứ không phải chính địa chỉ đó, để chúng tôi đo mức độ sử dụng trợ lý và cải thiện câu trả lời. Vui lòng không đưa thông tin cá nhân vào câu hỏi.",
         ],
       },
