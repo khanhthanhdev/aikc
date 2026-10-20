@@ -13,6 +13,7 @@ import { useServerAction } from "zsa-react";
 import { ToolsDeleteDialog } from "~/app/admin/tools/_components/tools-delete-dialog";
 import {
   createTool,
+  generateToolContentForForm,
   suggestToolRolesForForm,
   updateTool,
 } from "~/app/admin/tools/_lib/actions";
@@ -230,6 +231,8 @@ export function ToolForm({
             </FormItem>
           )}
         />
+
+        <ContentGenerator tags={tags} toolId={tool?.id} />
 
         <FormField
           control={form.control}
@@ -693,6 +696,92 @@ export function ToolForm({
     </Form>
   );
 }
+
+/** Texts the content generator fills, in both languages. */
+const GENERATED_FIELDS = [
+  "tagline",
+  "taglineVi",
+  "description",
+  "descriptionVi",
+  "content",
+  "contentVi",
+  "pricing",
+  "pricingVi",
+] as const;
+
+/**
+ * Lets AI read the tool's website and fill its texts in both languages, plus
+ * the existing tags that fit. The admin reviews the draft and saves the form.
+ */
+const ContentGenerator = ({
+  tags,
+  toolId,
+}: {
+  tags: ToolFormProps["tags"];
+  toolId?: string;
+}) => {
+  const form = useFormContext<ToolSchema>();
+
+  const { execute: generate, isPending } = useServerAction(
+    generateToolContentForForm,
+    {
+      onSuccess: ({ data }) => {
+        for (const field of GENERATED_FIELDS) {
+          const value = data[field];
+          if (value) {
+            form.setValue(field, value, { shouldDirty: true });
+          }
+        }
+
+        // Only tags that already exist: new ones would need creating
+        const tagIds = tags
+          .filter((tag) => data.tags.includes(tag.slug))
+          .map((tag) => tag.id);
+        const current = form.getValues("tags") ?? [];
+        form.setValue("tags", [...new Set([...current, ...tagIds])], {
+          shouldDirty: true,
+        });
+
+        toast.success("Content generated. Review, then save.");
+      },
+      onError: ({ err }) => {
+        toast.error(err.message);
+      },
+    }
+  );
+
+  const onGenerate = () => {
+    const websiteUrl = form.getValues("websiteUrl");
+    if (toolId) {
+      generate({ id: toolId, websiteUrl: websiteUrl || undefined });
+    }
+  };
+
+  return (
+    <div className="col-span-full flex items-center justify-between gap-4 rounded-md border p-3">
+      <div className="flex flex-col gap-1">
+        <p className="font-medium text-sm">Content</p>
+        <p className="text-muted-foreground text-xs">
+          AI reads the website and writes the tagline, description, content
+          and pricing in English and Vietnamese, replacing what is below.
+          Nothing is saved until you update the tool.
+        </p>
+      </div>
+
+      <Button
+        className="h-7 shrink-0 text-xs"
+        disabled={!toolId || isPending}
+        isPending={isPending}
+        onClick={onGenerate}
+        size="sm"
+        type="button"
+        variant="outline"
+      >
+        Generate with AI
+      </Button>
+    </div>
+  );
+};
 
 /**
  * Sample chat questions for each selected role, one per line. Visitors with

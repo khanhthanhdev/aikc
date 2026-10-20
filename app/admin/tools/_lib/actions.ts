@@ -185,6 +185,35 @@ export const suggestToolRolesForForm = authedProcedure
     return suggestToolRoles(tool);
   });
 
+/**
+ * Let AI read the tool's website and draft its texts in both languages for
+ * the tool form. Nothing is saved: the admin reviews the draft and saves the
+ * form.
+ */
+export const generateToolContentForForm = authedProcedure
+  .createServerAction()
+  .input(
+    // The URL in the form, which may not be saved yet
+    z.object({ id: z.string(), websiteUrl: z.string().url().optional() })
+  )
+  .handler(async ({ input: { id, websiteUrl } }) => {
+    const tool = await prisma.tool.findUniqueOrThrow({ where: { id } });
+
+    const { tags, ...content } = await generateContent({
+      ...tool,
+      websiteUrl: websiteUrl ?? tool.websiteUrl,
+    });
+
+    const translation = await translateToVietnamese({
+      tagline: content.tagline,
+      description: content.description,
+      content: content.content,
+      pricing: content.pricing,
+    });
+
+    return { ...content, ...translation, tags: tags ?? [] };
+  });
+
 export const updateTools = authedProcedure
   .createServerAction()
   .input(z.object({ ids: z.array(z.string()), data: toolSchema.partial() }))

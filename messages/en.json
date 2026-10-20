@@ -265,10 +265,6 @@
     }
   },
   "CommandPalette": {
-    "quickTools": "Tools",
-    "quickCategories": "Categories",
-    "quickTags": "Tags",
-    "quickSubmit": "Submit new tools",
     "inputPlaceholder": "Type to search...",
     "searching": "Searching",
     "searchFailed": "Search failed: {error}",
@@ -278,14 +274,10 @@
     "srTitle": "Search",
     "srDescription": "Search for AI tools, categories, and tags.",
     "close": "Close",
-    "quickLinksHeading": "Quick Links",
     "toolsHeading": "Tools",
     "categoriesHeading": "Categories",
     "tagsHeading": "Tags",
-    "tagShortcut": "Tag",
-    "appearanceHeading": "Appearance",
-    "switchToLightMode": "Switch to Light Mode",
-    "switchToDarkMode": "Switch to Dark Mode"
+    "tagShortcut": "Tag"
   },
   "ToolNav": {
     "goHome": "Go Home",

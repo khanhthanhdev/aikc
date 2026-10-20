@@ -19,6 +19,16 @@ const INCONCLUSIVE_STATUS_CODES = new Set([401, 403, 429, 503]);
 // the owner stops paying, so the site is gone for everyone.
 const BROKEN_STATUS_CODES = new Set([402, 404, 410]);
 
+/**
+ * Vercel's firewall says how it treated a request: "challenge" lets a real
+ * browser through after a check, "deny" blocks it outright. A deny reaches
+ * visitors too (fuelnutrition.app shows "This request was blocked" in a
+ * browser from Vietnam), so it counts as broken where a challenge does not.
+ */
+const FIREWALL_DENIED = "Blocked by the site's firewall";
+const isFirewallDeny = (response: Response) =>
+  response.headers.get("x-vercel-mitigated")?.toLowerCase() === "deny";
+
 const PRIVATE_NETWORK_ERROR = "URL points to private/internal network";
 const DOMAIN_NOT_FOUND = "Domain not found";
 const DNS_ERROR = "DNS lookup error";
@@ -338,10 +348,10 @@ async function isParkedDomain(
  * SSRF-safe: every redirect hop is re-validated against the private IP list.
  *
  * Broken: malformed or private URL, domain gone, parked or for-sale domain,
- * 402/404/410, 5xx (not 503), invalid TLS certificate, refused connection.
- * Not broken, only inconclusive
- * (`isValid: true` with the reason in `error`): 401/403/429/503, timeouts,
- * DNS resolver failures and any other status or error.
+ * 402/404/410, 5xx (not 503), firewall deny, invalid TLS certificate, refused
+ * connection. Not broken, only inconclusive (`isValid: true` with the reason
+ * in `error`): 401/403/429/503, timeouts, DNS resolver failures and any other
+ * status or error.
  */
 export async function validateLink(url: string): Promise<LinkValidationResult> {
   log.debug(`Validating link: ${url}`);
@@ -393,6 +403,11 @@ export async function validateLink(url: string): Promise<LinkValidationResult> {
       await response.body?.cancel().catch(() => {});
       log.info(`Link valid: ${url}`, { status });
       return { isValid: true, statusCode: status };
+    }
+
+    if (isFirewallDeny(response)) {
+      log.warn(`Link is blocked by the site's firewall: ${url}`, { status });
+      return { isValid: false, statusCode: status, error: FIREWALL_DENIED };
     }
 
     const isBroken =

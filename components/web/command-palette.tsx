@@ -4,15 +4,18 @@ import {
   FolderIcon,
   HashIcon,
   LoaderIcon,
-  MoonIcon,
-  SparkleIcon,
-  SunIcon,
-  TagIcon,
   WrenchIcon,
 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { useTheme } from "next-themes";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  type CSSProperties,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { inferServerActionReturnData } from "zsa";
 import {
   keywordSearchPaletteItems,
@@ -30,7 +33,6 @@ import {
   CommandShortcut,
 } from "~/components/web/ui/command";
 import { Favicon } from "~/components/web/ui/favicon";
-import { Shortcut } from "~/components/web/ui/shortcut";
 import { useCommandPalette } from "~/contexts/command-palette-context";
 import { useDebouncedState } from "~/hooks/use-debounced-state";
 import { useRouter } from "~/i18n/navigation";
@@ -78,6 +80,88 @@ const mergeSemanticResults = (
   };
 };
 
+/** The cmdk value of the first result, which Enter should open. */
+const firstResultValue = (results: PaletteResults) => {
+  const [tool] = results.tools;
+  if (tool) {
+    return `tool:${tool.slug}`;
+  }
+  const [category] = results.categories;
+  if (category) {
+    return `category:${category.slug}`;
+  }
+  const [tag] = results.tags;
+  return tag ? `tag:${tag.slug}` : "";
+};
+
+const resultValues = (results: PaletteResults) => [
+  ...results.tools.map(
+    (tool: PaletteResults["tools"][0]) => `tool:${tool.slug}`
+  ),
+  ...results.categories.map(
+    (category: PaletteResults["categories"][0]) => `category:${category.slug}`
+  ),
+  ...results.tags.map((tag: PaletteResults["tags"][0]) => `tag:${tag.slug}`),
+];
+
+const PALETTE_WIDTH = 560;
+const PALETTE_GUTTER = 12;
+/** Height of the palette's input row, to center it on the header box */
+const INPUT_ROW_HEIGHT = 50;
+
+/**
+ * Places the palette over the header's search box, so the box seems to open
+ * into the results rather than a second search box appearing. Without a
+ * visible box (top of the homepage), the palette stays centered.
+ */
+const useAnchoredPosition = (isOpen: boolean) => {
+  const [position, setPosition] = useState<CSSProperties>();
+
+  useLayoutEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    const measure = () => {
+      const trigger = [
+        ...document.querySelectorAll<HTMLElement>("[data-search-trigger]"),
+      ].find(
+        (element) =>
+          element.getClientRects().length > 0 &&
+          getComputedStyle(element).visibility !== "hidden"
+      );
+      if (!trigger) {
+        setPosition(undefined);
+        return;
+      }
+
+      const rect = trigger.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const width = Math.min(PALETTE_WIDTH, viewportWidth - PALETTE_GUTTER * 2);
+      const left = Math.min(
+        Math.max(rect.left, PALETTE_GUTTER),
+        viewportWidth - width - PALETTE_GUTTER
+      );
+      const top = Math.max(
+        rect.top + rect.height / 2 - INPUT_ROW_HEIGHT / 2,
+        PALETTE_GUTTER / 2
+      );
+      setPosition({
+        top,
+        left,
+        width,
+        maxHeight: `calc(100dvh - ${top + PALETTE_GUTTER}px)`,
+      });
+    };
+
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [isOpen]);
+
+  return position;
+};
+
 const shouldIgnoreHotkeyTarget = (target: EventTarget | null) => {
   if (!(target instanceof HTMLElement)) {
     return false;
@@ -97,14 +181,17 @@ export const CommandPalette = () => {
   const t = useTranslations("CommandPalette");
   const locale = useLocale();
   const router = useRouter();
-  const { setTheme, resolvedTheme } = useTheme();
   const palette = useCommandPalette();
   const [input, setInput] = useState("");
   const [query, setQuery] = useDebouncedState("", 300);
   const [results, setResults] = useState<ProgressiveResults | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
+  // cmdk keeps a stale highlight when the highlighted item unmounts with no
+  // other item left, so new results would arrive with nothing selected
+  const [selected, setSelected] = useState("");
   const searchIdRef = useRef(0);
+  const position = useAnchoredPosition(palette.isOpen);
 
   const handleKeywordResults = useCallback(
     async (
@@ -123,6 +210,7 @@ export const CommandPalette = () => {
         semanticComplete: false,
         isWaitingForSemantic: true,
       });
+      setSelected(firstResultValue(data));
       setIsPending(false);
       return true;
     },
@@ -196,6 +284,7 @@ export const CommandPalette = () => {
     setInput("");
     setResults(null);
     setError(null);
+    setSelected("");
     searchIdRef.current++;
   }, []);
 
@@ -254,21 +343,29 @@ export const CommandPalette = () => {
     if (trimmed.length > 1) {
       executeProgressiveSearch(trimmed);
     } else {
+      searchIdRef.current++;
       setResults(null);
       setError(null);
+      setIsPending(false);
+      setSelected("");
     }
   }, [query, executeProgressiveSearch]);
 
-  const hasQuery = input.trim().length > 0;
+  // Semantic results are merged in after the keyword ones: keep what the
+  // visitor highlighted, unless it is gone from the list
+  useEffect(() => {
+    if (results && !resultValues(results).includes(selected)) {
+      setSelected(firstResultValue(results));
+    }
+  }, [results, selected]);
+
+  const trimmedInput = input.trim();
+  // Searching from the first keystroke, through the debounce, to the results
+  const isSearching =
+    isPending || (trimmedInput.length > 1 && trimmedInput !== query.trim());
   const hasTools = !!results?.tools.length;
   const hasCategories = !!results?.categories.length;
   const hasTags = !!results?.tags.length;
-  const quickLinks = [
-    { label: t("quickTools"), href: "/", icon: WrenchIcon },
-    { label: t("quickCategories"), href: "/categories", icon: FolderIcon },
-    { label: t("quickTags"), href: "/tags", icon: TagIcon },
-    { label: t("quickSubmit"), href: "/submit", icon: SparkleIcon },
-  ];
 
   const _fallbackNotice =
     results?.requestedMode === "semantic" &&
@@ -289,8 +386,11 @@ export const CommandPalette = () => {
   return (
     <CommandDialog
       onOpenChange={handleOpenChange}
+      onValueChange={setSelected}
       open={palette.isOpen}
+      position={position}
       shouldFilter={false}
+      value={selected}
     >
       <div className="relative">
         <CommandInput
@@ -299,14 +399,13 @@ export const CommandPalette = () => {
           value={input}
         />
 
-        <div className="absolute inset-y-0 right-3 flex items-center gap-2 text-muted-foreground">
-          {isPending && (
+        <div className="absolute inset-y-0 right-12 flex items-center gap-2 text-muted-foreground">
+          {isSearching && (
             <LoaderIcon
               aria-label={t("searching")}
               className="size-4 animate-spin"
             />
           )}
-          <Shortcut className="text-muted-foreground/80 text-xs" size="h6" />
         </div>
       </div>
 
@@ -314,30 +413,22 @@ export const CommandPalette = () => {
         <CommandEmpty>
           {error
             ? t("searchFailed", { error })
-            : hasQuery
-              ? t("noResults")
-              : t("emptyPrompt")}
+            : isSearching
+              ? `${t("searching")}…`
+              : trimmedInput.length > 1
+                ? t("noResults")
+                : t("emptyPrompt")}
         </CommandEmpty>
-
-        {!hasQuery && (
-          <CommandGroup heading={t("quickLinksHeading")}>
-            {quickLinks.map((link) => (
-              <CommandItem
-                key={link.href}
-                onSelect={() => handleSelect(link.href)}
-              >
-                <link.icon className="size-4 shrink-0 text-muted-foreground" />
-                <span className="flex-1 truncate">{link.label}</span>
-              </CommandItem>
-            ))}
-          </CommandGroup>
-        )}
 
         {hasTools && (
           <CommandGroup heading={t("toolsHeading")}>
             {results.tools.map((tool: PaletteResults["tools"][0]) => {
               const toolName =
                 locale === "vi" ? (tool.nameVi ?? tool.name) : tool.name;
+              const tagline =
+                locale === "vi"
+                  ? (tool.taglineVi ?? tool.tagline)
+                  : tool.tagline;
               // Extract domain from websiteUrl
               const domain = tool.websiteUrl
                 ? new URL(tool.websiteUrl).hostname.replace(/^www\./, "")
@@ -345,28 +436,30 @@ export const CommandPalette = () => {
 
               return (
                 <CommandItem
-                  className="flex items-center justify-between gap-3"
+                  className="gap-3 py-2"
                   key={tool.id}
                   onSelect={() => handleSelect(`/tools/${tool.slug}`)}
                   value={`tool:${tool.slug}`}
                 >
-                  <div className="flex min-w-0 items-center gap-2">
+                  <span className="grid size-10 shrink-0 place-items-center rounded-lg border bg-background">
                     {tool.faviconUrl ? (
                       <Favicon
-                        className="size-5 shrink-0"
+                        className="size-6"
                         src={tool.faviconUrl}
                         title={toolName}
                       />
                     ) : (
-                      <WrenchIcon className="size-4 shrink-0 text-muted-foreground" />
+                      <WrenchIcon className="size-4 text-muted-foreground" />
                     )}
+                  </span>
+                  <span className="grid min-w-0 flex-1">
                     <span className="truncate font-medium">{toolName}</span>
-                  </div>
-                  {domain && (
-                    <span className="shrink-0 text-muted-foreground text-sm">
-                      {domain}
-                    </span>
-                  )}
+                    {(tagline || domain) && (
+                      <span className="truncate text-muted-foreground text-xs">
+                        {tagline || domain}
+                      </span>
+                    )}
+                  </span>
                 </CommandItem>
               );
             })}
@@ -422,33 +515,6 @@ export const CommandPalette = () => {
             </CommandGroup>
           </>
         )}
-
-        <CommandSeparator />
-        <CommandGroup heading={t("appearanceHeading")}>
-          {resolvedTheme === "dark" ? (
-            <CommandItem
-              onSelect={() => {
-                setTheme("light");
-                handleClose();
-              }}
-            >
-              <SunIcon className="size-4 shrink-0 text-muted-foreground" />
-              <span className="flex-1 truncate">{t("switchToLightMode")}</span>
-              <CommandShortcut>⇧⌘L</CommandShortcut>
-            </CommandItem>
-          ) : (
-            <CommandItem
-              onSelect={() => {
-                setTheme("dark");
-                handleClose();
-              }}
-            >
-              <MoonIcon className="size-4 shrink-0 text-muted-foreground" />
-              <span className="flex-1 truncate">{t("switchToDarkMode")}</span>
-              <CommandShortcut>⇧⌘L</CommandShortcut>
-            </CommandItem>
-          )}
-        </CommandGroup>
       </CommandList>
       {results && (
         <SearchStatusFooter
