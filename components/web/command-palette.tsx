@@ -4,14 +4,9 @@ import {
   FolderIcon,
   HashIcon,
   LoaderIcon,
-  MoonIcon,
-  SparkleIcon,
-  SunIcon,
-  TagIcon,
   WrenchIcon,
 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { useTheme } from "next-themes";
 import {
   type CSSProperties,
   useCallback,
@@ -186,7 +181,6 @@ export const CommandPalette = () => {
   const t = useTranslations("CommandPalette");
   const locale = useLocale();
   const router = useRouter();
-  const { setTheme, resolvedTheme } = useTheme();
   const palette = useCommandPalette();
   const [input, setInput] = useState("");
   const [query, setQuery] = useDebouncedState("", 300);
@@ -366,19 +360,12 @@ export const CommandPalette = () => {
   }, [results, selected]);
 
   const trimmedInput = input.trim();
-  const hasQuery = trimmedInput.length > 0;
   // Searching from the first keystroke, through the debounce, to the results
   const isSearching =
     isPending || (trimmedInput.length > 1 && trimmedInput !== query.trim());
   const hasTools = !!results?.tools.length;
   const hasCategories = !!results?.categories.length;
   const hasTags = !!results?.tags.length;
-  const quickLinks = [
-    { label: t("quickTools"), href: "/", icon: WrenchIcon },
-    { label: t("quickCategories"), href: "/categories", icon: FolderIcon },
-    { label: t("quickTags"), href: "/tags", icon: TagIcon },
-    { label: t("quickSubmit"), href: "/submit", icon: SparkleIcon },
-  ];
 
   const _fallbackNotice =
     results?.requestedMode === "semantic" &&
@@ -432,20 +419,6 @@ export const CommandPalette = () => {
                 ? t("noResults")
                 : t("emptyPrompt")}
         </CommandEmpty>
-
-        {!hasQuery && (
-          <CommandGroup heading={t("quickLinksHeading")}>
-            {quickLinks.map((link) => (
-              <CommandItem
-                key={link.href}
-                onSelect={() => handleSelect(link.href)}
-              >
-                <link.icon className="size-4 shrink-0 text-muted-foreground" />
-                <span className="flex-1 truncate">{link.label}</span>
-              </CommandItem>
-            ))}
-          </CommandGroup>
-        )}
 
         {hasTools && (
           <CommandGroup heading={t("toolsHeading")}>
@@ -539,41 +512,6 @@ export const CommandPalette = () => {
                   <CommandShortcut>{t("tagShortcut")}</CommandShortcut>
                 </CommandItem>
               ))}
-            </CommandGroup>
-          </>
-        )}
-
-        {!hasQuery && (
-          <>
-            <CommandSeparator />
-            <CommandGroup heading={t("appearanceHeading")}>
-              {resolvedTheme === "dark" ? (
-                <CommandItem
-                  onSelect={() => {
-                    setTheme("light");
-                    handleClose();
-                  }}
-                >
-                  <SunIcon className="size-4 shrink-0 text-muted-foreground" />
-                  <span className="flex-1 truncate">
-                    {t("switchToLightMode")}
-                  </span>
-                  <CommandShortcut>⇧⌘L</CommandShortcut>
-                </CommandItem>
-              ) : (
-                <CommandItem
-                  onSelect={() => {
-                    setTheme("dark");
-                    handleClose();
-                  }}
-                >
-                  <MoonIcon className="size-4 shrink-0 text-muted-foreground" />
-                  <span className="flex-1 truncate">
-                    {t("switchToDarkMode")}
-                  </span>
-                  <CommandShortcut>⇧⌘L</CommandShortcut>
-                </CommandItem>
-              )}
             </CommandGroup>
           </>
         )}

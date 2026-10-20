@@ -265,10 +265,6 @@
     }
   },
   "CommandPalette": {
-    "quickTools": "Công cụ",
-    "quickCategories": "Danh mục",
-    "quickTags": "Thẻ",
-    "quickSubmit": "Gửi công cụ mới",
     "inputPlaceholder": "Nhập để tìm kiếm...",
     "searching": "Đang tìm",
     "searchFailed": "Tìm kiếm thất bại: {error}",
@@ -278,14 +274,10 @@
     "srTitle": "Tìm kiếm",
     "srDescription": "Tìm công cụ AI, danh mục và thẻ.",
     "close": "Đóng",
-    "quickLinksHeading": "Liên kết nhanh",
     "toolsHeading": "Công cụ",
     "categoriesHeading": "Danh mục",
     "tagsHeading": "Thẻ",
-    "tagShortcut": "Thẻ",
-    "appearanceHeading": "Giao diện",
-    "switchToLightMode": "Chuyển sang chế độ sáng",
-    "switchToDarkMode": "Chuyển sang chế độ tối"
+    "tagShortcut": "Thẻ"
   },
   "ToolNav": {
     "goHome": "Về trang chủ",
