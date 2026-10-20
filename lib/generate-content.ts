@@ -72,7 +72,7 @@ export const generateContent = async (tool: Tool | Jsonify<Tool>) => {
         .array(z.string())
         .max(10)
         .describe(
-          "A list (max 10) of tags for the tool. Should be short, lowercase, hyphen-separated and related to software development (e.g. 'code-review', 'testing', 'ci-cd')"
+          "A list (max 10) of tags for the tool. Should be short, lowercase, hyphen-separated and describing what the tool does for work or study (e.g. 'note-taking', 'flashcards', 'project-management')"
         ),
     });
 
