@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { formatDate } from "date-fns";
+import { addDays, formatDate } from "date-fns";
 import { PlusIcon, TrashIcon } from "lucide-react";
 import Link from "next/link";
 import { redirect, useRouter } from "next/navigation";
@@ -29,6 +29,13 @@ import {
 import { RelationSelector } from "~/components/admin/relation-selector";
 import { Button } from "~/components/admin/ui/button";
 import { Input } from "~/components/admin/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/admin/ui/select";
 import { Switch } from "~/components/admin/ui/switch";
 import { Textarea } from "~/components/admin/ui/textarea";
 import {
@@ -57,6 +64,35 @@ type ToolFormProps = React.HTMLAttributes<HTMLFormElement> & {
   tool?: Awaited<ReturnType<typeof getToolBySlug>>;
   categories: Awaited<ReturnType<typeof getCategories>>;
   tags: Awaited<ReturnType<typeof getTags>>;
+};
+
+type PublishStatus = "published" | "scheduled" | "draft";
+
+const PUBLISH_STATUSES: { value: PublishStatus; label: string }[] = [
+  { value: "published", label: "Published" },
+  { value: "scheduled", label: "Scheduled" },
+  { value: "draft", label: "Draft" },
+];
+
+// Status is not stored: it follows publishedAt, as in the tools table
+const getPublishStatus = (publishedAt?: Date | null): PublishStatus => {
+  if (!publishedAt) return "draft";
+  return publishedAt > new Date() ? "scheduled" : "published";
+};
+
+/**
+ * The publish date a status switch sets: Draft clears it, Published keeps a
+ * past date or takes now, Scheduled keeps a future date or takes tomorrow.
+ */
+const getPublishedAtForStatus = (
+  status: PublishStatus,
+  current?: Date | null
+) => {
+  const now = new Date();
+
+  if (status === "draft") return null;
+  if (status === "published") return current && current <= now ? current : now;
+  return current && current > now ? current : addDays(now, 1);
 };
 
 const getDefaultSocials = (socials: unknown): ToolSchema["socials"] => {
@@ -401,28 +437,62 @@ export function ToolForm({
         <FormField
           control={form.control}
           name="publishedAt"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Published At</FormLabel>
-              <FormControl>
-                <Input
-                  type="datetime-local"
-                  {...field}
-                  onChange={(e) =>
-                    field.onChange(
-                      e.target.value ? new Date(e.target.value) : null
-                    )
-                  }
-                  value={
-                    field.value
-                      ? formatDate(field.value, "yyyy-MM-dd HH:mm")
-                      : undefined
-                  }
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          render={({ field }) => {
+            const status = getPublishStatus(field.value);
+
+            return (
+              <FormItem>
+                <FormLabel>Status</FormLabel>
+                <div className="flex gap-2">
+                  <Select
+                    onValueChange={(value) =>
+                      field.onChange(
+                        getPublishedAtForStatus(
+                          value as PublishStatus,
+                          field.value
+                        )
+                      )
+                    }
+                    value={status}
+                  >
+                    <SelectTrigger className="w-36 shrink-0">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PUBLISH_STATUSES.map(({ value, label }) => (
+                        <SelectItem key={value} value={value}>
+                          {label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  {status !== "draft" && (
+                    <FormControl>
+                      <Input
+                        type="datetime-local"
+                        {...field}
+                        onChange={(e) =>
+                          field.onChange(
+                            e.target.value ? new Date(e.target.value) : null
+                          )
+                        }
+                        value={
+                          field.value
+                            ? formatDate(field.value, "yyyy-MM-dd HH:mm")
+                            : ""
+                        }
+                      />
+                    </FormControl>
+                  )}
+                </div>
+                <FormDescription className="text-muted-foreground text-xs">
+                  Draft hides the tool from the site, search and chat.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            );
+          }}
         />
 
         <FormField
