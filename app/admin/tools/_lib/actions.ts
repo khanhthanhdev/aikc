@@ -7,6 +7,7 @@ import { z } from "zod";
 import { toolSchema } from "~/app/admin/tools/_lib/validations";
 import { autoAssignToolCategories } from "~/lib/categorize-tool";
 import { generateContent } from "~/lib/generate-content";
+import { validateLink } from "~/lib/link-validator";
 import { logger } from "~/lib/logger";
 import { uploadFavicon, uploadScreenshot } from "~/lib/media";
 import { revalidatePublicToolCaches } from "~/lib/public-tool-cache";
@@ -46,6 +47,21 @@ const sendToolPublishEvents = async (tool: {
 };
 
 /**
+ * Refuse a website that is dead or for sale, with the rules of the public
+ * submit form and the weekly link check. Answers the checker cannot judge
+ * (403, 429, timeouts) pass.
+ */
+const assertWebsiteReachable = async (websiteUrl: string) => {
+  const { isValid, error } = await validateLink(websiteUrl);
+
+  if (!isValid) {
+    throw new Error(
+      `Website URL failed the link check: ${error}. Fix the URL, or save the tool as Draft.`
+    );
+  }
+};
+
+/**
  * Write sample questions for the roles an admin picked without any, so every
  * role shows tool-specific questions in the chat. Non-critical: a failure
  * leaves the generic questions and must not fail the save.
@@ -67,6 +83,8 @@ export const createTool = authedProcedure
   .createServerAction()
   .input(toolSchema)
   .handler(async ({ input: { categories, tags, roleQuestions, ...input } }) => {
+    await assertWebsiteReachable(input.websiteUrl);
+
     const tool = await prisma.tool.create({
       data: {
         ...input,
@@ -113,8 +131,17 @@ export const updateTool = authedProcedure
     async ({ input: { id, categories, tags, roleQuestions, ...input } }) => {
       const previous = await prisma.tool.findUniqueOrThrow({
         where: { id },
-        select: { publishedAt: true },
+        select: { publishedAt: true, websiteUrl: true },
       });
+
+      // Check the link when a tool goes live or its link changes while live;
+      // drafts save as they are, so a dead tool can still be unpublished
+      if (
+        input.publishedAt &&
+        (!previous.publishedAt || input.websiteUrl !== previous.websiteUrl)
+      ) {
+        await assertWebsiteReachable(input.websiteUrl);
+      }
 
       const tool = await prisma.tool.update({
         where: { id },

@@ -127,6 +127,14 @@ export function ToolForm({
     },
   });
 
+  // A failed link check also marks the Website URL field
+  const showSaveError = (message: string) => {
+    toast.error(message);
+    if (message.startsWith("Website URL")) {
+      form.setError("websiteUrl", { message });
+    }
+  };
+
   const {
     fields: socialFields,
     append: appendSocial,
@@ -142,9 +150,7 @@ export function ToolForm({
         redirect(`/admin/tools/${data.slug}`);
       },
 
-      onError: ({ err }) => {
-        toast.error(err.message);
-      },
+      onError: ({ err }) => showSaveError(err.message),
     });
 
   // Update tool
@@ -160,9 +166,7 @@ export function ToolForm({
         redirect(`/admin/tools/${data.slug}`);
       },
 
-      onError: ({ err }) => {
-        toast.error(err.message);
-      },
+      onError: ({ err }) => showSaveError(err.message),
     });
 
   // Translate field to Vietnamese
