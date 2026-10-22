@@ -23,10 +23,13 @@ export const adSchema = z.object({
   type: z
     .enum(["Banner", "Similars", "Tools", "ToolPage", "BlogPost", "All"])
     .default("All"),
-  stepOrder: z.coerce.number().default(0),
-  listInjectionIndex: z.coerce.number().default(2),
+  // A number input holds a string until the schema coerces it
+  stepOrder: z.coerce.number<string | number>().default(0),
+  listInjectionIndex: z.coerce.number<string | number>().default(2),
   startsAt: z.date(),
   endsAt: z.date(),
 });
 
 export type AdSchema = z.infer<typeof adSchema>;
+/** What the form holds before the schema fills its defaults. */
+export type AdFormValues = z.input<typeof adSchema>;

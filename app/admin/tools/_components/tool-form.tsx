@@ -23,6 +23,7 @@ import type {
   getToolBySlug,
 } from "~/app/admin/tools/_lib/queries";
 import {
+  type ToolFormValues,
   type ToolSchema,
   toolSchema,
 } from "~/app/admin/tools/_lib/validations";
@@ -115,7 +116,7 @@ export function ToolForm({
   const router = useRouter();
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
-  const form = useForm<ToolSchema>({
+  const form = useForm<ToolFormValues, unknown, ToolSchema>({
     resolver: zodResolver(toolSchema),
     defaultValues: {
       ...nullsToUndefined(tool),
@@ -811,7 +812,7 @@ const ContentGenerator = ({
   tags: ToolFormProps["tags"];
   toolId?: string;
 }) => {
-  const form = useFormContext<ToolSchema>();
+  const form = useFormContext<ToolFormValues, unknown, ToolSchema>();
 
   const { execute: generate, isPending } = useServerAction(
     generateToolContentForForm,
@@ -879,7 +880,7 @@ const ContentGenerator = ({
  * that role see them in the chat on the tool page.
  */
 const RoleQuestionsFields = ({ toolId }: { toolId?: string }) => {
-  const form = useFormContext<ToolSchema>();
+  const form = useFormContext<ToolFormValues, unknown, ToolSchema>();
   const roles = form.watch("roles") ?? [];
 
   const { execute: suggestRoles, isPending } = useServerAction(

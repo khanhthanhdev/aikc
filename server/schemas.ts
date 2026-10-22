@@ -64,7 +64,11 @@ const honeypotSubmitSchema = z.object({
   websiteUrl: z.string().optional().default(""),
 });
 
-const realSubmitSchema = z
+/**
+ * A real submission. The form validates against this alone: errors from the
+ * union below come from its honeypot branch, not the fields people fill in.
+ */
+export const submitToolFormSchema = z
   .object({
     hp: z.string().optional().default(""),
   })
@@ -72,5 +76,5 @@ const realSubmitSchema = z
 
 export const submitToolSchema = z.union([
   honeypotSubmitSchema,
-  realSubmitSchema,
+  submitToolFormSchema,
 ]);

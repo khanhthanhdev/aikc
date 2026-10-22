@@ -19,7 +19,7 @@ import {
 import { Button } from "~/components/web/ui/button";
 import { Input } from "~/components/web/ui/input";
 import { useRouter } from "~/i18n/navigation";
-import { SUBMIT_LIMITS, submitToolSchema } from "~/server/schemas";
+import { SUBMIT_LIMITS, submitToolFormSchema } from "~/server/schemas";
 import { cx } from "~/utils/cva";
 
 export const SubmitForm = ({
@@ -29,8 +29,12 @@ export const SubmitForm = ({
   const t = useTranslations("SubmitForm");
   const router = useRouter();
 
-  const form = useForm<z.infer<typeof submitToolSchema>>({
-    resolver: zodResolver(submitToolSchema),
+  const form = useForm<
+    z.input<typeof submitToolFormSchema>,
+    unknown,
+    z.output<typeof submitToolFormSchema>
+  >({
+    resolver: zodResolver(submitToolFormSchema),
     defaultValues: {
       name: "",
       websiteUrl: "",
