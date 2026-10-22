@@ -124,3 +124,5 @@ export const toolSchema = z.object({
 });
 
 export type ToolSchema = z.infer<typeof toolSchema>;
+/** What the form holds before the schema fills its defaults. */
+export type ToolFormValues = z.input<typeof toolSchema>;

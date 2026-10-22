@@ -10,7 +10,11 @@ import { toast } from "sonner";
 import { useServerAction } from "zsa-react";
 import { createAd, updateAd } from "~/app/admin/ads/_lib/actions";
 import type { getAdById } from "~/app/admin/ads/_lib/queries";
-import { type AdSchema, adSchema } from "~/app/admin/ads/_lib/validations";
+import {
+  type AdFormValues,
+  type AdSchema,
+  adSchema,
+} from "~/app/admin/ads/_lib/validations";
 import { Button } from "~/components/admin/ui/button";
 import { Input } from "~/components/admin/ui/input";
 import {
@@ -47,7 +51,7 @@ const adTypes = [
 ] as const;
 
 export function AdForm({ children, className, ad, ...props }: AdFormProps) {
-  const form = useForm<AdSchema>({
+  const form = useForm<AdFormValues, unknown, AdSchema>({
     resolver: zodResolver(adSchema),
     defaultValues: {
       ...nullsToUndefined(ad),

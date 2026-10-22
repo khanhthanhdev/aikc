@@ -56,6 +56,11 @@ const submitToolFieldsSchema = z.object({
     .email("Invalid email address"),
 });
 
+/** The website field alone, checked when it loses focus before submit. */
+export const submitWebsiteUrlSchema = submitToolFieldsSchema.pick({
+  websiteUrl: true,
+});
+
 const honeypotSubmitSchema = z.object({
   hp: z.string().min(1),
   name: z.string().optional().default(""),
@@ -64,7 +69,11 @@ const honeypotSubmitSchema = z.object({
   websiteUrl: z.string().optional().default(""),
 });
 
-const realSubmitSchema = z
+/**
+ * A real submission. The form validates against this alone: errors from the
+ * union below come from its honeypot branch, not the fields people fill in.
+ */
+export const submitToolFormSchema = z
   .object({
     hp: z.string().optional().default(""),
   })
@@ -72,5 +81,5 @@ const realSubmitSchema = z
 
 export const submitToolSchema = z.union([
   honeypotSubmitSchema,
-  realSubmitSchema,
+  submitToolFormSchema,
 ]);

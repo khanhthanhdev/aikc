@@ -105,6 +105,8 @@
     "toolNamePlaceholder": "Acme Analytics",
     "websiteUrl": "Website URL:",
     "websiteUrlPlaceholder": "https://acmeanalytics.com",
+    "checkingUrl": "Checking the link…",
+    "urlReachable": "The link works.",
     "characterCount": "{count}/{max} characters",
     "submit": "Submit"
   },

@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { addDays, formatDate } from "date-fns";
-import { PlusIcon, TrashIcon } from "lucide-react";
+import { ExternalLinkIcon, PlusIcon, TrashIcon } from "lucide-react";
 import Link from "next/link";
 import { redirect, useRouter } from "next/navigation";
 import type React from "react";
@@ -23,11 +23,16 @@ import type {
   getToolBySlug,
 } from "~/app/admin/tools/_lib/queries";
 import {
+  type ToolFormValues,
   type ToolSchema,
   toolSchema,
 } from "~/app/admin/tools/_lib/validations";
 import { RelationSelector } from "~/components/admin/relation-selector";
-import { Button } from "~/components/admin/ui/button";
+import {
+  Button,
+  buttonAffixVariants,
+  buttonVariants,
+} from "~/components/admin/ui/button";
 import { Input } from "~/components/admin/ui/input";
 import {
   Select,
@@ -111,7 +116,7 @@ export function ToolForm({
   const router = useRouter();
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
-  const form = useForm<ToolSchema>({
+  const form = useForm<ToolFormValues, unknown, ToolSchema>({
     resolver: zodResolver(toolSchema),
     defaultValues: {
       ...nullsToUndefined(tool),
@@ -122,6 +127,14 @@ export function ToolForm({
       roleQuestions: parseRoleQuestions(tool?.roleQuestions),
     },
   });
+
+  // A failed link check also marks the Website URL field
+  const showSaveError = (message: string) => {
+    toast.error(message);
+    if (message.startsWith("Website URL")) {
+      form.setError("websiteUrl", { message });
+    }
+  };
 
   const {
     fields: socialFields,
@@ -138,9 +151,7 @@ export function ToolForm({
         redirect(`/admin/tools/${data.slug}`);
       },
 
-      onError: ({ err }) => {
-        toast.error(err.message);
-      },
+      onError: ({ err }) => showSaveError(err.message),
     });
 
   // Update tool
@@ -156,9 +167,7 @@ export function ToolForm({
         redirect(`/admin/tools/${data.slug}`);
       },
 
-      onError: ({ err }) => {
-        toast.error(err.message);
-      },
+      onError: ({ err }) => showSaveError(err.message),
     });
 
   // Translate field to Vietnamese
@@ -243,9 +252,12 @@ export function ToolForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Website URL</FormLabel>
-              <FormControl>
-                <Input placeholder="https://acmeanalytics.com" {...field} />
-              </FormControl>
+              <div className="flex gap-2">
+                <FormControl>
+                  <Input placeholder="https://acmeanalytics.com" {...field} />
+                </FormControl>
+                <OpenUrlButton url={field.value} />
+              </div>
               <FormDescription className="text-muted-foreground text-xs">
                 {form.watch("websiteUrl")?.length ?? 0}/500 characters
               </FormDescription>
@@ -260,9 +272,12 @@ export function ToolForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Affiliate URL</FormLabel>
-              <FormControl>
-                <Input placeholder={siteConfig.url} {...field} />
-              </FormControl>
+              <div className="flex gap-2">
+                <FormControl>
+                  <Input placeholder={siteConfig.url} {...field} />
+                </FormControl>
+                <OpenUrlButton url={field.value} />
+              </div>
               <FormMessage />
             </FormItem>
           )}
@@ -589,9 +604,12 @@ export function ToolForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Favicon URL</FormLabel>
-              <FormControl>
-                <Input type="url" {...field} />
-              </FormControl>
+              <div className="flex gap-2">
+                <FormControl>
+                  <Input type="url" {...field} />
+                </FormControl>
+                <OpenUrlButton url={field.value} />
+              </div>
               <FormMessage />
             </FormItem>
           )}
@@ -603,9 +621,12 @@ export function ToolForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Screenshot URL</FormLabel>
-              <FormControl>
-                <Input type="url" {...field} />
-              </FormControl>
+              <div className="flex gap-2">
+                <FormControl>
+                  <Input type="url" {...field} />
+                </FormControl>
+                <OpenUrlButton url={field.value} />
+              </div>
               <FormMessage />
             </FormItem>
           )}
@@ -639,10 +660,11 @@ export function ToolForm({
                       control={form.control}
                       name={`socials.${index}.url`}
                       render={({ field }) => (
-                        <FormItem className="flex-grow">
+                        <FormItem className="flex-grow flex-row">
                           <FormControl>
                             <Input placeholder="URL" {...field} />
                           </FormControl>
+                          <OpenUrlButton url={field.value} />
                         </FormItem>
                       )}
                     />
@@ -790,7 +812,7 @@ const ContentGenerator = ({
   tags: ToolFormProps["tags"];
   toolId?: string;
 }) => {
-  const form = useFormContext<ToolSchema>();
+  const form = useFormContext<ToolFormValues, unknown, ToolSchema>();
 
   const { execute: generate, isPending } = useServerAction(
     generateToolContentForForm,
@@ -858,7 +880,7 @@ const ContentGenerator = ({
  * that role see them in the chat on the tool page.
  */
 const RoleQuestionsFields = ({ toolId }: { toolId?: string }) => {
-  const form = useFormContext<ToolSchema>();
+  const form = useFormContext<ToolFormValues, unknown, ToolSchema>();
   const roles = form.watch("roles") ?? [];
 
   const { execute: suggestRoles, isPending } = useServerAction(
@@ -947,6 +969,41 @@ const RoleQuestionsFields = ({ toolId }: { toolId?: string }) => {
         </div>
       ))}
     </div>
+  );
+};
+
+/** Opens a URL field's link in a new tab, to check the site from the form. */
+const OpenUrlButton = ({ url }: { url?: string | null }) => {
+  const href = url?.trim();
+
+  if (!(href && /^https?:\/\//i.test(href))) {
+    return (
+      <Button
+        aria-label="Open link in a new tab"
+        disabled
+        prefix={<ExternalLinkIcon />}
+        size="md"
+        type="button"
+        variant="outline"
+      />
+    );
+  }
+
+  return (
+    <a
+      aria-label="Open link in a new tab"
+      className={buttonVariants({
+        variant: "outline",
+        size: "md",
+        isAffixOnly: true,
+      })}
+      href={href}
+      rel="noopener noreferrer"
+      target="_blank"
+      title="Open link in a new tab"
+    >
+      <ExternalLinkIcon className={buttonAffixVariants()} />
+    </a>
   );
 };
 

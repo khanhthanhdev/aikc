@@ -105,6 +105,8 @@
     "toolNamePlaceholder": "Acme Analytics",
     "websiteUrl": "URL website:",
     "websiteUrlPlaceholder": "https://acmeanalytics.com",
+    "checkingUrl": "Đang kiểm tra liên kết…",
+    "urlReachable": "Liên kết hoạt động.",
     "characterCount": "{count}/{max} ký tự",
     "submit": "Gửi"
   },

@@ -47,7 +47,7 @@
     "@aws-sdk/client-s3": "^3.685.0",
     "@aws-sdk/lib-storage": "^3.685.0",
     "@curiousleaf/utils": "^1.0.37",
-    "@hookform/resolvers": "^3.9.1",
+    "@hookform/resolvers": "^5.9.2",
     "@mdx-js/loader": "^3.1.0",
     "@mdx-js/react": "^3.1.0",
     "@mendable/firecrawl-js": "^1.7.2",
