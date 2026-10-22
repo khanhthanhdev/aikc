@@ -8,7 +8,7 @@ import {
   getClientIpFromHeaders,
   rateLimitByAddressMulti,
 } from "~/lib/rate-limit";
-import { submitToolSchema } from "~/server/schemas";
+import { submitToolSchema, submitWebsiteUrlSchema } from "~/server/schemas";
 import { prisma } from "~/services/prisma";
 import { sanitizeText, sanitizeUrl } from "~/utils/helpers";
 
@@ -56,6 +56,64 @@ const generateUniqueSlug = async (baseName: string): Promise<string> => {
     suffix++;
   }
 };
+
+/**
+ * Refuse a link visitors cannot reach: dead, parked, for sale or internal
+ */
+const assertLinkReachable = async (websiteUrl: string) => {
+  const linkValidation = await validateLink(websiteUrl);
+  if (!linkValidation.isValid) {
+    throw new SubmitError(
+      "websiteUrl",
+      linkValidation.error === "URL points to private/internal network"
+        ? "Invalid URL: cannot submit internal/private network addresses"
+        : `We couldn't reach this link: ${linkValidation.error}`
+    );
+  }
+};
+
+/**
+ * Check a website before the form allows submitting it, so the submitter
+ * sees a dead link while still on the form
+ */
+export const checkSubmitUrl = createServerAction()
+  .input(submitWebsiteUrlSchema)
+  .handler(async ({ input }) => {
+    // Per-IP check rate limit: each check fetches the site
+    if (process.env.NODE_ENV !== "development") {
+      const ip = getClientIpFromHeaders(await headers());
+      const limit = rateLimitByAddressMulti(ip, [
+        { scope: "submit-check:10min", limit: 20, windowSeconds: 10 * 60 },
+      ]);
+      if (!limit.success) {
+        throw new SubmitError(
+          "websiteUrl",
+          "Too many link checks from this IP. Please try again later."
+        );
+      }
+    }
+
+    const websiteUrl = sanitizeUrl(input.websiteUrl);
+
+    if (!websiteUrl) {
+      throw new SubmitError(
+        "websiteUrl",
+        "Invalid URL: unsafe or unsupported protocol"
+      );
+    }
+
+    // A listed tool needs no check: submitting it leads to its page
+    const existingTool = await prisma.tool.findFirst({
+      where: { websiteUrl },
+      select: { id: true },
+    });
+
+    if (!existingTool) {
+      await assertLinkReachable(websiteUrl);
+    }
+
+    return true;
+  });
 
 /**
  * Submit a tool to the database
@@ -113,15 +171,7 @@ export const submitTool = createServerAction()
     }
 
     // Validate that the link is reachable
-    const linkValidation = await validateLink(websiteUrl);
-    if (!linkValidation.isValid) {
-      throw new SubmitError(
-        "websiteUrl",
-        linkValidation.error === "URL points to private/internal network"
-          ? "Invalid URL: cannot submit internal/private network addresses"
-          : `We couldn't reach this link: ${linkValidation.error}`
-      );
-    }
+    await assertLinkReachable(websiteUrl);
 
     // Generate a unique slug
     const slug = await generateUniqueSlug(name);

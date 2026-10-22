@@ -56,6 +56,11 @@ const submitToolFieldsSchema = z.object({
     .email("Invalid email address"),
 });
 
+/** The website field alone, checked when it loses focus before submit. */
+export const submitWebsiteUrlSchema = submitToolFieldsSchema.pick({
+  websiteUrl: true,
+});
+
 const honeypotSubmitSchema = z.object({
   hp: z.string().min(1),
   name: z.string().optional().default(""),

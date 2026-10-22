@@ -2,15 +2,16 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
-import type { HTMLAttributes } from "react";
+import { type HTMLAttributes, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
 import { useServerAction } from "zsa-react";
-import { submitTool } from "~/actions/submit";
+import { checkSubmitUrl, submitTool } from "~/actions/submit";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -19,7 +20,11 @@ import {
 import { Button } from "~/components/web/ui/button";
 import { Input } from "~/components/web/ui/input";
 import { useRouter } from "~/i18n/navigation";
-import { SUBMIT_LIMITS, submitToolFormSchema } from "~/server/schemas";
+import {
+  SUBMIT_LIMITS,
+  submitToolFormSchema,
+  submitWebsiteUrlSchema,
+} from "~/server/schemas";
 import { cx } from "~/utils/cva";
 
 export const SubmitForm = ({
@@ -43,6 +48,31 @@ export const SubmitForm = ({
       hp: "",
     },
   });
+
+  // The last link checked and why it failed, so a blur does not refetch it
+  const [urlCheck, setUrlCheck] = useState<{ url: string; error?: string }>();
+  const { execute: executeUrlCheck, isPending: isCheckingUrl } =
+    useServerAction(checkSubmitUrl);
+  const websiteUrl = form.watch("websiteUrl").trim();
+  const isUrlReachable = urlCheck?.url === websiteUrl && !urlCheck.error;
+
+  /** Check that the website is up; submit waits on this. */
+  const verifyUrl = async (url: string) => {
+    let check = urlCheck?.url === url ? urlCheck : undefined;
+
+    if (!check) {
+      const [, err] = await executeUrlCheck({ websiteUrl: url });
+      const error = err ? err.message || t("submitFailed") : undefined;
+      check = { url, error };
+      setUrlCheck(check);
+    }
+
+    if (check.error) {
+      form.setError("websiteUrl", { type: "server", message: check.error });
+    }
+
+    return !check.error;
+  };
 
   const { execute, isPending } = useServerAction(submitTool, {
     onSuccess: ({ data }) => {
@@ -94,7 +124,23 @@ export const SubmitForm = ({
       <form
         className={cx("grid w-full gap-5 sm:grid-cols-2", className)}
         noValidate
-        onSubmit={form.handleSubmit((data) => execute(data))}
+        onSubmit={form.handleSubmit(
+          async (data) => {
+            if (!(data.hp || (await verifyUrl(data.websiteUrl)))) {
+              return;
+            }
+            execute(data);
+          },
+          // Validation clears a dead link's error; show it with the others
+          () => {
+            if (urlCheck?.url === websiteUrl && urlCheck.error) {
+              form.setError("websiteUrl", {
+                type: "server",
+                message: urlCheck.error,
+              });
+            }
+          }
+        )}
         {...props}
       >
         <FormField
@@ -171,8 +217,26 @@ export const SubmitForm = ({
                   size="lg"
                   type="url"
                   {...field}
+                  onBlur={() => {
+                    field.onBlur();
+                    // Only a well-formed URL is worth a request
+                    const url = submitWebsiteUrlSchema.safeParse({
+                      websiteUrl: field.value,
+                    });
+                    if (url.success) {
+                      verifyUrl(url.data.websiteUrl);
+                    }
+                  }}
                 />
               </FormControl>
+              {isCheckingUrl && (
+                <FormDescription>{t("checkingUrl")}</FormDescription>
+              )}
+              {!isCheckingUrl && isUrlReachable && (
+                <FormDescription className="text-green-600 dark:text-green-500">
+                  {t("urlReachable")}
+                </FormDescription>
+              )}
               <FormMessage />
             </FormItem>
           )}
@@ -201,8 +265,8 @@ export const SubmitForm = ({
         <div className="col-span-full">
           <Button
             className="flex min-w-32"
-            disabled={isPending}
-            isPending={isPending}
+            disabled={isPending || isCheckingUrl}
+            isPending={isPending || isCheckingUrl}
             variant="primary"
           >
             {t("submit")}
