@@ -115,7 +115,8 @@ export const toolSchema = z.object({
     .string()
     .max(100, "Pricing Vi must be less than 100 characters")
     .optional(),
-  publishedAt: z.date().optional(),
+  // null = cleared in the form: the tool goes back to Draft
+  publishedAt: z.date().nullish(),
   categories: z.array(z.string()).optional(),
   tags: z.array(z.string()).optional(),
   roles: z.array(z.enum(userRoles)).optional(),

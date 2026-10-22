@@ -140,11 +140,17 @@ export const updateTool = authedProcedure
       revalidatePath(`/admin/tools/${tool.slug}`);
       revalidatePublicToolCaches("tools");
 
-      // Sync to Qdrant vector store
-      await upsertHybridToolVector(tool);
-      log.info(`Vector synced for updated tool: ${tool.slug}`);
-
       const publishedAt = tool.publishedAt;
+
+      // Sync to Qdrant vector store; a draft leaves it, as the link checker
+      // does, and publishing it again indexes it again
+      if (publishedAt) {
+        await upsertHybridToolVector(tool);
+        log.info(`Vector synced for updated tool: ${tool.slug}`);
+      } else {
+        await deleteHybridToolVector(tool.id);
+        log.info(`Vector removed for draft tool: ${tool.slug}`);
+      }
 
       if (
         publishedAt &&
