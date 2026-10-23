@@ -71,6 +71,12 @@ const trustPageContent: Record<TrustPageName, LocalizedTrustPageContent> = {
         ],
       },
       {
+        heading: "Visit statistics",
+        paragraphs: [
+          "To count how many people use the site, each page you open is recorded with two random codes kept in cookies in your browser: one that tells browsers apart, and one for the current visit that expires after 30 minutes of inactivity. Neither is linked to your name, email, or network address. Alongside them we store the page and its title, its language, how long the page was open in the foreground, the type of device, browser, and operating system, and your approximate country as our network provider estimates it. We do not store your network address.",
+        ],
+      },
+      {
         heading: "Use, links, and retention",
         paragraphs: [
           "Information supplied for a directory request is used to respond, review the request, improve listing accuracy, and keep the service secure. AI Knowledge Cloud links to independent tool providers; their websites, accounts, payments, and privacy practices are governed by their own terms. Review a provider's policy before sharing information or creating an account there. If you need to ask about information connected to an AI Knowledge Cloud request, email hello@aikc.vn with enough detail to identify the request without sending unnecessary sensitive data.",
@@ -94,6 +100,12 @@ const trustPageContent: Record<TrustPageName, LocalizedTrustPageContent> = {
         heading: "Trợ lý AI",
         paragraphs: [
           "Câu hỏi gửi cho trợ lý AI được lưu kèm một mã khách truy cập ẩn danh, là mã một chiều tạo từ địa chỉ mạng chứ không phải chính địa chỉ đó, để chúng tôi đo mức độ sử dụng trợ lý và cải thiện câu trả lời. Vui lòng không đưa thông tin cá nhân vào câu hỏi.",
+        ],
+      },
+      {
+        heading: "Thống kê lượt truy cập",
+        paragraphs: [
+          "Để biết có bao nhiêu người sử dụng website, mỗi trang bạn mở được ghi nhận kèm hai mã ngẫu nhiên lưu trong cookie của trình duyệt: một mã để phân biệt các trình duyệt, và một mã cho lượt truy cập hiện tại, hết hạn sau 30 phút không hoạt động. Không mã nào gắn với tên, email hay địa chỉ mạng của bạn. Cùng với mã, chúng tôi lưu trang đã xem và tiêu đề trang, ngôn ngữ, thời gian trang được mở ở chế độ hiển thị, loại thiết bị, trình duyệt và hệ điều hành, cùng quốc gia gần đúng do nhà cung cấp mạng của chúng tôi ước tính. Chúng tôi không lưu địa chỉ mạng của bạn.",
         ],
       },
       {

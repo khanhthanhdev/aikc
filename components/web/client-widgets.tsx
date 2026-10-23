@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { PageViewTracker } from "~/components/web/page-view-tracker";
 
 const AIChatWidget = dynamic(
   () => import("~/components/web/ai-chat").then((mod) => mod.AIChatWidget),
@@ -31,6 +32,7 @@ export function ClientWidgets() {
       <AIChatWidget />
       <CommandPalette />
       <RoleDialog />
+      <PageViewTracker />
     </>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ChartColumnIcon,
   FlagIcon,
   GemIcon,
   GlobeIcon,
@@ -116,6 +117,11 @@ export function Shell({
                 // Only open reports need attention, so hide a zero count.
                 label: stats[3] ? stats[3].toString() : undefined,
                 prefix: <FlagIcon />,
+              },
+              {
+                title: "Analytics",
+                href: "/admin/analytics",
+                prefix: <ChartColumnIcon />,
               },
               {
                 title: "AI Logs",
