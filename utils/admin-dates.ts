@@ -10,7 +10,7 @@ const ADMIN_TIME_ZONE = "Asia/Ho_Chi_Minh";
 const ADMIN_UTC_OFFSET = "+07:00";
 
 /** `yyyy-MM-dd` of an instant, as the day is called in admin time. */
-const toAdminDay = (date: Date) =>
+export const toAdminDay = (date: Date) =>
   new Intl.DateTimeFormat("en-CA", { timeZone: ADMIN_TIME_ZONE }).format(date);
 
 type Day = string | Date;
