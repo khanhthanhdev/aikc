@@ -1,4 +1,6 @@
-FROM oven/bun:1 AS base
+# Pinned: bun.lock is written by this version, and newer Bun releases can
+# reject it under --frozen-lockfile (1.4.4 does)
+FROM oven/bun:1.4.2 AS base
 
 # ------- Dependencies -------
 FROM base AS deps
